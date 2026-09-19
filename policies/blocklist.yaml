@@ -1,0 +1,13 @@
+version: 1
+blocked_phrases:
+  - "vui lòng xem xét"
+  - "kiểm tra lại"
+  - "xử lý giúp"
+  - "nhờ anh/chị xem"
+  - "nhờ anh/chị xem xét"
+  - "please review"
+  - "kindly check"
+  - "cần xem xét thêm"
+  - "nhờ xem xét"
+  - "xem xét giúp"
+  - "hỗ trợ xem xét"

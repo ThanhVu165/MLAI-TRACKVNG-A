@@ -1,0 +1,30 @@
+version: 1
+priority_order:
+  - id: P01
+    when: "decision_lock == 'AUTHORITY_REQUIRED'"
+    decision: ESCALATE
+    type: AUTHORITY_REQUIRED
+    reason_vi: "Yêu cầu chạm tới hồ sơ cá nhân, xin ngoại lệ, khiếu nại hoặc cần phê duyệt."
+
+  - id: P02
+    when: "evidence_status in ['no_authoritative_source','authority_content','conflicting_sources','unsupported_domain']"
+    decision: ESCALATE
+    type: OUT_OF_POLICY
+    reason_vi: "Không có căn cứ quy định đang hiệu lực cho nội dung này, hoặc các quy định mâu thuẫn nhau."
+
+  - id: P03
+    when: "evidence_status in ['fact_missing','scope_mismatch']"
+    decision: ESCALATE
+    type: FACT_UNRESOLVED
+    reason_vi: "Thiếu dữ kiện bắt buộc để áp dụng quy định."
+
+  - id: P04
+    when: "llm_error or parse_error or timeout or guard_failed"
+    decision: ESCALATE
+    type: FACT_UNRESOLVED
+    reason_vi: "Hệ thống không hoàn tất được bước xử lý nên dừng lại thay vì phỏng đoán."
+
+  - id: P05
+    else: true
+    decision: AUTO_REPLY
+    reason_vi: "Câu hỏi thường quy, có căn cứ quy định đang hiệu lực và đã được mở quyền trả lời tự động."
