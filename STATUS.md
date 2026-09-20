@@ -30,5 +30,6 @@
 - `[H+67][Agent B] xong B-18 và hoàn thành làn B (corpus.api dùng hybrid index trên SQLite khi infra sẵn sàng, không trả chunk SUPERSEDED, DB rỗng fail-safe; sửa rollback hạ bản thay thế và buộc duyệt lại sau mọi chỉnh sửa) · 6 tài liệu/54 chunk/59% auto_answerable · 139/139 test passed · Black, Ruff, mypy sạch`
 - `[H+68][Agent C] xong C-01 (README, dependencies ghim phiên bản, make check, ignore secrets/cache, cấu hình Streamlit) · 139/139 test passed · tiếp tục C-02`
 - `[H+69][Agent C] xong C-02 (SQLite tự migration, WAL + busy timeout, helper truy vấn, UTC Z và +07:00) · kiểm thử ghi đồng thời xanh · tiếp tục C-03`
+- `[H+70][Agent C] xong C-03 (đủ 10 ngưỡng có tên, comment và override từ biến môi trường) · test cấu hình xanh · tiếp tục C-04`
 
 
