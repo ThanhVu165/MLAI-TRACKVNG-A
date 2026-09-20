@@ -1,0 +1,38 @@
+[
+  {
+    "id": "V01",
+    "input": {"sender": "sv.k48@example.edu.vn", "subject": "Sinh viên tự đánh giá trên cổng thông tin", "body": "Em là sinh viên K48. Cho em hỏi sinh viên tự đánh giá điểm rèn luyện trên cổng thông tin trong 14 ngày kể từ ngày mở đợt như thế nào ạ?"},
+    "expected_decision": "AUTO_REPLY",
+    "expected_type": null,
+    "expected_rule_id": "P05",
+    "rationale": "QĐ 3150/2026 Điều 6 quy định sinh viên tự đánh giá trên cổng thông tin; câu hỏi có khóa và học kỳ nên áp dụng được điều khoản chuyển tiếp.",
+    "how_to_run": "python -m verify.harness --set verify4"
+  },
+  {
+    "id": "V02",
+    "input": {"sender": "student@example.edu.vn", "subject": "Course withdrawal under Decision 20/2026", "body": "Under Decision 20/2026, is the course withdrawal deadline 30/10/2026, and should I submit the form through the online student portal?"},
+    "expected_decision": "AUTO_REPLY",
+    "expected_type": null,
+    "expected_rule_id": "P05",
+    "rationale": "QĐ 20/2026 Điều 5 quy định hạn và cách nộp đơn rút học phần trực tuyến.",
+    "how_to_run": "python -m verify.harness --set verify4"
+  },
+  {
+    "id": "V03",
+    "input": {"sender": "sv.demo@example.edu.vn", "subject": "Xin nộp phúc khảo trễ", "body": "Em nằm viện nên đã quá hạn 7 ngày, kính xin thầy cô cho em nộp đơn phúc khảo trễ và duyệt ngoại lệ giúp em ạ."},
+    "expected_decision": "ESCALATE",
+    "expected_type": "AUTHORITY_REQUIRED",
+    "expected_rule_id": "P01",
+    "rationale": "HD 08/2026 Điều 2 đặt hạn 7 ngày; yêu cầu nộp trễ là xin ngoại lệ cần người có thẩm quyền quyết định.",
+    "how_to_run": "python -m verify.harness --set verify4"
+  },
+  {
+    "id": "V04",
+    "input": {"sender": "sv.demo@example.edu.vn", "subject": "Đăng ký ký túc xá", "body": "Cho em hỏi thủ tục đăng ký phòng ký túc xá khu B năm học mới và mức phí mỗi tháng là bao nhiêu ạ?"},
+    "expected_decision": "ESCALATE",
+    "expected_type": "OUT_OF_POLICY",
+    "expected_rule_id": "P02",
+    "rationale": "Corpus Sprint 1 chỉ gồm điểm rèn luyện, rút học phần và phúc khảo; ký túc xá nằm ngoài phạm vi.",
+    "how_to_run": "python -m verify.harness --set verify4"
+  }
+]

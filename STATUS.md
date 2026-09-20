@@ -34,5 +34,26 @@
 - `[H+71][Agent C] xong C-04 (Gemini JSON qua REST, live/replay/record, cache SQLite, timeout + retry một lần, latency và prompt hash, không ném lỗi) · test wrapper xanh · tiếp tục C-05`
 - `[H+72][Agent C] xong C-05 (ACTIONS đóng, actor chuẩn hóa, bắt buộc lý do cho 4 hành động nhạy cảm, truy vấn audit theo case/gần đây) · test audit xanh · tiếp tục C-06`
 - `[H+73][Agent C] xong C-06 (telemetry tính trực tiếp từ DB: quyết định, escalation, latency, review, override, groundedness và Verify) · test đếm tay xanh · tiếp tục C-07`
+- `[H+74][Agent C] xong C-07 (homepage một hướng dẫn, xử lý email trực tiếp, banner mô phỏng và điều hướng 6 màn hình) · kiểm tra cú pháp xanh · tiếp tục C-08`
+- `[H+75][Agent C] xong C-08 (một SVG dùng chung cho homepage và Slide 2, đánh dấu hai điểm con người quyết định) · tiếp tục C-09`
+- `[H+76][Agent C] xong C-09 (paste và hộp thư mô phỏng cùng gọi process_case, có chỉ báo R1–R13 và thời gian xử lý) · tiếp tục C-10`
+- `[H+77][Agent C] xong C-10 (huy hiệu quyết định, rule/reason, bản nháp, breadcrumb mở rộng, corpus version và liên kết audit) · tiếp tục C-11`
+- `[H+78][Agent C] xong C-11 (deadline đọc từ DB, Hủy gửi/Chuyển cho người, khóa sau SENT và tạo email đính chính) · 6 test dispatch/resume passed · tiếp tục C-12`
+- `[H+79][Agent C] xong C-12 (thẻ 4 khối, tên loại chuyển tiếp tiếng Việt, phương án chọn và partial draft) · tiếp tục C-13`
+- `[H+80][Agent C] xong C-13 (hàng chờ theo thời gian, lý do bắt buộc, shown_at/decided_at/review_seconds và audit nguyên văn) · tiếp tục C-14`
+- `[H+81][Agent C] xong C-14 (xem trước, cảnh báo guard, Duyệt và gửi/Sửa nội dung/Trả lại; không có đường tự gửi escalation) · tiếp tục C-15`
+- `[H+82][Agent C] xong C-15 (nút giải thích dễ hiểu trên trang xử lý, hàng chờ và audit; ghi EXPLAIN_REQUESTED) · tiếp tục C-16`
+- `[H+83][Agent C] xong C-16 (audit mới nhất trước, lọc case/actor/action/ngày, chi tiết 4 câu hỏi và deep link theo case) · tiếp tục C-17`
+- `[H+84][Agent C] xong C-17 (Pause/Resume, Override bắt buộc lý do, Rerun có diff; thanh bên luôn hiện và ghi actor ADMIN) · tiếp tục C-18`
+- `[H+85][Agent C] xong C-18 (CLI tuần tự gọi process_case channel=verify, kiểm tra decision/type/citation ACTIVE, audit đầu-cuối, đo thời gian) · CLI exit 0 và test ma trận xanh; baseline hiện 1/4 PASS do replay chưa có cassette · tiếp tục C-19`
+- `[H+86][Agent C] C-19 WIP: nút Verify 4 và replay cassette đã chạy dưới 60s, hiện 2/4 PASS · chặn bởi retrieval trả chunk human_only/conflict cho case thường quy khiến Evidence Validator hạ AUTO thành OUT_OF_POLICY; không tạo đường Verify riêng · chuyển C-20/C-22 song song`
+- `[H+87][Agent C] C-20 WIP: nút 5 case, cột câu hỏi và cassette đã chạy tuần tự, hiện 1/5 PASS · cùng blocker retrieval/evidence của C-19; tiếp tục C-21/C-22`
+- `[H+88][Agent C] C-21 WIP: Run All 15 chạy tuần tự, ma trận 4 lớp và hai tỷ lệ đã test khớp đếm tay; thực tế 8/15 PASS · chặn bởi C-19/C-20 retrieval/evidence · tiếp tục C-22`
+- `[H+89][Agent C] xong C-22 (bảng đủ trường bắt buộc, timestamp +07:00, deep link audit từng case và tải JSON) · tiếp tục C-23`
+- `[H+90][Agent C] xong C-23 (trang đo lường tách hiệu quả/rủi ro, hiện công thức cạnh số và cảnh báo dữ liệu nội bộ giả lập) · tiếp tục C-24`
+- `[H+91][Agent C] xong C-24 (12 email giả lập: 5 thường quy, đủ 3 loại escalation, đa ý định, English, ngoài domain, injection; toàn bộ is_synthetic) · tiếp tục C-25`
+- `[H+92][Agent C] C-25 WIP: đủ verify4/escalation5/full15, mỗi case có 7 trường và rationale theo tài liệu seed; generator tạo replay cassette · chờ Agent A duyệt A-26 và blocker retrieval của C-19`
+- `[H+93][Agent C] C-26 WIP: cấu hình Community Cloud, dependency pin và mẫu Secrets đã sẵn sàng · chưa deploy vì S-06 chưa đạt khi Verify còn đỏ và chưa có phiên Streamlit Cloud đã đăng nhập`
+- `[H+94][Agent C] fix C-05/C-17: adapter 5 tên audit cũ từ Runtime sang danh mục action đóng, không đổi contract sau feature freeze · 11 test audit passed · C-19/C-20 vẫn chặn bởi retrieval/evidence`
 
 

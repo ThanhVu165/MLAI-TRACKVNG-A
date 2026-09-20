@@ -446,140 +446,140 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 4 (Slide 3, Slide 5) · 5
 
 ### C-07 · Trang chủ
-- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-01 · **Trạng thái:** `WIP`
+- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-01 · **Trạng thái:** `DONE`
 - **File:** `streamlit_app.py`
 - **Việc phải làm:** Dòng đầu tiên là **một câu hướng dẫn duy nhất**: *"Dán email sinh viên vào ô bên dưới và bấm Xử lý."* Ngay dưới là ô nhập và nút. Banner cố định *"Chế độ mô phỏng — hệ thống không gửi email thật."* Thanh bên liệt kê 6 trang bằng tiếng Việt. Không đăng nhập, không modal, không onboarding.
 - **Xong khi:** Người lạ mở URL và biết phải làm gì trong 5 giây. **Giám khảo không xác định được thao tác cần làm = 0 điểm cho tiêu chí 1.**
 - **Tiêu chí:** 1 (10đ)
 
 ### C-08 · Sơ đồ Slide 2 in trên trang chủ
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** A-21
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** A-21 · **Trạng thái:** `DONE`
 - **File:** `docs/slide2_flow.svg`, `streamlit_app.py`
 - **Việc phải làm:** Vẽ sơ đồ Đầu vào → Xử lý → Đầu ra, **đánh dấu rõ hai điểm con người ra quyết định**: (1) quyết định case escalation, (2) duyệt trước khi gửi. Nhúng SVG ngay trên trang chủ, đúng nguyên văn hình dùng cho Slide 2.
 - **Xong khi:** Giám khảo đặt Slide 2 cạnh màn hình và thấy **khớp từng điểm**. Sơ đồ khác hệ thống thật là mất 6 điểm.
 - **Tiêu chí:** 6 (6đ ranh giới quyết định)
 
 ### C-09 · Trang 1 — Xử lý email
-- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-07, A-21
+- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-07, A-21 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`
 - **Việc phải làm:** Hai đường vào: ô dán văn bản và hộp thư mô phỏng chọn từ `seed_inbox.json`. Cả hai gọi **cùng** `process_case()`. Hiển thị tiến trình theo bước (R1…R13) khi đang chạy. Thời gian xử lý hiển thị rõ.
 - **Xong khi:** Dán một email bất kỳ và nhận kết quả trong dưới 15 giây, có chỉ báo tiến trình chứ không phải màn hình treo.
 - **Tiêu chí:** 1 · 3
 
 ### C-10 · Màn hình kết quả nhánh tự động
-- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-09
+- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-09 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`
 - **Việc phải làm:** Huy hiệu quyết định (`Trả lời tự động` / `Chuyển tiếp`), `rule_id` và `reason` bằng tiếng Việt, nội dung email nháp, **danh sách trích dẫn có breadcrumb đầy đủ** và mở rộng được để xem nguyên văn điều khoản, `corpus_version`, liên kết sang audit log của case.
 - **Xong khi:** Giám khảo đọc màn hình này và biết ngay hệ thống dựa vào điều khoản nào để trả lời.
 - **Tiêu chí:** 6 · 2
 
 ### C-11 · Đồng hồ 60 giây và nút dừng
-- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-10, A-19
+- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-10, A-19 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`
 - **Việc phải làm:** Hiển thị đếm ngược đọc từ mốc hết hạn **trong DB** (không phải timer phía client). Hai nút: **Hủy gửi** và **Chuyển cho người**. Sau khi hết giờ đổi sang trạng thái `Đã gửi (mô phỏng)` và khóa nút. Có màn hình tạo Correction Email cho case đã gửi.
 - **Xong khi:** Giám khảo bấm Hủy gửi và thấy trạng thái đổi thật, audit ghi actor là người. **Đây là nút thật cho 4 điểm can thiệp dừng.**
 - **Tiêu chí:** 6 (4đ)
 
 ### C-12 · Thẻ escalation bốn khối
-- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-09, A-17
+- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-09, A-17 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`, `pages/2_Hang_cho_duyet.py`
 - **Việc phải làm:** Trình bày đúng bốn khối: Tóm tắt · Dữ kiện · Căn cứ (breadcrumb bấm được) · Câu hỏi + các phương án dạng nút chọn. Hiển thị `escalation_type` bằng tiếng Việt dễ hiểu (*Thiếu dữ kiện* / *Ngoài phạm vi quy định* / *Cần phê duyệt*). Nếu có `partial_draft` thì hiện khối *"Phần A đã soạn sẵn"*.
 - **Xong khi:** Chuyên viên đọc thẻ và quyết được **chỉ bằng một lần chọn phương án**, không phải mở hồ sơ gốc.
 - **Tiêu chí:** 7 (6đ)
 
 ### C-13 · Trang 2 — Hàng chờ duyệt
-- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-12
+- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-12 · **Trạng thái:** `DONE`
 - **File:** `pages/2_Hang_cho_duyet.py`
 - **Việc phải làm:** Danh sách case `AWAITING_HUMAN` sắp theo thời gian chờ; mở một case hiện thẻ bốn khối; form quyết định: Chấp thuận / Từ chối / Quyết định khác, **bắt buộc nhập lý do** (không cho submit khi rỗng). Ghi `shown_at` khi mở thẻ và `decided_at` khi bấm — đây là nguyên liệu cho `median_review_seconds`.
 - **Xong khi:** Không thể quyết định mà không nhập lý do; lý do này xuất hiện nguyên văn trong audit log.
 - **Tiêu chí:** 6 · 5 (telemetry ỷ lại nhận thức)
 
 ### C-14 · Màn hình Xem trước và Duyệt gửi
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-13, A-20
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-13, A-20 · **Trạng thái:** `DONE`
 - **File:** `pages/2_Hang_cho_duyet.py`
 - **Việc phải làm:** Sau khi người quyết định, hiển thị email do AI diễn đạt lại kèm cảnh báo nếu Ground Guard rút gọn có phát hiện. Ba nút: **Duyệt và gửi** · **Sửa nội dung** · **Trả lại hàng chờ**. Với case escalation, **con người luôn là người bấm gửi**.
 - **Xong khi:** Không tồn tại đường nào để case escalation tự gửi mà không có thao tác của người.
 - **Tiêu chí:** 6
 
 ### C-15 · Nút "Giải thích cho người không chuyên"
-- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** A-23
+- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** A-23 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`, `pages/2_Hang_cho_duyet.py`, `pages/4_Nhat_ky_kiem_toan.py`
 - **Việc phải làm:** Nút hiện ở cả ba nơi, gọi `explain_plainly(case_id)`, hiển thị trong khung riêng dễ đọc. Ghi audit `EXPLAIN_REQUESTED`.
 - **Xong khi:** Giám khảo chuyên môn (không phải kỹ thuật) đọc và hiểu ngay vì sao hệ thống quyết định như vậy.
 - **Tiêu chí:** 6 (4đ)
 
 ### C-16 · Trang 4 — Nhật ký kiểm toán
-- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** C-05
+- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** C-05 · **Trạng thái:** `DONE`
 - **File:** `pages/4_Nhat_ky_kiem_toan.py`
 - **Việc phải làm:** Bảng mọi event sắp theo thời gian giảm dần, lọc theo `case_id`, `actor`, `action`, khoảng thời gian. Mỗi dòng mở rộng hiện đủ: **làm gì · lúc nào (+07:00) · trên dữ liệu nào (input_ref, sources) · vì lý do gì (reason) · theo luật nào (rule_id) · trên phiên bản corpus nào**. Bao gồm cả hành động quản trị và hành động corpus. Liên kết sâu từ mọi màn hình khác về đây.
 - **Xong khi:** Giám khảo chọn **một hành động bất kỳ** — kể cả `ACTIVATE_SOURCE` hay `PAUSE_AUTOMATION` — và tra được đủ bốn thông tin trong dưới 20 giây.
 - **Tiêu chí:** 6 (6đ) · chặng 6:30–7:30 của buổi chấm
 
 ### C-17 · Thanh điều khiển toàn cục
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** A-22
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** A-22 · **Trạng thái:** `DONE`
 - **File:** `streamlit_app.py` (thanh bên), `pages/4_Nhat_ky_kiem_toan.py`
 - **Việc phải làm:** Bốn điều khiển luôn nhìn thấy: **Tạm dừng tự động** (có chỉ báo trạng thái rõ) · **Tiếp tục** · **Ghi đè quyết định** (chọn case, đổi chiều, bắt buộc lý do) · **Chạy lại case** (hiện bảng diff hai lần chạy). Mọi thao tác ghi audit với actor `ADMIN`.
 - **Xong khi:** Bật Tạm dừng rồi xử lý một email thường quy → case dừng ở hàng chờ, banner hiện rõ đang tạm dừng.
 - **Tiêu chí:** 6 (4đ)
 
 ### C-18 · `verify/harness.py` — lõi chạy kiểm thử
-- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** A-21
+- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** A-21 · **Trạng thái:** `DONE`
 - **File:** `verify/harness.py`
 - **Việc phải làm:** Đọc file case JSON; với mỗi case gọi `core.pipeline.process_case()` với `channel="verify"`; so `actual` với `expected` theo ba trường (`decision`, `escalation_type`, và với case AUTO thì `có ≥1 citation ACTIVE`); đo thời gian từng case; ghi audit `VERIFY_RUN_STARTED` / `VERIFY_RUN_FINISHED`; chạy **tuần tự** để tránh SQLite lock.
 - **Xong khi:** `python -m verify.harness --set verify4` chạy được từ dòng lệnh và in bảng. **Không có mock, không có nhánh riêng cho Verify** — `tests/test_harness.py` khẳng định điều này.
 - **Tiêu chí:** 2 (12đ) · tính trung thực
 
 ### C-19 · Nút 1 — Chạy Verify 4 trường hợp
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Một nút duy nhất chạy tuần tự V01–V04 và in bảng kết quả. **Không gộp với bộ 5 case** — tiêu chí 2 chấm riêng bộ này, và Giai đoạn 0 đếm *"đủ 4 trường hợp kiểm thử với ít nhất 1 trường hợp từ chối"*.
 - **Xong khi:** Một cú bấm, dưới 60 giây, bảng hiện đủ 4 dòng PASS. V03 là case từ chối bắt buộc.
 - **Tiêu chí:** 2 (12đ) · Giai đoạn 0
 
 ### C-20 · Nút 2 — Chạy kiểm tra chuyển tiếp 5 trường hợp
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Nút riêng chạy E01–E05, bảng có **thêm cột hiển thị nguyên văn câu hỏi chuyển tiếp** để giám khảo đọc trực tiếp mà không phải mở từng case. Hiển thị rõ 3 case xử lý tự động và 2 case chuyển tiếp kèm phân loại.
 - **Xong khi:** Giám khảo bấm một nút và trong 90 giây thấy đủ: case nào tự động, case nào chuyển tiếp, loại chuyển tiếp, và câu hỏi tương ứng.
 - **Tiêu chí:** 7 (20đ, bài kiểm tra nhanh 90 giây)
 
 ### C-21 · Nút 3 — Chạy toàn bộ 15 trường hợp
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-19, C-20
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-19, C-20 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Chạy cả 15 case, in **ma trận nhầm lẫn 4 lớp** (`AUTO_REPLY` + 3 loại escalation) và hai chỉ số: **tỷ lệ escalation bị bỏ sót** và **tỷ lệ escalate thừa**. Đây là dữ liệu nền cho Sprint 2.
 - **Xong khi:** Ma trận hiển thị đúng, hai chỉ số khớp với đếm tay trên bảng kết quả.
 - **Tiêu chí:** 7 · chuẩn bị Sprint 2
 
 ### C-22 · Bảng kết quả chuẩn và xuất JSON
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18 · **Trạng thái:** `DONE`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Mỗi dòng đủ: `case_id` · tóm tắt input · expected · actual · `rule_id` · PASS/FAIL · thời gian chạy (ms) · **timestamp ISO có `+07:00`** · `corpus_version` · liên kết **Xem audit log**. Thêm nút **Xuất JSON** tải toàn bộ kết quả.
 - **Xong khi:** Bảng có dấu thời gian thật (không phải cứng), và bấm vào một dòng đi thẳng tới audit của case đó.
 - **Tiêu chí:** 2 (bảng có dấu thời gian là yêu cầu tường minh)
 
 ### C-23 · Trang 6 — Đo lường
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-06
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-06 · **Trạng thái:** `DONE`
 - **File:** `pages/6_Do_luong.py`
 - **Việc phải làm:** Hiển thị 8 chỉ số Mục 11.1 spec kèm **định nghĩa công thức ngay cạnh mỗi con số**. Tách rõ hai nhóm: *chỉ số hiệu quả* và *chỉ số rủi ro* (`pct_approved_under_5s`, `override_rate`, `groundedness_fail_rate`). Ghi rõ dữ liệu hiện tại là từ chạy nội bộ, chưa phải người dùng thật.
 - **Xong khi:** Ảnh chụp trang này dùng trực tiếp được cho Slide 3 và Slide 5. **Khẳng định hiệu quả không kèm phương pháp sẽ không được công nhận** — nên công thức phải hiện ngay trên màn hình.
 - **Tiêu chí:** 4 · 5
 
 ### C-24 · Hộp thư mô phỏng 12 email
-- **Khối:** B2 · **Ước lượng:** 1.5h · **Phụ thuộc:** —
+- **Khối:** B2 · **Ước lượng:** 1.5h · **Phụ thuộc:** — · **Trạng thái:** `DONE`
 - **File:** `data/seed_inbox.json`
 - **Việc phải làm:** 12 email đa dạng: 5 thường quy, 3 escalation ba loại khác nhau, 1 đa ý định, 1 tiếng Anh, 1 ngoài domain, 1 chứa câu lệnh injection. Văn phong như sinh viên viết thật (viết tắt, thiếu dấu, dài dòng). Mọi tên và MSSV đều hư cấu, đánh dấu `is_synthetic: true`.
 - **Xong khi:** Giám khảo có thể bấm chọn một email mẫu và chạy ngay, không cần tự soạn.
 - **Tiêu chí:** 1 · Quy định về dữ liệu
 
 ### C-25 · Bộ 15 trường hợp kiểm thử
-- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-15 · **A-26 duyệt**
+- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-15 · **A-26 duyệt** · **Trạng thái:** `WIP - CHỜ A-26`
 - **File:** `verify/cases_verify4.json`, `verify/cases_escalation5.json`, `verify/cases_full15.json`
 - **Việc phải làm:** Soạn theo đúng bảng Mục 10.1–10.3 spec. Mỗi case có: `id`, `input` (email đầy đủ), `expected_decision`, `expected_type`, `expected_rule_id`, `rationale` (**căn cứ điều khoản nào trong tài liệu quy định của đội**), `how_to_run`. 15 case phải phủ: 3 loại escalation, tiếng Anh, ngoài domain, đa ý định, input rác, injection.
 - **Xong khi:** Agent A duyệt xong A-26; mỗi kỳ vọng truy được về một điều khoản cụ thể chứ không phải về hành vi hiện tại của code.
 - **Tiêu chí:** 2 · 7 · Giai đoạn 0
 
 ### C-26 · Triển khai lên Streamlit Cloud
-- **Khối:** B5 · **Ước lượng:** 2.5h · **Phụ thuộc:** S-06
+- **Khối:** B5 · **Ước lượng:** 2.5h · **Phụ thuộc:** S-06 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `.streamlit/config.toml`, `RUNBOOK.md`
 - **Việc phải làm:** Deploy public, **không login**; khóa API đặt trong Secrets, không trong repo; seed corpus tự chạy khi DB trống; giảm kích thước model embedding để vừa giới hạn bộ nhớ; ping giữ ấm chống cold start; kiểm tra trên **điện thoại** và trên trình duyệt ẩn danh.
 - **Xong khi:** Mở URL ở cửa sổ ẩn danh, chưa từng đăng nhập, tải xong dưới 10 giây và chạy được một case. **Liên kết lỗi = 0 điểm tiêu chí 1 và không đủ điều kiện vào chung kết.**

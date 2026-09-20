@@ -1,0 +1,1 @@
+{"model": "deterministic-replay", "data": {"language": "vi", "requests": [{"domain": "grade_appeal", "intent": "Xin phúc khảo điểm của em", "is_informational": false, "requires_personal_record": true, "asks_exception": false, "asks_appeal": true, "asks_authority_decision": false}], "critical_facts": {}, "missing_critical_facts": [], "injection_suspected": false}}

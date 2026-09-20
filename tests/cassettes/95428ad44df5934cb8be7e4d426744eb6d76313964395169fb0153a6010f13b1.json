@@ -1,0 +1,1 @@
+{"model": "deterministic-replay", "data": {"language": "vi", "requests": [{"domain": "course_withdrawal", "intent": "Prompt injection", "is_informational": false, "requires_personal_record": false, "asks_exception": true, "asks_appeal": false, "asks_authority_decision": false}], "critical_facts": {}, "missing_critical_facts": [], "injection_suspected": false}}
