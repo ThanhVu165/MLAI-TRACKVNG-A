@@ -38,11 +38,11 @@ Task làn S **chặn** các làn khác. Không bỏ qua, không làm muộn.
   3. Đưa danh mục `action` (Mục 7 spec) vào hằng số `infra/audit.py::ACTIONS` để lint chặn tên sai.
 - **Xong khi:** migration chạy tạo được DB trống, `ACTIONS` là một `frozenset`, cả ba agent ACK.
 
-### S-03 · Bàn giao stub để ba làn chạy song song [WIP - A DONE]
-- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01, S-02 · **Trạng thái:** `WIP` (A đã giao stub)
+### S-03 · Bàn giao stub để ba làn chạy song song [WIP - A+B DONE]
+- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01, S-02 · **Trạng thái:** `WIP` (A và B đã giao stub)
 - **Việc phải làm:**
   1. **C** giao stub: `infra/llm.py::call_json` trả phản hồi cố định hợp schema; `infra/audit.py::log_event` ghi vào SQLite thật; `infra/db.py` hoạt động đầy đủ.
-  2. **B** giao stub: `corpus/api.py` với 12 chunk giả cứng trong code, phủ cả 3 domain, có 2 chunk `human_only` và 1 chunk `transitional_clause`.
+  2. **B** [DONE] giao stub: `corpus/api.py` với 12 chunk giả cứng trong code, phủ cả 3 domain, có 2 chunk `human_only` và 1 chunk `transitional_clause`.
   3. **A** [DONE] giao stub: `core/pipeline.py::process_case` trả về `PipelineResult` hợp lệ với `rule_id="P05"` cố định.
 - **Xong khi:** `python -c "from core.pipeline import process_case; print(process_case(sample))"` chạy được, và `streamlit run streamlit_app.py` mở được trang trắng có tiêu đề. Ba làn từ đây không chặn nhau nữa.
 
@@ -283,118 +283,118 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 
 Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → B-04..B-07 → B-12 → B-15 → B-08..B-11 → B-13, B-14 → B-16, B-17 → B-18.
 
-### B-01 · `corpus/api.py` — facade đọc và corpus giả
-- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01 · **Ưu tiên cao nhất của làn B**
+### B-01 · `corpus/api.py` — facade đọc và corpus giả [DONE]
+- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01 · **Ưu tiên cao nhất của làn B** · **Trạng thái:** `DONE`
 - **File:** `corpus/api.py`
 - **Việc phải làm:** Cài đủ 5 hàm ở Mục 5.3 spec. Giai đoạn đầu trả **12 chunk giả cứng trong code**, phủ 3 domain, trong đó 2 chunk `human_only` và 1 chunk `transitional_clause=true`. Về sau thay ruột bằng truy vấn thật, **giữ nguyên chữ ký**.
 - **Xong khi:** Agent A `import corpus.api` và chạy được R4–R5 mà không cần chờ phần còn lại của làn B. Đây là điều kiện để ba làn song song.
 
-### B-02 · Lớp truy cập bảng `sources` / `chunks` / `corpus_versions`
-- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** S-02
+### B-02 · Lớp truy cập bảng `sources` / `chunks` / `corpus_versions` [DONE]
+- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** S-02 · **Trạng thái:** `DONE`
 - **File:** `corpus/store.py`
 - **Việc phải làm:** Hàm CRUD cho ba bảng qua `infra.db`; hàm `compute_corpus_version()` theo công thức Mục 6 spec; hàm `bump_corpus_version(actor, note)` ghi hàng mới và cập nhật `settings.current_corpus_version`.
 - **Xong khi:** Kích hoạt một tài liệu làm `corpus_version` đổi; hạ cấp cũng làm đổi; không kích hoạt gì thì không đổi.
 
-### B-03 · K1 Ba đường nạp nguồn và chống trùng
-- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-02
+### B-03 · K1 Ba đường nạp nguồn và chống trùng [DONE]
+- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-02 · **Trạng thái:** `DONE`
 - **File:** `corpus/intake.py`
 - **Việc phải làm:** Upload PDF/DOCX; dán URL (**tải một lần, thủ công, không crawler định kỳ**); dán text. Ghi `source_url`, `source_kind`, `fetched_at`, `sha256`. Trùng `sha256` với tài liệu đã có → báo *"Tài liệu không thay đổi"* và dừng. Ghi audit `SOURCE_UPLOADED`.
 - **Xong khi:** Nạp cùng một file hai lần chỉ tạo một hàng `sources`.
 
-### B-04 · K2 Trích xuất và chuẩn hóa văn bản
-- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-03
+### B-04 · K2 Trích xuất và chuẩn hóa văn bản [DONE]
+- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-03 · **Trạng thái:** `DONE`
 - **File:** `corpus/extract_doc.py`
 - **Việc phải làm:** PDF → text (`pdfplumber`), DOCX → text (`python-docx`); bỏ header/footer lặp bằng cách đếm dòng xuất hiện trên đa số trang; **giữ nguyên đánh số Điều / Khoản / Điểm**; chuẩn hóa dấu tiếng Việt về NFC; gộp dòng bị ngắt giữa câu.
 - **Xong khi:** Với 6 tài liệu seed, mọi tiêu đề `Điều N.` đều còn nguyên và nằm đầu dòng. **Mất đánh số là hỏng toàn bộ breadcrumb, kéo theo mất điểm chất lượng câu hỏi.**
 
-### B-05 · K3 LLM đề xuất metadata
-- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-04, C-04
+### B-05 · K3 LLM đề xuất metadata [DONE]
+- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-04, C-04 · **Trạng thái:** `DONE`
 - **File:** `corpus/metadata.py`
 - **Việc phải làm:** Prompt `METADATA_PROMPT_V1` sinh bản nháp đúng schema Mục 9.1 spec từ 3000 ký tự đầu của tài liệu. Trường không suy ra được thì để `null`, **không bịa**. Đặc biệt chú ý `supersedes`, `effective_from`, `cohorts`, `transitional_clause`.
 - **Xong khi:** Trên 6 tài liệu seed, schema hợp lệ 6/6 và `transitional_clause` đúng với tài liệu số 1.
 
-### B-06 · K3 Biểu mẫu người sửa và kiểm tra hợp lệ
-- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-05
+### B-06 · K3 Biểu mẫu người sửa và kiểm tra hợp lệ [DONE]
+- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-05 · **Trạng thái:** `DONE`
 - **File:** `corpus/metadata.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Form Streamlit hiển thị bản nháp cho người sửa từng trường; validate: `effective_from` ≤ `effective_to`, `domains` thuộc danh sách hợp lệ, `document_id` duy nhất; lưu với `status=PENDING_REVIEW`; ghi audit `SOURCE_METADATA_EDITED` với diff trường nào đổi.
 - **Xong khi:** Không lưu được metadata sai định dạng; mọi lần sửa đều có dấu vết audit.
 
-### B-07 · K4 Chunker theo đơn vị pháp lý
-- **Khối:** B1 · **Ước lượng:** 3.5h · **Phụ thuộc:** B-04
+### B-07 · K4 Chunker theo đơn vị pháp lý [DONE]
+- **Khối:** B1 · **Ước lượng:** 3.5h · **Phụ thuộc:** B-04 · **Trạng thái:** `DONE`
 - **File:** `corpus/chunker.py`
 - **Việc phải làm:** Tách theo **Điều → Khoản → Điểm**, không theo cửa sổ token cố định. Mỗi chunk giữ `doc_id`, `article_no`, `clause_no`, `breadcrumb` dạng `QĐ 3150/2026 · Điều 8 · Khoản 2`, `ord`. Khoản quá dài (> 800 token) thì tách tiếp nhưng giữ nguyên breadcrumb và đánh dấu phần. Gán `domain` theo metadata của tài liệu.
 - **Xong khi:** `tests/test_chunker.py` với 3 tài liệu mẫu: không mất điều khoản nào, breadcrumb đúng 100%, không có chunk rỗng. **Trích dẫn phải chỉ được tới điều khoản, nếu không chuyên viên vẫn phải mở file gốc.**
 - **Tiêu chí:** 7 (chất lượng câu hỏi) · 6 (audit truy xuất nguồn)
 
-### B-08 · K5 Kiểm tra mâu thuẫn và thay thế
-- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-07
+### B-08 · K5 Kiểm tra mâu thuẫn và thay thế [DONE]
+- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Trạng thái:** `DONE`
 - **File:** `corpus/conflict.py`
 - **Việc phải làm:** Nếu `supersedes` trỏ tới tài liệu đang ACTIVE → **xếp lịch hạ cấp tài liệu đó khi kích hoạt** (không hạ ngay). Nếu hai tài liệu ACTIVE cùng domain có nội dung mâu thuẫn ở cùng chủ đề (heuristic: cùng chủ đề + hai con số/mốc thời gian khác nhau) → gắn `conflict_flag` và `conflict_with` cho cả hai chunk. Ghi audit.
 - **Xong khi:** Tài liệu seed #3 và #5 (hạn chót rút học phần khác nhau) bị gắn cờ, và runtime tự trả `OUT_OF_POLICY` cho vùng chủ đề đó. `tests/test_conflict.py` xanh.
 - **Tiêu chí:** 7 · 3
 
-### B-09 · K6 Gán nhãn thẩm quyền cho từng chunk
-- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Đây là bước quan trọng nhất của làn B**
+### B-09 · K6 Gán nhãn thẩm quyền cho từng chunk [DONE]
+- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Đây là bước quan trọng nhất của làn B** · **Trạng thái:** `DONE`
 - **File:** `corpus/coverage.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Bảng liệt kê mọi chunk của tài liệu, mỗi dòng có breadcrumb, trích đoạn và một công tắc hai trạng thái `auto_answerable` / `human_only`. **Mặc định mọi chunk mới là `human_only`** — con người phải chủ động mở quyền. Có gợi ý tự động (LLM đề xuất nhãn) nhưng **không được tự áp dụng**. Ghi audit `CHUNK_LABELLED` cho từng lần đổi, kèm actor và nhãn cũ/mới.
 - **Xong khi:** Tài liệu mới nạp vào có 100% chunk `human_only`; đổi một nhãn sinh đúng một audit event. Câu chốt pitch: **quyền tự động của AI không do AI tự đánh giá, mà do con người cấp ở cấp độ từng điều khoản.**
 - **Tiêu chí:** 6 (6đ ranh giới quyết định) · 7
 
-### B-10 · K7 Hàng chờ duyệt và màn hình diff
-- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09
+### B-10 · K7 Hàng chờ duyệt và màn hình diff [DONE]
+- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09 · **Trạng thái:** `DONE`
 - **File:** `corpus/lifecycle.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Danh sách tài liệu `PENDING_REVIEW`; mỗi tài liệu hiển thị metadata đề xuất, danh sách chunk kèm nhãn, và **diff với phiên bản cũ** nếu có `supersedes` (dùng `difflib`, tô màu thêm/bớt). Ba hành động: Duyệt · Từ chối · Yêu cầu chỉnh sửa, đều bắt buộc nhập lý do.
 - **Xong khi:** Nạp tài liệu #1 (thay thế #2) hiển thị đúng phần văn bản đã đổi.
 
-### B-11 · K8 Kích hoạt tài liệu
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** B-10, B-02
+### B-11 · K8 Kích hoạt tài liệu [DONE]
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** B-10, B-02 · **Trạng thái:** `DONE`
 - **File:** `corpus/lifecycle.py`
 - **Việc phải làm:** `PENDING_REVIEW → ACTIVE`; ghi `activated_at`, `activated_by`; audit `ACTIVATE_SOURCE` với **actor là người thật**, không phải `SYSTEM`; thực thi lịch hạ cấp từ B-08; tăng `corpus_version`; kích hoạt lại index.
 - **Xong khi:** Giám khảo có thể chọn chính hành động `ACTIVATE_SOURCE` này trong audit log và thấy đủ: ai làm, lúc nào, trên tài liệu nào, vì lý do gì. **Đây là hành động quản trị mà đề bài cho phép giám khảo soi bất kỳ.**
 - **Tiêu chí:** 6 (6đ audit)
 
-### B-12 · K9 Lập chỉ mục
-- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-07
+### B-12 · K9 Lập chỉ mục [DONE]
+- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Trạng thái:** `DONE`
 - **File:** `corpus/indexer.py`
 - **Việc phải làm:** BM25 (`rank_bm25`) trên chunk đã tokenize tiếng Việt + vector (`sentence-transformers`, model đa ngữ nhẹ, cache trên đĩa). **Chỉ index chunk thuộc tài liệu ACTIVE.** Chunk `SUPERSEDED` giữ trong SQLite để truy vết audit nhưng loại khỏi vector store. Hợp nhất điểm hybrid, chuẩn hóa về `[0,1]`. Nạp index một lần khi khởi động, cache bằng `st.cache_resource`.
 - **Xong khi:** Truy vấn *"thang điểm rèn luyện"* trả chunk đúng ở vị trí đầu; thời gian truy vấn < 300ms; hạ cấp tài liệu làm chunk đó biến mất khỏi kết quả ngay.
 - **Tiêu chí:** 1 (tốc độ live URL) · 2
 
-### B-13 · K10 Supersede
-- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-11
+### B-13 · K10 Supersede [DONE]
+- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-11 · **Trạng thái:** `DONE`
 - **File:** `corpus/lifecycle.py`
 - **Việc phải làm:** Tài liệu bị thay chuyển `SUPERSEDED`, ghi `superseded_by` và `superseded_at`, loại khỏi index, giữ nguyên trong DB. Audit `SUPERSEDE_SOURCE`.
 - **Xong khi:** Sau khi kích hoạt tài liệu #1, tài liệu #2 không còn xuất hiện trong kết quả retrieval nhưng vẫn tra được trong audit của các case cũ.
 
-### B-14 · K11 Rollback và quét `NEEDS_RECHECK`
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** B-13
+### B-14 · K11 Rollback và quét `NEEDS_RECHECK` [DONE]
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** B-13 · **Trạng thái:** `DONE`
 - **File:** `corpus/lifecycle.py`
 - **Việc phải làm:** Khi một tài liệu rời trạng thái ACTIVE (bị thay thế hoặc bị rollback), hệ thống **tự liệt kê mọi case đã dùng tài liệu đó làm căn cứ trong 30 ngày** và gắn `NEEDS_RECHECK`, ghi audit `FLAG_NEEDS_RECHECK`. Có nút rollback đưa tài liệu về ACTIVE kèm lý do.
 - **Xong khi:** Hạ một tài liệu → danh sách case bị ảnh hưởng hiện ra ngay, có nút chạy lại từng case. **Đây là câu trả lời hoàn hảo cho câu phản biện "nếu quy định sai thì sao".**
 - **Tiêu chí:** 6 · phỏng vấn phản biện vòng chung kết
 
-### B-15 · Bộ corpus seed 6 tài liệu
-- **Khối:** B2 · **Ước lượng:** 4h · **Phụ thuộc:** B-07
+### B-15 · Bộ corpus seed 6 tài liệu [DONE]
+- **Khối:** B2 · **Ước lượng:** 4h · **Phụ thuộc:** B-07 · **Trạng thái:** `DONE`
 - **File:** `data/seed_docs/`, `corpus/seed.py`
 - **Việc phải làm:** Soạn 6 tài liệu theo bảng Mục 9.2 spec, tối thiểu 45 chunk, **văn phong và cấu trúc giống văn bản hành chính thật** (có Điều, Khoản, Điểm). Gán nhãn đạt tỷ lệ khoảng 60% `auto_answerable` / 40% `human_only`. Viết `seed.py` tự nạp khi DB trống lúc khởi động. Đánh dấu rõ `is_synthetic: true` trong metadata.
 - **Xong khi:** Deploy mới lên Streamlit Cloud tự có corpus đầy đủ và trả lời được ngay case V01. **Corpus rỗng lúc deploy là rủi ro làm hỏng toàn bộ buổi chấm.** Slide 4 phải nêu rõ đây là dữ liệu giả lập.
 - **Tiêu chí:** 1 · 2 · Quy định về dữ liệu
 
-### B-16 · Nút "Kiểm tra nguồn mới"
-- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-03
+### B-16 · Nút "Kiểm tra nguồn mới" [DONE]
+- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-03 · **Trạng thái:** `DONE`
 - **File:** `corpus/intake.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Admin bấm thủ công; hệ thống tải lại các URL đã đăng ký, so `sha256`, báo tài liệu nào đã đổi và đề xuất nạp bản mới vào `PENDING_REVIEW`. **Không chạy nền, không định kỳ.** Audit `SOURCE_RECHECKED`.
 - **Xong khi:** Bấm nút cho ra danh sách "không đổi / đã đổi" trong dưới 10 giây. Crawler định kỳ để Sprint 2; runtime xử lý email **không chạm Internet**.
 
-### B-17 · Ráp trang Quản trị quy định
-- **Khối:** B4 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09, B-10, B-16
+### B-17 · Ráp trang Quản trị quy định [DONE]
+- **Khối:** B4 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09, B-10, B-16 · **Trạng thái:** `DONE`
 - **File:** `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Bốn tab: **Nạp tài liệu** · **Chờ duyệt** · **Đang hiệu lực** · **Lịch sử**. Tab "Đang hiệu lực" hiển thị `corpus_version` hiện tại và số chunk theo từng nhãn. Mọi hành động ghi audit đúng danh mục. Tiếng Việt toàn bộ, nút viết bằng động từ.
 - **Xong khi:** Một người chưa từng dùng nạp được tài liệu, gán nhãn và kích hoạt trong dưới 3 phút mà không cần hướng dẫn.
 - **Tiêu chí:** 1 · 6
 
-### B-18 · Test làn B
-- **Khối:** B4 · **Ước lượng:** 1.5h · **Phụ thuộc:** B-07, B-08
+### B-18 · Test làn B [DONE]
+- **Khối:** B4 · **Ước lượng:** 1.5h · **Phụ thuộc:** B-07, B-08 · **Trạng thái:** `DONE`
 - **File:** `tests/test_chunker.py`, `tests/test_conflict.py`, `tests/test_corpus_api.py`
 - **Việc phải làm:** Chunker giữ đúng Điều/Khoản; conflict phát hiện đúng cặp seed #3/#5; `corpus.api` giữ đúng chữ ký contract và **không trả chunk của tài liệu không ACTIVE**.
 - **Xong khi:** Ba file test xanh; test contract chạy được ngay cả khi DB trống.
