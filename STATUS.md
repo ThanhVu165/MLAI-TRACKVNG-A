@@ -51,5 +51,6 @@
 - `[H+88][Agent C] C-21 WIP: Run All 15 chạy tuần tự, ma trận 4 lớp và hai tỷ lệ đã test khớp đếm tay; thực tế 8/15 PASS · chặn bởi C-19/C-20 retrieval/evidence · tiếp tục C-22`
 - `[H+89][Agent C] xong C-22 (bảng đủ trường bắt buộc, timestamp +07:00, deep link audit từng case và tải JSON) · tiếp tục C-23`
 - `[H+90][Agent C] xong C-23 (trang đo lường tách hiệu quả/rủi ro, hiện công thức cạnh số và cảnh báo dữ liệu nội bộ giả lập) · tiếp tục C-24`
+- `[H+91][Agent C] xong C-24 (12 email giả lập: 5 thường quy, đủ 3 loại escalation, đa ý định, English, ngoài domain, injection; toàn bộ is_synthetic) · tiếp tục C-25`
 
 

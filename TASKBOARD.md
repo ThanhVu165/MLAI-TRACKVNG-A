@@ -565,7 +565,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 4 · 5
 
 ### C-24 · Hộp thư mô phỏng 12 email
-- **Khối:** B2 · **Ước lượng:** 1.5h · **Phụ thuộc:** —
+- **Khối:** B2 · **Ước lượng:** 1.5h · **Phụ thuộc:** — · **Trạng thái:** `DONE`
 - **File:** `data/seed_inbox.json`
 - **Việc phải làm:** 12 email đa dạng: 5 thường quy, 3 escalation ba loại khác nhau, 1 đa ý định, 1 tiếng Anh, 1 ngoài domain, 1 chứa câu lệnh injection. Văn phong như sinh viên viết thật (viết tắt, thiếu dấu, dài dòng). Mọi tên và MSSV đều hư cấu, đánh dấu `is_synthetic: true`.
 - **Xong khi:** Giám khảo có thể bấm chọn một email mẫu và chạy ngay, không cần tự soạn.
