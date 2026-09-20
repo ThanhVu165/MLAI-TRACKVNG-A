@@ -495,7 +495,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 6 · 5 (telemetry ỷ lại nhận thức)
 
 ### C-14 · Màn hình Xem trước và Duyệt gửi
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-13, A-20
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-13, A-20 · **Trạng thái:** `DONE`
 - **File:** `pages/2_Hang_cho_duyet.py`
 - **Việc phải làm:** Sau khi người quyết định, hiển thị email do AI diễn đạt lại kèm cảnh báo nếu Ground Guard rút gọn có phát hiện. Ba nút: **Duyệt và gửi** · **Sửa nội dung** · **Trả lại hàng chờ**. Với case escalation, **con người luôn là người bấm gửi**.
 - **Xong khi:** Không tồn tại đường nào để case escalation tự gửi mà không có thao tác của người.
