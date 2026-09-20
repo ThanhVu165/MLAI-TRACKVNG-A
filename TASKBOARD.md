@@ -551,7 +551,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 7 · chuẩn bị Sprint 2
 
 ### C-22 · Bảng kết quả chuẩn và xuất JSON
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18 · **Trạng thái:** `DONE`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Mỗi dòng đủ: `case_id` · tóm tắt input · expected · actual · `rule_id` · PASS/FAIL · thời gian chạy (ms) · **timestamp ISO có `+07:00`** · `corpus_version` · liên kết **Xem audit log**. Thêm nút **Xuất JSON** tải toàn bộ kết quả.
 - **Xong khi:** Bảng có dấu thời gian thật (không phải cứng), và bấm vào một dòng đi thẳng tới audit của case đó.

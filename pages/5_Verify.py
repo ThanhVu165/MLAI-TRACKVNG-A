@@ -69,6 +69,13 @@ st.dataframe(
     hide_index=True,
     use_container_width=True,
 )
+with st.expander("Mở audit theo case"):
+    for result in typed_results:
+        st.page_link(
+            "pages/4_Nhat_ky_kiem_toan.py",
+            label=f"{result.test_id} · {result.case_id}",
+            query_params={"case_id": result.case_id},
+        )
 
 st.download_button(
     "Xuất JSON",
