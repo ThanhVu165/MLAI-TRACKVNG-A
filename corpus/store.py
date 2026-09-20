@@ -82,6 +82,12 @@ def get_source(conn: sqlite3.Connection, doc_id: str) -> dict[str, object] | Non
     return dict(row) if row else None
 
 
+def get_source_by_sha256(conn: sqlite3.Connection, digest: str) -> dict[str, object] | None:
+    conn.row_factory = sqlite3.Row
+    row = conn.execute("SELECT * FROM sources WHERE sha256 = ?", (digest,)).fetchone()
+    return dict(row) if row else None
+
+
 def list_sources(conn: sqlite3.Connection, status: str | None = None) -> list[dict[str, object]]:
     conn.row_factory = sqlite3.Row
     query = "SELECT * FROM sources"

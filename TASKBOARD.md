@@ -295,8 +295,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Việc phải làm:** Hàm CRUD cho ba bảng qua `infra.db`; hàm `compute_corpus_version()` theo công thức Mục 6 spec; hàm `bump_corpus_version(actor, note)` ghi hàng mới và cập nhật `settings.current_corpus_version`.
 - **Xong khi:** Kích hoạt một tài liệu làm `corpus_version` đổi; hạ cấp cũng làm đổi; không kích hoạt gì thì không đổi.
 
-### B-03 · K1 Ba đường nạp nguồn và chống trùng
-- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-02 · **Trạng thái:** `WIP`
+### B-03 · K1 Ba đường nạp nguồn và chống trùng [DONE]
+- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-02 · **Trạng thái:** `DONE`
 - **File:** `corpus/intake.py`
 - **Việc phải làm:** Upload PDF/DOCX; dán URL (**tải một lần, thủ công, không crawler định kỳ**); dán text. Ghi `source_url`, `source_kind`, `fetched_at`, `sha256`. Trùng `sha256` với tài liệu đã có → báo *"Tài liệu không thay đổi"* và dừng. Ghi audit `SOURCE_UPLOADED`.
 - **Xong khi:** Nạp cùng một file hai lần chỉ tạo một hàng `sources`.

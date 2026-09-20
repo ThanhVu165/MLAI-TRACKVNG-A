@@ -11,5 +11,6 @@
 - `[H+48][Agent A] HOÀN THÀNH 100% CÔNG VIỆC CỦA AGENT A (Block B0 - B4: A-01 -> A-25) · Xong A-22 (core/controls.py: Pause, Resume, Override có lý do, Re-run case diff), xong A-23 (core/explain.py: Giải thích cho người không chuyên <= 120 từ, không dùng từ kỹ thuật cấm), xong A-24 (Email đa ý định & partial_draft), xong A-25 (tests/test_guards.py: hai test sống còn chống over-escalation và chống fail-open) · xong harness 3 kênh & 25 ca benchmark (tests/test_harness.py) · xong audit coverage & benchmark latency p95 (tests/test_audit_coverage.py) · Toàn bộ test suite 106/106 passed (0.61s) · ruff check & mypy clean 100% không lỗi · Pipeline sẵn sàng cho Agent B và Agent C tích hợp đầy đủ · không bị chặn`
 - `[H+49][Agent B] xong B-01 và phần B của S-03 (corpus/api.py: 12 chunk giả, 3 domain, 2 human_only, 1 transitional_clause) · test suite 108/108 passed · Ruff và Black sạch · B-02 bị chặn bởi S-02/infra chưa được bàn giao`
 - `[H+50][Agent B] xong B-02 (CRUD sources/chunks/corpus_versions, corpus_version đổi khi tập ACTIVE đổi) · kiểm thử SQLite in-memory xanh · tiếp tục B-03`
+- `[H+51][Agent B] xong B-03 (nạp PDF/DOCX, URL một lần, text; chống trùng SHA-256; audit SOURCE_UPLOADED) · tiếp tục B-04`
 
 
