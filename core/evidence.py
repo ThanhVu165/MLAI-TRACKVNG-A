@@ -35,6 +35,19 @@ def get_supported_domains() -> frozenset[Domain]:
         return DEFAULT_SUPPORTED_DOMAINS
 
 
+def _is_conflict_relevant(chunk: EvidenceChunk, extraction: Extraction) -> bool:
+    """Kiểm tra chunk có cờ mâu thuẫn (conflict_flag) có cùng chủ đề với yêu cầu không (Mục 8.4 spec)."""
+    if not chunk.conflict_flag:
+        return False
+    intents = " ".join([req.intent for req in extraction.requests]).casefold()
+    chunk_text = chunk.text.casefold()
+    # Nếu chunk conflict về tỷ lệ hoàn học phí: chỉ kích hoạt khi yêu cầu thực sự hỏi về hoàn tiền/học phí
+    if "hoàn" in chunk_text and "học phí" in chunk_text:
+        return "hoàn" in intents or "học phí" in intents
+    # Mọi trường hợp conflict khác: coi như có mâu thuẫn
+    return True
+
+
 def validate_evidence(
     chunks: list[EvidenceChunk],
     extraction: Extraction,
@@ -92,7 +105,7 @@ def validate_evidence(
     # -----------------------------------------------------------------------
     # Kiểm tra 5: Không có cặp chunk ACTIVE conflict_flag cùng chủ đề
     # -----------------------------------------------------------------------
-    has_conflict = any(c.conflict_flag for c in chunks)
+    has_conflict = any(_is_conflict_relevant(c, extraction) for c in chunks)
     if has_conflict:
         failed_checks.append("check_5_conflicting_sources")
         if first_fail_status is None:

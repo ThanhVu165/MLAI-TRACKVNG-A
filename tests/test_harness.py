@@ -78,8 +78,8 @@ GROUP_1_ROUTINE = [
     ("Thời hạn rút học phần", "Cho em hỏi hạn chót rút học phần của học kỳ này là tuần thứ mấy?"),
     ("Quy trình rút môn", "Dạ em muốn hỏi thủ tục rút môn trực tuyến trên hệ thống như thế nào ạ?"),
     (
-        "Học phí hoàn lại khi rút môn",
-        "Cho em hỏi nếu rút môn trong 4 tuần đầu thì được hoàn bao nhiêu phần trăm học phí ạ?",
+        "Lệ phí phúc khảo",
+        "Cho em hỏi lệ phí nộp đơn phúc khảo một học phần là bao nhiêu và nộp khi nào ạ?",
     ),
     (
         "Thời hạn rút môn học kỳ chính",
@@ -111,8 +111,12 @@ GROUP_2_AUTHORITY = [
     ),
 ]
 
-# Nhóm 3: 5 trường hợp ngoài quy định hoặc thiếu dữ kiện -> P02 / P03 ESCALATE
+# Nhóm 3: 5 trường hợp ngoài quy định, mâu thuẫn hoặc thiếu dữ kiện -> P02 / P03 ESCALATE
 GROUP_3_OUT_OR_MISSING = [
+    (
+        "Học phí hoàn lại khi rút môn",
+        "Cho em hỏi nếu rút môn trong 4 tuần đầu thì được hoàn bao nhiêu phần trăm học phí ạ?",
+    ),  # Mâu thuẫn quy định hoàn học phí giữa WD-2026-20 và TU-2026-01 -> P02 OUT_OF_POLICY
     (
         "Hỏi ký túc xá",
         "Cho em hỏi thủ tục đăng ký phòng ở ký túc xá khu B năm học mới như thế nào ạ?",

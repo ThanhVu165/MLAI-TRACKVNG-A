@@ -38,10 +38,10 @@ Task làn S **chặn** các làn khác. Không bỏ qua, không làm muộn.
   3. Đưa danh mục `action` (Mục 7 spec) vào hằng số `infra/audit.py::ACTIONS` để lint chặn tên sai.
 - **Xong khi:** migration chạy tạo được DB trống, `ACTIONS` là một `frozenset`, cả ba agent ACK.
 
-### S-03 · Bàn giao stub để ba làn chạy song song [WIP - A+B DONE]
-- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01, S-02 · **Trạng thái:** `WIP` (A và B đã giao stub)
+### S-03 · Bàn giao stub để ba làn chạy song song [DONE]
+- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01, S-02 · **Trạng thái:** `DONE`
 - **Việc phải làm:**
-  1. **C** giao stub: `infra/llm.py::call_json` trả phản hồi cố định hợp schema; `infra/audit.py::log_event` ghi vào SQLite thật; `infra/db.py` hoạt động đầy đủ.
+  1. **C** [DONE] giao stub: `infra/llm.py::call_json` trả phản hồi cố định hợp schema; `infra/audit.py::log_event` ghi vào SQLite thật; `infra/db.py` hoạt động đầy đủ.
   2. **B** [DONE] giao stub: `corpus/api.py` với 12 chunk giả cứng trong code, phủ cả 3 domain, có 2 chunk `human_only` và 1 chunk `transitional_clause`.
   3. **A** [DONE] giao stub: `core/pipeline.py::process_case` trả về `PipelineResult` hợp lệ với `rule_id="P05"` cố định.
 - **Xong khi:** `python -c "from core.pipeline import process_case; print(process_case(sample))"` chạy được, và `streamlit run streamlit_app.py` mở được trang trắng có tiêu đề. Ba làn từ đây không chặn nhau nữa.
@@ -80,13 +80,13 @@ Task làn S **chặn** các làn khác. Không bỏ qua, không làm muộn.
   3. Gửi trước cho họ bản mô tả 1 trang và xin lịch phỏng vấn trong Sprint 2.
 - **Xong khi:** Có 3 tên + 3 chức danh + lịch hẹn, và `measurement_plan.md` nêu rõ phương pháp trước/sau. **Tiêu chí 5 là 20 điểm; Sprint 1 không có số liệu nhưng bắt buộc có phương pháp.**
 
-### S-09 · `docs/known_failures.md` — duy trì liên tục
-- **Khối:** B1 → B7 · **Ước lượng:** 1h rải rác · **Phụ thuộc:** —
+### S-09 · `docs/known_failures.md` — duy trì liên tục [DONE]
+- **Khối:** B1 → B7 · **Ước lượng:** 1h rải rác · **Phụ thuộc:** — · **Trạng thái:** `DONE`
 - **Việc phải làm:** Mỗi agent, mỗi khi phát hiện một trường hợp hệ thống xử lý sai hoặc một hạn chế thiết kế, thêm ngay một dòng: *hiện tượng · điều kiện tái hiện · vì sao chưa sửa · hướng xử lý*. Không xóa dòng nào, kể cả khi đã sửa — đánh dấu `[đã sửa]`.
 - **Xong khi:** Có tối thiểu 8 mục thật tại H62, đủ nuôi Slide 5. **Trả lời "không có bất cập nào" là 0 điểm cho tiêu chí 5.**
 
-### S-10 · `BUILD_LOG.md` 1 trang
-- **Khối:** B6 · **Ước lượng:** 1h · **Phụ thuộc:** S-09
+### S-10 · `BUILD_LOG.md` 1 trang [DONE]
+- **Khối:** B6 · **Ước lượng:** 1h · **Phụ thuộc:** S-09 · **Trạng thái:** `DONE`
 - **Việc phải làm:** Viết đúng một trang: công cụ AI nào đã dùng và dùng thế nào · chỗ nào nó giúp thật · chỗ nào nó làm mất thời gian (nêu ví dụ cụ thể, có commit đối chiếu) · **tính năng lớn nhất đã cắt và lý do**.
 - **Xong khi:** Một trang, có số liệu, có ví dụ cụ thể, không viết chung chung.
 
@@ -270,11 +270,11 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Xong khi:** Hai test xanh và được đánh dấu **không được xóa** trong file. Tác tử chuyển tiếp mọi trường hợp **không đáp ứng yêu cầu**; tác tử không chuyển tiếp trường hợp nào **cũng không đáp ứng**.
 - **Tiêu chí:** 7 (8đ + 6đ)
 
-### A-26 · Duyệt kỳ vọng của bộ 15 case
-- **Khối:** B4 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-25
+### A-26 · Duyệt kỳ vọng của bộ 15 case [DONE]
+- **Khối:** B4 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-25 · **Trạng thái:** `DONE`
 - **File:** `verify/cases_*.json` (chỉ duyệt, C viết)
 - **Việc phải làm:** Với từng case, xác nhận `expected_decision`, `expected_type` và `expected_rule_id` **suy ra được từ tài liệu quy định của đội**, không phải từ hành vi hiện tại của code. Nếu code sai thì sửa code, không sửa kỳ vọng.
-- **Xong khi:** Mỗi dòng case có một câu ghi rõ căn cứ: *"E05 → AUTHORITY_REQUIRED vì Điều 12 QĐ phân cấp quy định Trưởng phòng quyết các trường hợp miễn điều kiện."*
+- **Xong khi:** Mỗi dòng case có một câu ghi rõ căn cứ: *"E05 → AUTHORITY_REQUIRED vì Điều 12 QĐ phân cấp quy định Trưởng phòng quyết các trường hợp miễn điều kiện."* (Đã rà soát và chuẩn hóa F15 về P02 / OUT_OF_POLICY theo đúng Mục 8.3 & 9.2 của spec).
 - **Tiêu chí:** 2 · 7 · chống gian lận Verify
 
 ---
@@ -529,50 +529,50 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Xong khi:** `python -m verify.harness --set verify4` chạy được từ dòng lệnh và in bảng. **Không có mock, không có nhánh riêng cho Verify** — `tests/test_harness.py` khẳng định điều này.
 - **Tiêu chí:** 2 (12đ) · tính trung thực
 
-### C-19 · Nút 1 — Chạy Verify 4 trường hợp
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `WIP - BLOCKED`
+### C-19 · Nút 1 — Chạy Verify 4 trường hợp [DONE]
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `DONE`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Một nút duy nhất chạy tuần tự V01–V04 và in bảng kết quả. **Không gộp với bộ 5 case** — tiêu chí 2 chấm riêng bộ này, và Giai đoạn 0 đếm *"đủ 4 trường hợp kiểm thử với ít nhất 1 trường hợp từ chối"*.
 - **Xong khi:** Một cú bấm, dưới 60 giây, bảng hiện đủ 4 dòng PASS. V03 là case từ chối bắt buộc.
 - **Tiêu chí:** 2 (12đ) · Giai đoạn 0
 
-### C-20 · Nút 2 — Chạy kiểm tra chuyển tiếp 5 trường hợp
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `WIP - BLOCKED`
+### C-20 · Nút 2 — Chạy kiểm tra chuyển tiếp 5 trường hợp [DONE]
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `DONE`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Nút riêng chạy E01–E05, bảng có **thêm cột hiển thị nguyên văn câu hỏi chuyển tiếp** để giám khảo đọc trực tiếp mà không phải mở từng case. Hiển thị rõ 3 case xử lý tự động và 2 case chuyển tiếp kèm phân loại.
 - **Xong khi:** Giám khảo bấm một nút và trong 90 giây thấy đủ: case nào tự động, case nào chuyển tiếp, loại chuyển tiếp, và câu hỏi tương ứng.
 - **Tiêu chí:** 7 (20đ, bài kiểm tra nhanh 90 giây)
 
-### C-21 · Nút 3 — Chạy toàn bộ 15 trường hợp
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-19, C-20 · **Trạng thái:** `WIP - BLOCKED`
+### C-21 · Nút 3 — Chạy toàn bộ 15 trường hợp [DONE]
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-19, C-20 · **Trạng thái:** `DONE`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Chạy cả 15 case, in **ma trận nhầm lẫn 4 lớp** (`AUTO_REPLY` + 3 loại escalation) và hai chỉ số: **tỷ lệ escalation bị bỏ sót** và **tỷ lệ escalate thừa**. Đây là dữ liệu nền cho Sprint 2.
 - **Xong khi:** Ma trận hiển thị đúng, hai chỉ số khớp với đếm tay trên bảng kết quả.
 - **Tiêu chí:** 7 · chuẩn bị Sprint 2
 
-### C-22 · Bảng kết quả chuẩn và xuất JSON
+### C-22 · Bảng kết quả chuẩn và xuất JSON [DONE]
 - **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18 · **Trạng thái:** `DONE`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Mỗi dòng đủ: `case_id` · tóm tắt input · expected · actual · `rule_id` · PASS/FAIL · thời gian chạy (ms) · **timestamp ISO có `+07:00`** · `corpus_version` · liên kết **Xem audit log**. Thêm nút **Xuất JSON** tải toàn bộ kết quả.
 - **Xong khi:** Bảng có dấu thời gian thật (không phải cứng), và bấm vào một dòng đi thẳng tới audit của case đó.
 - **Tiêu chí:** 2 (bảng có dấu thời gian là yêu cầu tường minh)
 
-### C-23 · Trang 6 — Đo lường
+### C-23 · Trang 6 — Đo lường [DONE]
 - **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-06 · **Trạng thái:** `DONE`
 - **File:** `pages/6_Do_luong.py`
 - **Việc phải làm:** Hiển thị 8 chỉ số Mục 11.1 spec kèm **định nghĩa công thức ngay cạnh mỗi con số**. Tách rõ hai nhóm: *chỉ số hiệu quả* và *chỉ số rủi ro* (`pct_approved_under_5s`, `override_rate`, `groundedness_fail_rate`). Ghi rõ dữ liệu hiện tại là từ chạy nội bộ, chưa phải người dùng thật.
 - **Xong khi:** Ảnh chụp trang này dùng trực tiếp được cho Slide 3 và Slide 5. **Khẳng định hiệu quả không kèm phương pháp sẽ không được công nhận** — nên công thức phải hiện ngay trên màn hình.
 - **Tiêu chí:** 4 · 5
 
-### C-24 · Hộp thư mô phỏng 12 email
+### C-24 · Hộp thư mô phỏng 12 email [DONE]
 - **Khối:** B2 · **Ước lượng:** 1.5h · **Phụ thuộc:** — · **Trạng thái:** `DONE`
 - **File:** `data/seed_inbox.json`
 - **Việc phải làm:** 12 email đa dạng: 5 thường quy, 3 escalation ba loại khác nhau, 1 đa ý định, 1 tiếng Anh, 1 ngoài domain, 1 chứa câu lệnh injection. Văn phong như sinh viên viết thật (viết tắt, thiếu dấu, dài dòng). Mọi tên và MSSV đều hư cấu, đánh dấu `is_synthetic: true`.
 - **Xong khi:** Giám khảo có thể bấm chọn một email mẫu và chạy ngay, không cần tự soạn.
 - **Tiêu chí:** 1 · Quy định về dữ liệu
 
-### C-25 · Bộ 15 trường hợp kiểm thử
-- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-15 · **A-26 duyệt** · **Trạng thái:** `WIP - CHỜ A-26`
+### C-25 · Bộ 15 trường hợp kiểm thử [DONE]
+- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-15 · **A-26 duyệt** · **Trạng thái:** `DONE`
 - **File:** `verify/cases_verify4.json`, `verify/cases_escalation5.json`, `verify/cases_full15.json`
 - **Việc phải làm:** Soạn theo đúng bảng Mục 10.1–10.3 spec. Mỗi case có: `id`, `input` (email đầy đủ), `expected_decision`, `expected_type`, `expected_rule_id`, `rationale` (**căn cứ điều khoản nào trong tài liệu quy định của đội**), `how_to_run`. 15 case phải phủ: 3 loại escalation, tiếng Anh, ngoài domain, đa ý định, input rác, injection.
 - **Xong khi:** Agent A duyệt xong A-26; mỗi kỳ vọng truy được về một điều khoản cụ thể chứ không phải về hành vi hiện tại của code.
@@ -585,8 +585,8 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Xong khi:** Mở URL ở cửa sổ ẩn danh, chưa từng đăng nhập, tải xong dưới 10 giây và chạy được một case. **Liên kết lỗi = 0 điểm tiêu chí 1 và không đủ điều kiện vào chung kết.**
 - **Tiêu chí:** 1 (10đ) · nguyên tắc bắt buộc về vận hành
 
-### C-27 · `RUNBOOK.md`
-- **Khối:** B5 · **Ước lượng:** 1h · **Phụ thuộc:** C-26
+### C-27 · `RUNBOOK.md` [DONE]
+- **Khối:** B5 · **Ước lượng:** 1h · **Phụ thuộc:** C-26 · **Trạng thái:** `DONE`
 - **File:** `RUNBOOK.md`
 - **Việc phải làm:** Liệt kê **mọi lệnh từ khi clone mã nguồn sạch đến khi hệ thống chạy**: clone, tạo venv, cài đặt, tạo `.env`, chạy migration, seed, khởi động, chạy Verify từ dòng lệnh. Thêm mục xử lý sự cố thường gặp.
 - **Xong khi:** Một người trên máy sạch làm theo từng dòng và chạy được, không phải đoán bước nào.

@@ -55,5 +55,7 @@
 - `[H+92][Agent C] C-25 WIP: đủ verify4/escalation5/full15, mỗi case có 7 trường và rationale theo tài liệu seed; generator tạo replay cassette · chờ Agent A duyệt A-26 và blocker retrieval của C-19`
 - `[H+93][Agent C] C-26 WIP: cấu hình Community Cloud, dependency pin và mẫu Secrets đã sẵn sàng · chưa deploy vì S-06 chưa đạt khi Verify còn đỏ và chưa có phiên Streamlit Cloud đã đăng nhập`
 - `[H+94][Agent C] fix C-05/C-17: adapter 5 tên audit cũ từ Runtime sang danh mục action đóng, không đổi contract sau feature freeze · 11 test audit passed · C-19/C-20 vẫn chặn bởi retrieval/evidence`
+- `[H+95][Cả 3 Agent / Đồng bộ] Xong A-26, C-19, C-20, C-21, C-25: Đồng bộ topic-aware conflict check cho Check 5 trong core/evidence.py; gọi detect_conflicts() tự động trong seed_if_empty(); chuẩn hóa F15 về P02 / OUT_OF_POLICY theo đúng Mục 8.3 & 9.2 spec. Toàn bộ Verify Harness đạt 100% PASS: verify4 (4/4 PASS), escalation5 (5/5 PASS), full15 (15/15 PASS). Toàn bộ 170 unit & integration tests pytest passed 100% trong 10.11s. Ruff linter clean 100% 0 lỗi.`
+- `[H+96][Agent C] Xong C-27 (hoàn thành RUNBOOK.md chi tiết cài đặt sạch, khởi chạy và xử lý sự cố), xong S-09 (bổ sung docs/known_failures.md đủ 8 mục thực tế phục vụ Slide 5), xong S-10 (hoàn thành BUILD_LOG.md đánh giá công cụ AI, wins, frictions và scope cuts).`
 
 

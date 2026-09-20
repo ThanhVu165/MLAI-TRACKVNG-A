@@ -7,6 +7,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from corpus.chunker import LegalChunk, chunk_document
+from corpus.conflict import detect_conflicts
 from corpus.store import bump_corpus_version, create_source, now_iso, replace_chunks
 
 
@@ -157,6 +158,6 @@ def seed_if_empty(
             for chunk in chunks
         ]
         replace_chunks(conn, document.doc_id, labelled)
-
+    detect_conflicts(conn)
     bump_corpus_version(conn, actor, "Nạp bộ corpus giả lập ban đầu")
     return len(SEED_DOCUMENTS)
