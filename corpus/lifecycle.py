@@ -5,6 +5,9 @@ import json
 import sqlite3
 from collections.abc import Callable
 
+from corpus.conflict import detect_conflicts, scheduled_supersedes
+from corpus.store import bump_corpus_version, now_iso
+
 REVIEW_DECISIONS = frozenset({"APPROVE", "REJECT", "REQUEST_CHANGES"})
 
 
@@ -95,3 +98,54 @@ def submit_review(
     conn.commit()
     action = "REJECT_SOURCE" if decision == "REJECT" else "SOURCE_METADATA_EDITED"
     _audit(action, doc_id, actor, f"{decision}: {reason.strip()}", audit)
+
+
+def activate_source(
+    conn: sqlite3.Connection,
+    doc_id: str,
+    *,
+    actor: str,
+    reason: str,
+    audit: Callable[..., object] | None = None,
+    reindex: Callable[[], object] | None = None,
+) -> str:
+    if not actor.startswith("ADMIN:") or actor == "ADMIN:":
+        raise ValueError("Kích hoạt tài liệu cần actor quản trị viên cụ thể")
+    if not reason.strip():
+        raise ValueError("Lý do là bắt buộc")
+    source = conn.execute("SELECT status FROM sources WHERE doc_id = ?", (doc_id,)).fetchone()
+    review = conn.execute(
+        "SELECT value FROM settings WHERE key = ?", (f"review:{doc_id}",)
+    ).fetchone()
+    if not source or source[0] != "PENDING_REVIEW" or not review or review[0] != "APPROVE":
+        raise ValueError("Tài liệu phải được duyệt trước khi kích hoạt")
+    if not conn.execute("SELECT 1 FROM chunks WHERE doc_id = ?", (doc_id,)).fetchone():
+        raise ValueError("Tài liệu chưa có chunk")
+
+    activated_at = now_iso()
+    old_doc_ids = scheduled_supersedes(conn, doc_id)
+    conn.execute(
+        "UPDATE sources SET status='ACTIVE', activated_at=?, activated_by=? WHERE doc_id=?",
+        (activated_at, actor, doc_id),
+    )
+    for old_doc_id in old_doc_ids:
+        conn.execute(
+            "UPDATE sources SET status='SUPERSEDED', superseded_by=?, superseded_at=? "
+            "WHERE doc_id=?",
+            (doc_id, activated_at, old_doc_id),
+        )
+    conn.commit()
+    detect_conflicts(conn, audit=audit)
+    version = bump_corpus_version(conn, actor, f"Kích hoạt {doc_id}: {reason.strip()}")
+    _audit("ACTIVATE_SOURCE", doc_id, actor, reason.strip(), audit)
+    for old_doc_id in old_doc_ids:
+        _audit(
+            "SUPERSEDE_SOURCE",
+            old_doc_id,
+            actor,
+            f"Bị thay thế bởi {doc_id}",
+            audit,
+        )
+    if reindex:
+        reindex()
+    return version

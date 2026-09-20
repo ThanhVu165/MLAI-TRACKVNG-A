@@ -2,7 +2,8 @@ import sqlite3
 
 import pytest
 
-from corpus.lifecycle import document_diff, pending_reviews, submit_review
+from corpus.lifecycle import activate_source, document_diff, pending_reviews, submit_review
+from corpus.store import bump_corpus_version, current_corpus_version
 from corpus.seed import seed_if_empty
 
 
@@ -77,3 +78,47 @@ def test_review_requires_reason_and_rejects_document() -> None:
         conn.execute("SELECT status FROM sources WHERE doc_id='GA-2026-08'").fetchone()[0]
         == "REJECTED"
     )
+
+
+def test_activate_uses_real_admin_supersedes_old_source_and_reindexes() -> None:
+    conn = _db()
+    conn.execute("UPDATE sources SET status='PENDING_REVIEW' WHERE doc_id='RL-2026-3150'")
+    conn.execute(
+        "UPDATE sources SET status='ACTIVE', superseded_by=NULL, superseded_at=NULL "
+        "WHERE doc_id='RL-2025-2363'"
+    )
+    conn.commit()
+    before = bump_corpus_version(conn, "ADMIN:test", "Chuẩn bị bản cũ")
+    events: list[dict[str, object]] = []
+    reindexed: list[bool] = []
+    submit_review(
+        conn,
+        "RL-2026-3150",
+        "APPROVE",
+        actor="ADMIN:vu",
+        reason="Đã kiểm tra",
+        audit=lambda **event: events.append(event),
+    )
+
+    after = activate_source(
+        conn,
+        "RL-2026-3150",
+        actor="ADMIN:vu",
+        reason="Ban hành bản 2026",
+        audit=lambda **event: events.append(event),
+        reindex=lambda: reindexed.append(True),
+    )
+
+    states = dict(conn.execute("SELECT doc_id, status FROM sources").fetchall())
+    assert states["RL-2026-3150"] == "ACTIVE"
+    assert states["RL-2025-2363"] == "SUPERSEDED"
+    assert after != before and after == current_corpus_version(conn)
+    assert reindexed == [True]
+    activated = next(event for event in events if event["action"] == "ACTIVATE_SOURCE")
+    assert activated["actor"] == "ADMIN:vu"
+
+
+def test_activate_rejects_system_actor() -> None:
+    conn = _db()
+    with pytest.raises(ValueError, match="quản trị viên"):
+        activate_source(conn, "RL-2026-3150", actor="SYSTEM", reason="Không hợp lệ")

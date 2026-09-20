@@ -21,5 +21,6 @@
 - `[H+58][Agent B] xong B-08 (xếp lịch supersede; phát hiện đúng xung đột hoàn học phí 70%/60%, không gắn nhầm hạn rút 30/10/2026) · tiếp tục B-09`
 - `[H+59][Agent B] xong B-09 (mọi chunk mới human_only; admin đổi từng nhãn có audit; LLM chỉ đề xuất, không tự áp dụng) · tiếp tục B-10`
 - `[H+60][Agent B] xong B-10 (hàng chờ, metadata/chunk labels, HTML diff bản cũ, duyệt/từ chối/yêu cầu sửa bắt buộc lý do) · tiếp tục B-11`
+- `[H+61][Agent B] xong B-11 (activate bởi ADMIN thật, supersede theo lịch, tăng corpus_version, quét conflict và gọi reindex) · tiếp tục B-13/B-14`
 
 

@@ -5,7 +5,7 @@ import sqlite3
 import streamlit as st
 
 from corpus.coverage import LABELS, label_chunk, list_coverage
-from corpus.lifecycle import document_diff, pending_reviews, submit_review
+from corpus.lifecycle import activate_source, document_diff, pending_reviews, submit_review
 from corpus.metadata import SUPPORTED_DOMAINS, SourceMetadata
 
 
@@ -91,6 +91,16 @@ def render_review_queue(conn: sqlite3.Connection, actor: str) -> None:
             if change.button("Yêu cầu chỉnh sửa", key=f"change_{doc_id}"):
                 submit_review(conn, doc_id, "REQUEST_CHANGES", actor=actor, reason=reason)
                 st.info("Đã ghi nhận yêu cầu chỉnh sửa.")
+            review = conn.execute(
+                "SELECT value FROM settings WHERE key = ?", (f"review:{doc_id}",)
+            ).fetchone()
+            if (
+                review
+                and review[0] == "APPROVE"
+                and st.button("Kích hoạt tài liệu", key=f"activate_{doc_id}")
+            ):
+                version = activate_source(conn, doc_id, actor=actor, reason=reason)
+                st.success(f"Đã kích hoạt tài liệu. Corpus hiện tại: {version}")
 
 
 st.title("Quản trị quy định")
