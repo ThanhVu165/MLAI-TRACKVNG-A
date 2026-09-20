@@ -26,5 +26,6 @@
 - `[H+63][Agent B] xong B-14 (quét case 30 ngày, FLAG_NEEDS_RECHECK, rollback có lý do/audit/reindex) · tiếp tục B-16`
 - `[H+64][Agent B] xong B-16 (admin kiểm tra URL thủ công, SHA-256 báo đổi/không đổi dưới 10s, tạo bản PENDING_REVIEW, audit SOURCE_RECHECKED) · tiếp tục B-17`
 - `[H+65][Agent B] xong B-17 (trang quản trị 4 tab chạy trên corpus seed, có trạng thái rỗng, không tải embedding khi chỉ xem, AppTest thật) · test suite 136/136 passed · tiếp tục B-18`
+- `[H+66][Agent B] bắt đầu B-18 (kiểm tra contract corpus.api với DB rỗng, chỉ trả chunk ACTIVE, rà soát toàn bộ test/lint/type của làn B)`
 
 
