@@ -252,6 +252,8 @@ def poll_sources_from_db(
     head_checker: Callable[[str], HeadInfo] = check_url_head,
     body_fetcher: Callable[[str], bytes] | None = None,
     audit_fn: Callable[..., object] | None = None,
+    etag_cache: dict[str, str] | None = None,
+    last_modified_cache: dict[str, str] | None = None,
 ) -> list[PollCheckResult]:
     """Scan all registered regulation sources in DB that have a source_url.
 
@@ -267,11 +269,24 @@ def poll_sources_from_db(
     results: list[PollCheckResult] = []
     for row in rows:
         url = str(row["source_url"])
+        doc_id = str(row["doc_id"])
+        stored_etag = (
+            etag_cache.get(doc_id) or etag_cache.get(url)
+            if etag_cache
+            else None
+        )
+        stored_last_mod = (
+            last_modified_cache.get(doc_id) or last_modified_cache.get(url)
+            if last_modified_cache
+            else None
+        )
         res = check_source_update(
-            doc_id=str(row["doc_id"]),
+            doc_id=doc_id,
             url=url,
             title=str(row["title"] or ""),
             stored_sha256=str(row["sha256"]),
+            stored_etag=stored_etag,
+            stored_last_modified=stored_last_mod,
             head_checker=head_checker,
             body_fetcher=body_fetcher,
         )
