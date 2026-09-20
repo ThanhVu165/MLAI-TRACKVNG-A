@@ -101,11 +101,11 @@ def test_rerun_case_diff() -> None:
     inp = _make_routine_input()
     original_res = process_case(inp)
 
-    diff = rerun_case(original_res, inp, actor="ADMIN:Tester")
+    result, diff = rerun_case(original_res, inp, actor="ADMIN:Tester")
 
     assert diff["case_id"] == original_res.case_id
     assert "rerun_case_id" in diff
     assert "decision_changed" in diff
     assert isinstance(diff["citations_added"], list)
     assert isinstance(diff["citations_removed"], list)
-    assert diff["new_result"] is not None
+    assert result.case_id == diff["rerun_case_id"]

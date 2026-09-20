@@ -3,10 +3,9 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from dataclasses import asdict, replace
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 import streamlit as st
 
@@ -322,10 +321,6 @@ def render_result(result: PipelineResult, *, key_prefix: str) -> None:
             label="Xem nhật ký kiểm toán",
             query_params={"case_id": result.case_id},
         )
-
-
-def result_to_json(result: PipelineResult) -> dict[str, Any]:
-    return asdict(result)
 
 
 def new_id(prefix: str) -> str:

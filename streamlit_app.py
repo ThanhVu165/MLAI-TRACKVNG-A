@@ -187,28 +187,17 @@ def homepage() -> None:
         )
 
 
-def _page(path: str, title: str, icon: str) -> st.Page:
-    if Path(path).exists():
-        return st.Page(path, title=title, icon=icon)
-
-    def placeholder() -> None:
-        st.title(title)
-        st.info("Màn hình này đang được hoàn thiện trong task tiếp theo của làn C.")
-
-    return st.Page(placeholder, title=title, icon=icon)
-
-
 _sidebar_controls()
 navigation = st.navigation(
     {
         "Bắt đầu": [st.Page(homepage, title="Trang chủ", icon="🏠", default=True)],
         "Sáu màn hình": [
-            _page("pages/1_Xu_ly_email.py", "1 · Xử lý email", "✉️"),
-            _page("pages/2_Hang_cho_duyet.py", "2 · Hàng chờ duyệt", "👤"),
-            _page("pages/3_Quan_tri_quy_dinh.py", "3 · Quản trị quy định", "📚"),
-            _page("pages/4_Nhat_ky_kiem_toan.py", "4 · Nhật ký kiểm toán", "🔎"),
-            _page("pages/5_Verify.py", "5 · Verify", "✅"),
-            _page("pages/6_Do_luong.py", "6 · Đo lường", "📊"),
+            st.Page("pages/1_Xu_ly_email.py", title="1 · Xử lý email", icon="✉️"),
+            st.Page("pages/2_Hang_cho_duyet.py", title="2 · Hàng chờ duyệt", icon="👤"),
+            st.Page("pages/3_Quan_tri_quy_dinh.py", title="3 · Quản trị quy định", icon="📚"),
+            st.Page("pages/4_Nhat_ky_kiem_toan.py", title="4 · Nhật ký kiểm toán", icon="🔎"),
+            st.Page("pages/5_Verify.py", title="5 · Verify", icon="✅"),
+            st.Page("pages/6_Do_luong.py", title="6 · Đo lường", icon="📊"),
         ],
     }
 )

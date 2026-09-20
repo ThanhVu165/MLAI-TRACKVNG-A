@@ -202,7 +202,15 @@ def test_pipeline_downgrades_to_escalate_when_groundedness_fails() -> None:
         guard_failures=[],
     )
 
-    with patch("core.pipeline.generate_reply", return_value=hallucinated_draft):
+    with (
+        patch("core.pipeline.extract_facts", return_value=_make_extraction()),
+        patch(
+            "core.pipeline.retrieve_evidence",
+            return_value=(_make_evidence().chunks, EvidenceStatus.OK),
+        ),
+        patch("core.pipeline.generate_reply", return_value=hallucinated_draft),
+        patch("core.ground_guard._is_chunk_active", return_value=True),
+    ):
         res = process_case(inp)
 
     # Hệ thống lập tức hạ cấp về ESCALATE, KHÔNG TỰ SỬA SỐ

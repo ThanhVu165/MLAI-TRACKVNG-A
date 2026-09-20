@@ -1,11 +1,14 @@
 import inspect
 import sqlite3
+import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 import numpy as np
 import pytest
 
-from core.types import ChunkLabel, Domain
+from core.retrieval import retrieve_evidence
+from core.types import ChunkLabel, Domain, EvidenceStatus, Extraction
 from corpus import api, indexer
 from corpus.api import (
     get_chunk,
@@ -14,6 +17,8 @@ from corpus.api import (
     search,
     supported_domains,
 )
+from corpus.seed import seed_if_empty
+from infra.db import get_connection
 
 
 class FakeEmbedder:
@@ -79,9 +84,14 @@ def _use_db(monkeypatch: pytest.MonkeyPatch, conn: sqlite3.Connection) -> None:
     monkeypatch.setattr(indexer, "_load_embedder", lambda _: FakeEmbedder())
 
 
-def test_stub_corpus_contract_and_required_coverage() -> None:
+def test_seeded_corpus_contract_and_required_coverage(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    conn = get_connection(tmp_path / "corpus.db")
+    seed_if_empty(conn)
+    _use_db(monkeypatch, conn)
     domains = supported_domains()
-    chunks = search("", domains, top_k=20, at=datetime(2026, 9, 20, tzinfo=timezone.utc))
+    chunks = search("", domains, top_k=100, at=datetime(2026, 9, 20, tzinfo=timezone.utc))
 
     assert get_corpus_version().startswith("cv_")
     assert domains == [
@@ -89,23 +99,37 @@ def test_stub_corpus_contract_and_required_coverage() -> None:
         Domain.COURSE_WITHDRAWAL,
         Domain.GRADE_APPEAL,
     ]
-    assert len(chunks) == 12
+    assert len(chunks) == 45
     assert {chunk.domain for chunk in chunks} == set(domains)
-    assert sum(chunk.label == ChunkLabel.HUMAN_ONLY for chunk in chunks) == 2
-    assert sum(chunk.transitional_clause for chunk in chunks) == 1
+    assert any(chunk.label == ChunkLabel.HUMAN_ONLY for chunk in chunks)
+    assert any(chunk.transitional_clause for chunk in chunks)
+    assert all(chunk.doc_id != "RL-2025-2363" for chunk in chunks)
     assert all(
         is_active(chunk.chunk_id) and get_chunk(chunk.chunk_id) is not None for chunk in chunks
     )
 
 
-def test_search_filters_domain_and_ranks_matching_text() -> None:
-    chunks = search("hạn rút học phần", [Domain.COURSE_WITHDRAWAL], top_k=2)
+def test_search_filters_domain_and_ranks_matching_text(monkeypatch: pytest.MonkeyPatch) -> None:
+    _use_db(monkeypatch, _db())
+    chunks = search("thang điểm rèn luyện", [Domain.CONDUCT_SCORE], top_k=2)
 
     assert chunks
-    assert all(chunk.domain == Domain.COURSE_WITHDRAWAL for chunk in chunks)
-    assert chunks[0].chunk_id == "chunk_cw_01"
-    assert search("phúc khảo", [Domain.UNKNOWN])
+    assert all(chunk.domain == Domain.CONDUCT_SCORE for chunk in chunks)
+    assert chunks[0].chunk_id == "c-active"
+    assert search("thang điểm rèn luyện", [Domain.UNKNOWN])
+    assert search("thang điểm rèn luyện", [Domain.COURSE_WITHDRAWAL]) == []
     assert search("anything", supported_domains(), top_k=0) == []
+
+
+def test_missing_corpus_module_does_not_return_sample_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(sys.modules, "corpus.api", None)
+    extraction = Extraction("vi", [], {}, [], False, "{}")
+    assert retrieve_evidence(extraction, query="hạn rút học phần") == (
+        [],
+        EvidenceStatus.NO_AUTHORITATIVE_SOURCE,
+    )
 
 
 def test_database_facade_only_returns_active_chunks(monkeypatch: pytest.MonkeyPatch) -> None:

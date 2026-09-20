@@ -4,7 +4,8 @@ import hashlib
 import json
 import sqlite3
 from collections.abc import Iterable, Mapping
-from datetime import datetime, timezone
+
+from infra.db import now_iso
 
 SOURCE_COLUMNS = frozenset(
     {
@@ -49,10 +50,6 @@ CHUNK_COLUMNS = frozenset(
         "token_count",
     }
 )
-
-
-def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _validate_columns(record: Mapping[str, object], allowed: frozenset[str]) -> None:

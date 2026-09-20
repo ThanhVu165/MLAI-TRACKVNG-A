@@ -277,21 +277,7 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
                     evidence_ids=[c.chunk_id for c in evidence_res.chunks],
                     corpus_version=corpus_version,
                 )
-                raw_card = generate_escalation_card(
-                    extraction,
-                    evidence_res,
-                    EscalationType.FACT_UNRESOLVED,
-                    case_id=case_id,
-                    inp=inp,
-                )
-                card = ensure_valid_escalation_card(
-                    raw_card,
-                    extraction,
-                    evidence_res,
-                    EscalationType.FACT_UNRESOLVED,
-                    case_id=case_id,
-                )
-        else:
+        if decision.decision != Decision.AUTO_REPLY:
             raw_card = generate_escalation_card(
                 extraction,
                 evidence_res,
@@ -306,7 +292,7 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
                 decision.escalation_type or EscalationType.FACT_UNRESOLVED,
                 case_id=case_id,
             )
-            if card.partial_draft:
+            if draft is None and card.partial_draft:
                 draft = card.partial_draft
 
         step_latencies["R7_R8_generate_guard"] = max(1, int((time.perf_counter() - t7) * 1000))
@@ -355,7 +341,7 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
         store_case(case_id, inp, final_res)
         return final_res
 
-    except Exception as exc:  # noqa: BLE001 - Bắt buộc bọc mọi lỗi theo nguyên tắc Fail-safe của spec
+    except Exception as exc:  # noqa: BLE001 - Spec yêu cầu fail-safe với mọi lỗi.
         finished_at = datetime.now(timezone.utc)
         step_latencies["ERROR_HANDLER"] = 1
         err_res = PipelineResult(

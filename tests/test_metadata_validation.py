@@ -4,25 +4,12 @@ import pytest
 
 from corpus.metadata import SourceMetadata, save_metadata, validate_metadata
 from corpus.store import create_source
+from infra.db import MIGRATION_PATH
 
 
 def _db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
-    conn.execute(
-        """CREATE TABLE sources (
-        doc_id TEXT PRIMARY KEY, title TEXT, issuer TEXT, source_url TEXT,
-        source_kind TEXT, sha256 TEXT UNIQUE, fetched_at TEXT,
-        is_synthetic INTEGER DEFAULT 0, published_at TEXT, effective_from TEXT,
-        effective_to TEXT, applies_to_json TEXT, cohorts_json TEXT,
-        domains_json TEXT, supersedes_json TEXT, superseded_by TEXT,
-        superseded_at TEXT, transitional_clause INTEGER DEFAULT 0,
-        status TEXT NOT NULL, content_hash TEXT, created_at TEXT,
-        activated_at TEXT, activated_by TEXT)"""
-    )
-    conn.execute(
-        """CREATE TABLE settings (
-        key TEXT PRIMARY KEY, value TEXT, updated_at TEXT, actor TEXT)"""
-    )
+    conn.executescript(MIGRATION_PATH.read_text(encoding="utf-8"))
     return conn
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import replace
-from typing import Any, Self
+from typing import Any
 
 from core.types import (
     CaseInput,
@@ -49,21 +49,6 @@ def cancel_send(case_id: str, actor: str = "HUMAN", reason: str = "") -> None:
     dispatch_cancel_send(case_id, actor=actor, reason=reason)
 
 
-class RerunResult(tuple):
-    """Tuple (PipelineResult, dict) hỗ trợ tương thích ngược truy cập như dict."""
-
-    def __new__(cls, result: PipelineResult, diff: dict[str, Any]) -> Self:
-        return super().__new__(cls, (result, diff))
-
-    def __getitem__(self, key: Any) -> Any:
-        if isinstance(key, str):
-            return self[1][key]
-        return super().__getitem__(key)
-
-    def __contains__(self, key: Any) -> bool:
-        return key in self[1]
-
-
 def override_decision(
     case_id: str | PipelineResult,
     new_decision: Decision,
@@ -89,10 +74,6 @@ def override_decision(
         if stored is None:
             raise ValueError(f"Không tìm thấy case {cid} để ghi đè.")
         result = stored[1]
-
-    # Hỗ trợ reason truyền qua kwargs nếu có
-    if not reason and "reason" in kwargs:
-        reason = kwargs["reason"]
 
     clean_reason = (reason or "").strip()
     if not clean_reason:
@@ -166,10 +147,6 @@ def rerun_case(
             inp = arg
         elif isinstance(arg, str):
             actor = arg
-    if "actor" in kwargs:
-        actor = kwargs["actor"]
-    if "inp" in kwargs:
-        inp = kwargs["inp"]
 
     if isinstance(case_id, PipelineResult):
         original_result = case_id
@@ -213,7 +190,6 @@ def rerun_case(
         "citations_removed": sorted(old_cits - new_cits),
         "corpus_version_before": corpus_before,
         "corpus_version_after": new_result.corpus_version,
-        "new_result": new_result,
     }
 
     _log_control_audit(
@@ -222,7 +198,7 @@ def rerun_case(
         f"Chạy lại case {cid} -> {new_result.case_id}; Quyết định đổi: {diff['decision_changed']}",
         case_id=cid,
     )
-    return RerunResult(new_result, diff)
+    return new_result, diff
 
 
 def _log_control_audit(actor: str, action: str, detail: str, case_id: str | None = None) -> None:
