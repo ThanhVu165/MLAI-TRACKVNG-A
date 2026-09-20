@@ -2,7 +2,13 @@ import sqlite3
 
 import pytest
 
-from corpus.lifecycle import activate_source, document_diff, pending_reviews, submit_review
+from corpus.lifecycle import (
+    activate_source,
+    document_diff,
+    pending_reviews,
+    submit_review,
+    supersede_source,
+)
 from corpus.store import bump_corpus_version, current_corpus_version
 from corpus.seed import seed_if_empty
 
@@ -122,3 +128,31 @@ def test_activate_rejects_system_actor() -> None:
     conn = _db()
     with pytest.raises(ValueError, match="quản trị viên"):
         activate_source(conn, "RL-2026-3150", actor="SYSTEM", reason="Không hợp lệ")
+
+
+def test_supersede_removes_chunks_from_active_set_but_keeps_history() -> None:
+    conn = _db()
+    conn.execute("UPDATE sources SET status='ACTIVE' WHERE doc_id='RL-2025-2363'")
+    conn.commit()
+    events: list[dict[str, object]] = []
+
+    version = supersede_source(
+        conn,
+        "RL-2025-2363",
+        "RL-2026-3150",
+        actor="ADMIN:vu",
+        reason="Áp dụng bản mới",
+        audit=lambda **event: events.append(event),
+    )
+
+    assert version == current_corpus_version(conn)
+    assert (
+        conn.execute("SELECT status FROM sources WHERE doc_id='RL-2025-2363'").fetchone()[0]
+        == "SUPERSEDED"
+    )
+    assert (
+        conn.execute("SELECT COUNT(*) FROM chunks WHERE doc_id='RL-2025-2363'").fetchone()[0] == 9
+    )
+    assert conn.execute("""SELECT COUNT(*) FROM chunks JOIN sources USING(doc_id)
+           WHERE chunks.doc_id='RL-2025-2363' AND sources.status='ACTIVE'""").fetchone()[0] == 0
+    assert events[0]["action"] == "SUPERSEDE_SOURCE"

@@ -69,6 +69,19 @@ def _audit(
     )
 
 
+def _mark_superseded(
+    conn: sqlite3.Connection,
+    doc_id: str,
+    replacement_id: str,
+    superseded_at: str,
+) -> None:
+    conn.execute(
+        "UPDATE sources SET status='SUPERSEDED', superseded_by=?, superseded_at=? "
+        "WHERE doc_id=?",
+        (replacement_id, superseded_at, doc_id),
+    )
+
+
 def submit_review(
     conn: sqlite3.Connection,
     doc_id: str,
@@ -129,11 +142,7 @@ def activate_source(
         (activated_at, actor, doc_id),
     )
     for old_doc_id in old_doc_ids:
-        conn.execute(
-            "UPDATE sources SET status='SUPERSEDED', superseded_by=?, superseded_at=? "
-            "WHERE doc_id=?",
-            (doc_id, activated_at, old_doc_id),
-        )
+        _mark_superseded(conn, old_doc_id, doc_id, activated_at)
     conn.commit()
     detect_conflicts(conn, audit=audit)
     version = bump_corpus_version(conn, actor, f"Kích hoạt {doc_id}: {reason.strip()}")
@@ -146,6 +155,44 @@ def activate_source(
             f"Bị thay thế bởi {doc_id}",
             audit,
         )
+    if reindex:
+        reindex()
+    return version
+
+
+def supersede_source(
+    conn: sqlite3.Connection,
+    doc_id: str,
+    replacement_id: str,
+    *,
+    actor: str,
+    reason: str,
+    audit: Callable[..., object] | None = None,
+    reindex: Callable[[], object] | None = None,
+) -> str:
+    if not actor.startswith("ADMIN:") or actor == "ADMIN:":
+        raise ValueError("Supersede cần actor quản trị viên cụ thể")
+    if not reason.strip():
+        raise ValueError("Lý do là bắt buộc")
+    target = conn.execute("SELECT status FROM sources WHERE doc_id = ?", (doc_id,)).fetchone()
+    replacement = conn.execute(
+        "SELECT status FROM sources WHERE doc_id = ?", (replacement_id,)
+    ).fetchone()
+    if not target or target[0] != "ACTIVE":
+        raise ValueError("Chỉ có thể hạ cấp tài liệu ACTIVE")
+    if not replacement or replacement[0] != "ACTIVE":
+        raise ValueError("Tài liệu thay thế phải đang ACTIVE")
+
+    _mark_superseded(conn, doc_id, replacement_id, now_iso())
+    conn.commit()
+    version = bump_corpus_version(conn, actor, f"Hạ cấp {doc_id}: {reason.strip()}")
+    _audit(
+        "SUPERSEDE_SOURCE",
+        doc_id,
+        actor,
+        f"Bị thay thế bởi {replacement_id}: {reason.strip()}",
+        audit,
+    )
     if reindex:
         reindex()
     return version
