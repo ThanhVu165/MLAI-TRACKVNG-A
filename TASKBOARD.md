@@ -413,7 +413,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** Giai đoạn 0 (kho mã nguồn công khai, đủ lịch sử)
 
 ### C-02 · `infra/db.py` và migration
-- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** S-02
+- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** S-02 · **Trạng thái:** `WIP`
 - **File:** `infra/db.py`, `infra/migrations/001_init.sql`
 - **Việc phải làm:** Kết nối SQLite bật **WAL mode** (tránh lock khi Verify chạy); chạy migration khi khởi động; hàm `now_iso()` (UTC có `Z`) và `to_local(ts)` (`+07:00`) — **đây là nơi duy nhất xử lý múi giờ**; helper `fetch_one`, `fetch_all`, `execute`.
 - **Xong khi:** Xóa `app.db` rồi khởi động lại tạo đủ bảng; hai tiến trình đọc ghi đồng thời không lỗi `database is locked`.
