@@ -26,7 +26,12 @@ from corpus.lifecycle import (
     rollback_source,
     submit_review,
 )
-from corpus.metadata import SUPPORTED_DOMAINS, SourceMetadata, save_metadata, suggest_metadata
+from corpus.metadata import (
+    SUPPORTED_DOMAINS,
+    SourceMetadata,
+    save_metadata,
+    suggest_metadata,
+)
 from corpus.seed import seed_if_empty
 from corpus.store import current_corpus_version, list_sources, replace_chunks
 
@@ -58,18 +63,14 @@ def render_metadata_form(draft: SourceMetadata) -> SourceMetadata | None:
         title = st.text_input("Tiêu đề", value=draft.title or "")
         issuer = st.text_input("Đơn vị ban hành", value=draft.issuer or "")
         published_at = st.text_input("Ngày ban hành (YYYY-MM-DD)", value=draft.published_at or "")
-        effective_from = st.text_input(
-            "Hiệu lực từ (YYYY-MM-DD)", value=draft.effective_from or ""
-        )
+        effective_from = st.text_input("Hiệu lực từ (YYYY-MM-DD)", value=draft.effective_from or "")
         effective_to = st.text_input(
             "Hiệu lực đến (YYYY-MM-DD, có thể trống)", value=draft.effective_to or ""
         )
         applies_to = st.text_input("Đối tượng áp dụng", value=", ".join(draft.applies_to))
         cohorts = st.text_input("Khóa áp dụng", value=", ".join(draft.cohorts))
         supersedes = st.text_input("Thay thế văn bản", value=", ".join(draft.supersedes))
-        domains = st.multiselect(
-            "Nhóm nghiệp vụ", sorted(SUPPORTED_DOMAINS), default=draft.domains
-        )
+        domains = st.multiselect("Nhóm nghiệp vụ", sorted(SUPPORTED_DOMAINS), default=draft.domains)
         transitional = st.selectbox(
             "Có điều khoản chuyển tiếp?",
             [None, False, True],
@@ -185,7 +186,11 @@ def render_review_queue(
     actor: str,
     reindex: Callable[[], object] | None = None,
 ) -> None:
-    for document in pending_reviews(conn):
+    documents = pending_reviews(conn)
+    if not documents:
+        st.info("Chưa có tài liệu chờ duyệt. Hãy nạp tài liệu ở tab Nạp tài liệu.")
+        return
+    for document in documents:
         doc_id = str(document["doc_id"])
         with st.expander(f"{document['title'] or doc_id} · {doc_id}"):
             st.json(document)
@@ -207,12 +212,12 @@ def render_review_queue(
             review = conn.execute(
                 "SELECT value FROM settings WHERE key = ?", (f"review:{doc_id}",)
             ).fetchone()
-            if review and review[0] == "APPROVE" and st.button(
-                "Kích hoạt tài liệu", key=f"activate_{doc_id}"
+            if (
+                review
+                and review[0] == "APPROVE"
+                and st.button("Kích hoạt tài liệu", key=f"activate_{doc_id}")
             ):
-                version = activate_source(
-                    conn, doc_id, actor=actor, reason=reason, reindex=reindex
-                )
+                version = activate_source(conn, doc_id, actor=actor, reason=reason, reindex=reindex)
                 st.success(f"Đã kích hoạt tài liệu. Corpus hiện tại: {version}")
 
 
@@ -226,7 +231,6 @@ def render_active(conn: sqlite3.Connection) -> None:
     ).fetchall()
     st.dataframe(counts, use_container_width=True)
     st.dataframe(list_sources(conn, "ACTIVE"), use_container_width=True)
-    _cached_index(conn, version)
 
 
 def render_history(
@@ -238,6 +242,9 @@ def render_history(
     sources = conn.execute(
         "SELECT * FROM sources WHERE status IN ('SUPERSEDED', 'REJECTED') ORDER BY created_at DESC"
     ).fetchall()
+    if not sources:
+        st.info("Chưa có tài liệu trong lịch sử.")
+        return
     for source in sources:
         doc_id = str(source["doc_id"])
         with st.expander(f"{source['title'] or doc_id} · {source['status']}"):
@@ -259,18 +266,25 @@ def main() -> None:
         return
     seed_if_empty(conn)
     admin_id = st.text_input("Mã quản trị viên", value="demo").strip()
+    if not admin_id:
+        st.error("Hãy nhập mã quản trị viên trước khi thực hiện thao tác.")
+        return
     actor = f"ADMIN:{admin_id}"
+
+    def reindex() -> HybridIndex | None:
+        return _cached_index(conn, current_corpus_version(conn))
+
     intake_tab, review_tab, active_tab, history_tab = st.tabs(
         ["Nạp tài liệu", "Chờ duyệt", "Đang hiệu lực", "Lịch sử"]
     )
     with intake_tab:
         render_intake(conn, actor)
     with review_tab:
-        render_review_queue(conn, actor, reindex=_cached_index.clear)
+        render_review_queue(conn, actor, reindex=reindex)
     with active_tab:
         render_active(conn)
     with history_tab:
-        render_history(conn, actor, reindex=_cached_index.clear)
+        render_history(conn, actor, reindex=reindex)
 
 
 main()
