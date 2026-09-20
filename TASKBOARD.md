@@ -319,8 +319,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Việc phải làm:** Form Streamlit hiển thị bản nháp cho người sửa từng trường; validate: `effective_from` ≤ `effective_to`, `domains` thuộc danh sách hợp lệ, `document_id` duy nhất; lưu với `status=PENDING_REVIEW`; ghi audit `SOURCE_METADATA_EDITED` với diff trường nào đổi.
 - **Xong khi:** Không lưu được metadata sai định dạng; mọi lần sửa đều có dấu vết audit.
 
-### B-07 · K4 Chunker theo đơn vị pháp lý
-- **Khối:** B1 · **Ước lượng:** 3.5h · **Phụ thuộc:** B-04 · **Trạng thái:** `WIP`
+### B-07 · K4 Chunker theo đơn vị pháp lý [DONE]
+- **Khối:** B1 · **Ước lượng:** 3.5h · **Phụ thuộc:** B-04 · **Trạng thái:** `DONE`
 - **File:** `corpus/chunker.py`
 - **Việc phải làm:** Tách theo **Điều → Khoản → Điểm**, không theo cửa sổ token cố định. Mỗi chunk giữ `doc_id`, `article_no`, `clause_no`, `breadcrumb` dạng `QĐ 3150/2026 · Điều 8 · Khoản 2`, `ord`. Khoản quá dài (> 800 token) thì tách tiếp nhưng giữ nguyên breadcrumb và đánh dấu phần. Gán `domain` theo metadata của tài liệu.
 - **Xong khi:** `tests/test_chunker.py` với 3 tài liệu mẫu: không mất điều khoản nào, breadcrumb đúng 100%, không có chunk rỗng. **Trích dẫn phải chỉ được tới điều khoản, nếu không chuyên viên vẫn phải mở file gốc.**
