@@ -481,7 +481,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 6 (4đ)
 
 ### C-12 · Thẻ escalation bốn khối
-- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-09, A-17
+- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-09, A-17 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`, `pages/2_Hang_cho_duyet.py`
 - **Việc phải làm:** Trình bày đúng bốn khối: Tóm tắt · Dữ kiện · Căn cứ (breadcrumb bấm được) · Câu hỏi + các phương án dạng nút chọn. Hiển thị `escalation_type` bằng tiếng Việt dễ hiểu (*Thiếu dữ kiện* / *Ngoài phạm vi quy định* / *Cần phê duyệt*). Nếu có `partial_draft` thì hiện khối *"Phần A đã soạn sẵn"*.
 - **Xong khi:** Chuyên viên đọc thẻ và quyết được **chỉ bằng một lần chọn phương án**, không phải mở hồ sơ gốc.

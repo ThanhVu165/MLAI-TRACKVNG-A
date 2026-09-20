@@ -39,5 +39,6 @@
 - `[H+76][Agent C] xong C-09 (paste và hộp thư mô phỏng cùng gọi process_case, có chỉ báo R1–R13 và thời gian xử lý) · tiếp tục C-10`
 - `[H+77][Agent C] xong C-10 (huy hiệu quyết định, rule/reason, bản nháp, breadcrumb mở rộng, corpus version và liên kết audit) · tiếp tục C-11`
 - `[H+78][Agent C] xong C-11 (deadline đọc từ DB, Hủy gửi/Chuyển cho người, khóa sau SENT và tạo email đính chính) · 6 test dispatch/resume passed · tiếp tục C-12`
+- `[H+79][Agent C] xong C-12 (thẻ 4 khối, tên loại chuyển tiếp tiếng Việt, phương án chọn và partial draft) · tiếp tục C-13`
 
 
