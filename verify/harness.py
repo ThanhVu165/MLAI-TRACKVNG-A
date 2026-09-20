@@ -41,6 +41,7 @@ class VerifyResult:
     expected: str
     actual: str
     rule_id: str
+    reason: str
     passed: bool
     elapsed_ms: int
     timestamp: str
@@ -110,6 +111,7 @@ def _run_case(case: dict[str, Any]) -> VerifyResult:
         expected=expected,
         actual=actual,
         rule_id=result.decision.rule_id,
+        reason=result.decision.reason,
         passed=_pass(case, result),
         elapsed_ms=elapsed_ms,
         timestamp=to_local(now_iso()),
@@ -185,6 +187,9 @@ def _print(results: list[VerifyResult]) -> None:
             f"{result.test_id:<4} {outcome:<8} {result.expected:<20} "
             f"{result.actual:<20} {result.elapsed_ms}"
         )
+        if not result.passed:
+            safe_reason = result.reason.encode("ascii", "backslashreplace").decode()
+            print(f"     reason: {safe_reason}")
     print(f"Total: {sum(result.passed for result in results)}/{len(results)} PASS")
 
 

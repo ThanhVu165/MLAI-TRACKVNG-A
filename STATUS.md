@@ -46,5 +46,6 @@
 - `[H+83][Agent C] xong C-16 (audit mới nhất trước, lọc case/actor/action/ngày, chi tiết 4 câu hỏi và deep link theo case) · tiếp tục C-17`
 - `[H+84][Agent C] xong C-17 (Pause/Resume, Override bắt buộc lý do, Rerun có diff; thanh bên luôn hiện và ghi actor ADMIN) · tiếp tục C-18`
 - `[H+85][Agent C] xong C-18 (CLI tuần tự gọi process_case channel=verify, kiểm tra decision/type/citation ACTIVE, audit đầu-cuối, đo thời gian) · CLI exit 0 và test ma trận xanh; baseline hiện 1/4 PASS do replay chưa có cassette · tiếp tục C-19`
+- `[H+86][Agent C] C-19 WIP: nút Verify 4 và replay cassette đã chạy dưới 60s, hiện 2/4 PASS · chặn bởi retrieval trả chunk human_only/conflict cho case thường quy khiến Evidence Validator hạ AUTO thành OUT_OF_POLICY; không tạo đường Verify riêng · chuyển C-20/C-22 song song`
 
 

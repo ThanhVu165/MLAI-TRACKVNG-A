@@ -1,7 +1,7 @@
 [
   {
     "id": "V01",
-    "input": {"sender": "sv.k48@example.edu.vn", "subject": "Quy trình đánh giá điểm rèn luyện", "body": "Em là sinh viên K48, cho em hỏi quy trình tự đánh giá điểm rèn luyện học kỳ 1 năm 2026 trên cổng thông tin như thế nào ạ?"},
+    "input": {"sender": "sv.k48@example.edu.vn", "subject": "Sinh viên tự đánh giá trên cổng thông tin", "body": "Em là sinh viên K48. Cho em hỏi sinh viên tự đánh giá điểm rèn luyện trên cổng thông tin trong 14 ngày kể từ ngày mở đợt như thế nào ạ?"},
     "expected_decision": "AUTO_REPLY",
     "expected_type": null,
     "expected_rule_id": "P05",
@@ -10,7 +10,7 @@
   },
   {
     "id": "V02",
-    "input": {"sender": "student@example.edu.vn", "subject": "Course withdrawal procedure", "body": "Could you tell me the deadline and online procedure for withdrawing a course in semester one of 2026? Thank you."},
+    "input": {"sender": "student@example.edu.vn", "subject": "Course withdrawal under Decision 20/2026", "body": "Under Decision 20/2026, is the course withdrawal deadline 30/10/2026, and should I submit the form through the online student portal?"},
     "expected_decision": "AUTO_REPLY",
     "expected_type": null,
     "expected_rule_id": "P05",

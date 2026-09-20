@@ -3,7 +3,19 @@ from verify.harness import VerifyResult, confusion_matrix, error_rates
 
 def _result(expected: str, actual: str) -> VerifyResult:
     return VerifyResult(
-        "c", "T", "input", expected, actual, "P", expected == actual, 1, "ts", "cv", "", ""
+        "c",
+        "T",
+        "input",
+        expected,
+        actual,
+        "P",
+        "reason",
+        expected == actual,
+        1,
+        "ts",
+        "cv",
+        "",
+        "",
     )
 
 

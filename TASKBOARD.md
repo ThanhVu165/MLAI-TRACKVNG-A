@@ -530,7 +530,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 2 (12đ) · tính trung thực
 
 ### C-19 · Nút 1 — Chạy Verify 4 trường hợp
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Một nút duy nhất chạy tuần tự V01–V04 và in bảng kết quả. **Không gộp với bộ 5 case** — tiêu chí 2 chấm riêng bộ này, và Giai đoạn 0 đếm *"đủ 4 trường hợp kiểm thử với ít nhất 1 trường hợp từ chối"*.
 - **Xong khi:** Một cú bấm, dưới 60 giây, bảng hiện đủ 4 dòng PASS. V03 là case từ chối bắt buộc.
