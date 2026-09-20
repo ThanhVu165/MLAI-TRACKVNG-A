@@ -544,7 +544,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 7 (20đ, bài kiểm tra nhanh 90 giây)
 
 ### C-21 · Nút 3 — Chạy toàn bộ 15 trường hợp
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-19, C-20
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** C-19, C-20 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Chạy cả 15 case, in **ma trận nhầm lẫn 4 lớp** (`AUTO_REPLY` + 3 loại escalation) và hai chỉ số: **tỷ lệ escalation bị bỏ sót** và **tỷ lệ escalate thừa**. Đây là dữ liệu nền cho Sprint 2.
 - **Xong khi:** Ma trận hiển thị đúng, hai chỉ số khớp với đếm tay trên bảng kết quả.

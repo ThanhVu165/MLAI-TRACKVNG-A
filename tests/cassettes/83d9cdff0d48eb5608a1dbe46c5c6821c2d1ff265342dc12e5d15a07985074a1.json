@@ -1,0 +1,1 @@
+{"model": "deterministic-replay", "data": {"language": "vi", "requests": [{"domain": "unknown", "intent": "Ký túc xá", "is_informational": true, "requires_personal_record": false, "asks_exception": false, "asks_appeal": false, "asks_authority_decision": false}], "critical_facts": {}, "missing_critical_facts": [], "injection_suspected": false}}
