@@ -301,8 +301,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Việc phải làm:** Upload PDF/DOCX; dán URL (**tải một lần, thủ công, không crawler định kỳ**); dán text. Ghi `source_url`, `source_kind`, `fetched_at`, `sha256`. Trùng `sha256` với tài liệu đã có → báo *"Tài liệu không thay đổi"* và dừng. Ghi audit `SOURCE_UPLOADED`.
 - **Xong khi:** Nạp cùng một file hai lần chỉ tạo một hàng `sources`.
 
-### B-04 · K2 Trích xuất và chuẩn hóa văn bản
-- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-03 · **Trạng thái:** `WIP`
+### B-04 · K2 Trích xuất và chuẩn hóa văn bản [DONE]
+- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-03 · **Trạng thái:** `DONE`
 - **File:** `corpus/extract_doc.py`
 - **Việc phải làm:** PDF → text (`pdfplumber`), DOCX → text (`python-docx`); bỏ header/footer lặp bằng cách đếm dòng xuất hiện trên đa số trang; **giữ nguyên đánh số Điều / Khoản / Điểm**; chuẩn hóa dấu tiếng Việt về NFC; gộp dòng bị ngắt giữa câu.
 - **Xong khi:** Với 6 tài liệu seed, mọi tiêu đề `Điều N.` đều còn nguyên và nằm đầu dòng. **Mất đánh số là hỏng toàn bộ breadcrumb, kéo theo mất điểm chất lượng câu hỏi.**

@@ -12,5 +12,6 @@
 - `[H+49][Agent B] xong B-01 và phần B của S-03 (corpus/api.py: 12 chunk giả, 3 domain, 2 human_only, 1 transitional_clause) · test suite 108/108 passed · Ruff và Black sạch · B-02 bị chặn bởi S-02/infra chưa được bàn giao`
 - `[H+50][Agent B] xong B-02 (CRUD sources/chunks/corpus_versions, corpus_version đổi khi tập ACTIVE đổi) · kiểm thử SQLite in-memory xanh · tiếp tục B-03`
 - `[H+51][Agent B] xong B-03 (nạp PDF/DOCX, URL một lần, text; chống trùng SHA-256; audit SOURCE_UPLOADED) · tiếp tục B-04`
+- `[H+52][Agent B] xong B-04 (trích xuất PDF/DOCX/text, bỏ header/footer lặp, giữ Điều/Khoản/Điểm, NFC) · tiếp tục B-05`
 
 
