@@ -432,7 +432,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 3 · 7 · rủi ro rate limit khi demo
 
 ### C-05 · `infra/audit.py`
-- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** C-02, S-02 · **Trạng thái:** `WIP`
+- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** C-02, S-02 · **Trạng thái:** `DONE`
 - **File:** `infra/audit.py`
 - **Việc phải làm:** `log_event()` đúng contract, validate `action ∈ ACTIONS` (sai thì ném lỗi ngay khi phát triển); `events_for_case()`, `recent_events()`; ghi `ts` UTC; **từ chối ghi nếu `reason` rỗng với các action cần lý do** (`OVERRIDE_DECISION`, `PAUSE_AUTOMATION`, `HUMAN_DECISION`, `CANCEL_SEND`).
 - **Xong khi:** `tests/test_audit_coverage.py`: chạy một case đầu-cuối sinh ra chuỗi event liên tục, không đứt đoạn, mỗi event trả lời được *làm gì, lúc nào, trên dữ liệu nào, vì sao*.

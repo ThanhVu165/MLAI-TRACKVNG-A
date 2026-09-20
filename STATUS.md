@@ -32,5 +32,6 @@
 - `[H+69][Agent C] xong C-02 (SQLite tự migration, WAL + busy timeout, helper truy vấn, UTC Z và +07:00) · kiểm thử ghi đồng thời xanh · tiếp tục C-03`
 - `[H+70][Agent C] xong C-03 (đủ 10 ngưỡng có tên, comment và override từ biến môi trường) · test cấu hình xanh · tiếp tục C-04`
 - `[H+71][Agent C] xong C-04 (Gemini JSON qua REST, live/replay/record, cache SQLite, timeout + retry một lần, latency và prompt hash, không ném lỗi) · test wrapper xanh · tiếp tục C-05`
+- `[H+72][Agent C] xong C-05 (ACTIONS đóng, actor chuẩn hóa, bắt buộc lý do cho 4 hành động nhạy cảm, truy vấn audit theo case/gần đây) · test audit xanh · tiếp tục C-06`
 
 
