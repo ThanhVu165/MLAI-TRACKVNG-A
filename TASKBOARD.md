@@ -366,8 +366,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Việc phải làm:** Tài liệu bị thay chuyển `SUPERSEDED`, ghi `superseded_by` và `superseded_at`, loại khỏi index, giữ nguyên trong DB. Audit `SUPERSEDE_SOURCE`.
 - **Xong khi:** Sau khi kích hoạt tài liệu #1, tài liệu #2 không còn xuất hiện trong kết quả retrieval nhưng vẫn tra được trong audit của các case cũ.
 
-### B-14 · K11 Rollback và quét `NEEDS_RECHECK`
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** B-13 · **Trạng thái:** `WIP`
+### B-14 · K11 Rollback và quét `NEEDS_RECHECK` [DONE]
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** B-13 · **Trạng thái:** `DONE`
 - **File:** `corpus/lifecycle.py`
 - **Việc phải làm:** Khi một tài liệu rời trạng thái ACTIVE (bị thay thế hoặc bị rollback), hệ thống **tự liệt kê mọi case đã dùng tài liệu đó làm căn cứ trong 30 ngày** và gắn `NEEDS_RECHECK`, ghi audit `FLAG_NEEDS_RECHECK`. Có nút rollback đưa tài liệu về ACTIVE kèm lý do.
 - **Xong khi:** Hạ một tài liệu → danh sách case bị ảnh hưởng hiện ra ngay, có nút chạy lại từng case. **Đây là câu trả lời hoàn hảo cho câu phản biện "nếu quy định sai thì sao".**

@@ -1,11 +1,15 @@
 import sqlite3
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from corpus.lifecycle import (
     activate_source,
+    affected_cases,
     document_diff,
+    flag_cases_for_recheck,
     pending_reviews,
+    rollback_source,
     submit_review,
     supersede_source,
 )
@@ -39,6 +43,12 @@ def _db() -> sqlite3.Connection:
         );
         CREATE TABLE settings (
           key TEXT PRIMARY KEY, value TEXT, updated_at TEXT, actor TEXT
+        );
+        CREATE TABLE cases (
+          case_id TEXT PRIMARY KEY, status TEXT NOT NULL, created_at TEXT NOT NULL
+        );
+        CREATE TABLE decisions (
+          decision_id TEXT PRIMARY KEY, case_id TEXT, evidence_ids_json TEXT
         );
         """)
     seed_if_empty(conn)
@@ -156,3 +166,53 @@ def test_supersede_removes_chunks_from_active_set_but_keeps_history() -> None:
     assert conn.execute("""SELECT COUNT(*) FROM chunks JOIN sources USING(doc_id)
            WHERE chunks.doc_id='RL-2025-2363' AND sources.status='ACTIVE'""").fetchone()[0] == 0
     assert events[0]["action"] == "SUPERSEDE_SOURCE"
+
+
+def test_flags_only_cases_using_source_within_30_days_and_rolls_back() -> None:
+    conn = _db()
+    now = datetime(2026, 9, 20, tzinfo=timezone.utc)
+    chunk_id = conn.execute(
+        "SELECT chunk_id FROM chunks WHERE doc_id='RL-2025-2363' LIMIT 1"
+    ).fetchone()[0]
+    conn.executemany(
+        "INSERT INTO cases(case_id, status, created_at) VALUES (?, 'RESOLVED', ?)",
+        [
+            ("recent", (now - timedelta(days=10)).isoformat()),
+            ("old", (now - timedelta(days=40)).isoformat()),
+        ],
+    )
+    conn.executemany(
+        "INSERT INTO decisions VALUES (?, ?, ?)",
+        [("d1", "recent", f'["{chunk_id}"]'), ("d2", "old", f'["{chunk_id}"]')],
+    )
+    conn.commit()
+    events: list[dict[str, object]] = []
+
+    assert affected_cases(conn, "RL-2025-2363", now=now) == ["recent"]
+    flagged = flag_cases_for_recheck(
+        conn,
+        "RL-2025-2363",
+        actor="SYSTEM",
+        audit=lambda **event: events.append(event),
+        now=now,
+    )
+    assert flagged == ["recent"]
+    assert dict(conn.execute("SELECT case_id, status FROM cases").fetchall()) == {
+        "recent": "NEEDS_RECHECK",
+        "old": "RESOLVED",
+    }
+    assert events[0]["action"] == "FLAG_NEEDS_RECHECK"
+
+    version = rollback_source(
+        conn,
+        "RL-2025-2363",
+        actor="ADMIN:vu",
+        reason="Phát hiện bản mới sai",
+        audit=lambda **event: events.append(event),
+    )
+    assert version == current_corpus_version(conn)
+    assert (
+        conn.execute("SELECT status FROM sources WHERE doc_id='RL-2025-2363'").fetchone()[0]
+        == "ACTIVE"
+    )
+    assert any(event["action"] == "ROLLBACK_SOURCE" for event in events)

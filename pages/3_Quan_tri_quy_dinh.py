@@ -5,7 +5,14 @@ import sqlite3
 import streamlit as st
 
 from corpus.coverage import LABELS, label_chunk, list_coverage
-from corpus.lifecycle import activate_source, document_diff, pending_reviews, submit_review
+from corpus.lifecycle import (
+    activate_source,
+    affected_cases,
+    document_diff,
+    pending_reviews,
+    rollback_source,
+    submit_review,
+)
 from corpus.metadata import SUPPORTED_DOMAINS, SourceMetadata
 
 
@@ -101,6 +108,22 @@ def render_review_queue(conn: sqlite3.Connection, actor: str) -> None:
             ):
                 version = activate_source(conn, doc_id, actor=actor, reason=reason)
                 st.success(f"Đã kích hoạt tài liệu. Corpus hiện tại: {version}")
+
+
+def render_history(conn: sqlite3.Connection, actor: str) -> None:
+    conn.row_factory = sqlite3.Row
+    sources = conn.execute(
+        "SELECT * FROM sources WHERE status IN ('SUPERSEDED', 'REJECTED') ORDER BY created_at DESC"
+    ).fetchall()
+    for source in sources:
+        doc_id = str(source["doc_id"])
+        with st.expander(f"{source['title'] or doc_id} · {source['status']}"):
+            st.write(f"Case cần kiểm tra lại trong 30 ngày: {len(affected_cases(conn, doc_id))}")
+            if source["status"] == "SUPERSEDED":
+                reason = st.text_input("Lý do rollback", key=f"rollback_reason_{doc_id}")
+                if st.button("Rollback tài liệu", key=f"rollback_{doc_id}"):
+                    version = rollback_source(conn, doc_id, actor=actor, reason=reason)
+                    st.success(f"Đã rollback. Corpus hiện tại: {version}")
 
 
 st.title("Quản trị quy định")

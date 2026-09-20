@@ -4,6 +4,7 @@ import difflib
 import json
 import sqlite3
 from collections.abc import Callable
+from datetime import datetime, timedelta, timezone
 
 from corpus.conflict import detect_conflicts, scheduled_supersedes
 from corpus.store import bump_corpus_version, now_iso
@@ -52,6 +53,7 @@ def _audit(
     actor: str,
     reason: str,
     audit: Callable[..., object] | None,
+    case_id: str | None = None,
 ) -> None:
     if audit is None:
         try:
@@ -61,12 +63,64 @@ def _audit(
         except ImportError:
             return
     audit(
-        case_id=None,
+        case_id=case_id,
         actor=actor,
         action=action,
         input_ref=doc_id,
         reason=reason,
     )
+
+
+def affected_cases(
+    conn: sqlite3.Connection,
+    doc_id: str,
+    *,
+    now: datetime | None = None,
+    days: int = 30,
+) -> list[str]:
+    chunk_ids = {
+        str(row[0])
+        for row in conn.execute("SELECT chunk_id FROM chunks WHERE doc_id = ?", (doc_id,))
+    }
+    if not chunk_ids:
+        return []
+    cutoff = (now or datetime.now(timezone.utc)) - timedelta(days=days)
+    rows = conn.execute("""SELECT cases.case_id, cases.created_at, decisions.evidence_ids_json
+           FROM cases JOIN decisions ON decisions.case_id = cases.case_id""").fetchall()
+    affected: set[str] = set()
+    for case_id, created_at, evidence_json in rows:
+        created = datetime.fromisoformat(str(created_at).replace("Z", "+00:00"))
+        evidence_ids = set(json.loads(evidence_json or "[]"))
+        if created >= cutoff and evidence_ids & chunk_ids:
+            affected.add(str(case_id))
+    return sorted(affected)
+
+
+def flag_cases_for_recheck(
+    conn: sqlite3.Connection,
+    doc_id: str,
+    *,
+    actor: str,
+    audit: Callable[..., object] | None = None,
+    now: datetime | None = None,
+) -> list[str]:
+    case_ids = affected_cases(conn, doc_id, now=now)
+    for case_id in case_ids:
+        old_status = conn.execute(
+            "SELECT status FROM cases WHERE case_id = ?", (case_id,)
+        ).fetchone()
+        if old_status and old_status[0] != "NEEDS_RECHECK":
+            conn.execute("UPDATE cases SET status='NEEDS_RECHECK' WHERE case_id = ?", (case_id,))
+            _audit(
+                "FLAG_NEEDS_RECHECK",
+                doc_id,
+                actor,
+                f"Case đã dùng căn cứ từ tài liệu {doc_id} vừa rời ACTIVE",
+                audit,
+                case_id=case_id,
+            )
+    conn.commit()
+    return case_ids
 
 
 def _mark_superseded(
@@ -144,6 +198,8 @@ def activate_source(
     for old_doc_id in old_doc_ids:
         _mark_superseded(conn, old_doc_id, doc_id, activated_at)
     conn.commit()
+    for old_doc_id in old_doc_ids:
+        flag_cases_for_recheck(conn, old_doc_id, actor="SYSTEM", audit=audit)
     detect_conflicts(conn, audit=audit)
     version = bump_corpus_version(conn, actor, f"Kích hoạt {doc_id}: {reason.strip()}")
     _audit("ACTIVATE_SOURCE", doc_id, actor, reason.strip(), audit)
@@ -185,6 +241,7 @@ def supersede_source(
 
     _mark_superseded(conn, doc_id, replacement_id, now_iso())
     conn.commit()
+    flag_cases_for_recheck(conn, doc_id, actor="SYSTEM", audit=audit)
     version = bump_corpus_version(conn, actor, f"Hạ cấp {doc_id}: {reason.strip()}")
     _audit(
         "SUPERSEDE_SOURCE",
@@ -193,6 +250,36 @@ def supersede_source(
         f"Bị thay thế bởi {replacement_id}: {reason.strip()}",
         audit,
     )
+    if reindex:
+        reindex()
+    return version
+
+
+def rollback_source(
+    conn: sqlite3.Connection,
+    doc_id: str,
+    *,
+    actor: str,
+    reason: str,
+    audit: Callable[..., object] | None = None,
+    reindex: Callable[[], object] | None = None,
+) -> str:
+    if not actor.startswith("ADMIN:") or actor == "ADMIN:":
+        raise ValueError("Rollback cần actor quản trị viên cụ thể")
+    if not reason.strip():
+        raise ValueError("Lý do là bắt buộc")
+    row = conn.execute("SELECT status FROM sources WHERE doc_id = ?", (doc_id,)).fetchone()
+    if not row or row[0] != "SUPERSEDED":
+        raise ValueError("Chỉ rollback tài liệu SUPERSEDED")
+    conn.execute(
+        "UPDATE sources SET status='ACTIVE', superseded_by=NULL, superseded_at=NULL, "
+        "activated_at=?, activated_by=? WHERE doc_id=?",
+        (now_iso(), actor, doc_id),
+    )
+    conn.commit()
+    detect_conflicts(conn, audit=audit)
+    version = bump_corpus_version(conn, actor, f"Rollback {doc_id}: {reason.strip()}")
+    _audit("ROLLBACK_SOURCE", doc_id, actor, reason.strip(), audit)
     if reindex:
         reindex()
     return version

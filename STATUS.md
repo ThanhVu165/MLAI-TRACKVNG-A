@@ -23,5 +23,6 @@
 - `[H+60][Agent B] xong B-10 (hàng chờ, metadata/chunk labels, HTML diff bản cũ, duyệt/từ chối/yêu cầu sửa bắt buộc lý do) · tiếp tục B-11`
 - `[H+61][Agent B] xong B-11 (activate bởi ADMIN thật, supersede theo lịch, tăng corpus_version, quét conflict và gọi reindex) · tiếp tục B-13/B-14`
 - `[H+62][Agent B] xong B-13 (SUPERSEDED giữ nguyên DB/audit, loại khỏi tập ACTIVE và gọi reindex) · tiếp tục B-14`
+- `[H+63][Agent B] xong B-14 (quét case 30 ngày, FLAG_NEEDS_RECHECK, rollback có lý do/audit/reindex) · tiếp tục B-16`
 
 
