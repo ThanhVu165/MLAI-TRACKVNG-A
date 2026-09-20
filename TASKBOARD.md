@@ -381,7 +381,7 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Tiêu chí:** 1 · 2 · Quy định về dữ liệu
 
 ### B-16 · Nút "Kiểm tra nguồn mới"
-- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-03
+- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-03 · **Trạng thái:** `WIP`
 - **File:** `corpus/intake.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Admin bấm thủ công; hệ thống tải lại các URL đã đăng ký, so `sha256`, báo tài liệu nào đã đổi và đề xuất nạp bản mới vào `PENDING_REVIEW`. **Không chạy nền, không định kỳ.** Audit `SOURCE_RECHECKED`.
 - **Xong khi:** Bấm nút cho ra danh sách "không đổi / đã đổi" trong dưới 10 giây. Crawler định kỳ để Sprint 2; runtime xử lý email **không chạm Internet**.
