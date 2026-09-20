@@ -460,7 +460,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 6 (6đ ranh giới quyết định)
 
 ### C-09 · Trang 1 — Xử lý email
-- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-07, A-21
+- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-07, A-21 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`
 - **Việc phải làm:** Hai đường vào: ô dán văn bản và hộp thư mô phỏng chọn từ `seed_inbox.json`. Cả hai gọi **cùng** `process_case()`. Hiển thị tiến trình theo bước (R1…R13) khi đang chạy. Thời gian xử lý hiển thị rõ.
 - **Xong khi:** Dán một email bất kỳ và nhận kết quả trong dưới 15 giây, có chỉ báo tiến trình chứ không phải màn hình treo.
