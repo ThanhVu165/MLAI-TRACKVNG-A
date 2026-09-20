@@ -387,7 +387,7 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Xong khi:** Bấm nút cho ra danh sách "không đổi / đã đổi" trong dưới 10 giây. Crawler định kỳ để Sprint 2; runtime xử lý email **không chạm Internet**.
 
 ### B-17 · Ráp trang Quản trị quy định
-- **Khối:** B4 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09, B-10, B-16
+- **Khối:** B4 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09, B-10, B-16 · **Trạng thái:** `WIP`
 - **File:** `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Bốn tab: **Nạp tài liệu** · **Chờ duyệt** · **Đang hiệu lực** · **Lịch sử**. Tab "Đang hiệu lực" hiển thị `corpus_version` hiện tại và số chunk theo từng nhãn. Mọi hành động ghi audit đúng danh mục. Tiếng Việt toàn bộ, nút viết bằng động từ.
 - **Xong khi:** Một người chưa từng dùng nạp được tài liệu, gán nhãn và kích hoạt trong dưới 3 phút mà không cần hướng dẫn.
