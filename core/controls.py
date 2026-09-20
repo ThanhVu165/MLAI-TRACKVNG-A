@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import replace
-from typing import Any
+from typing import Any, Self
 
 from core.types import (
     CaseInput,
@@ -47,9 +47,6 @@ def cancel_send(case_id: str, actor: str = "HUMAN", reason: str = "") -> None:
     from core.dispatch import cancel_send as dispatch_cancel_send
 
     dispatch_cancel_send(case_id, actor=actor, reason=reason)
-
-
-from typing import Self
 
 
 class RerunResult(tuple):
