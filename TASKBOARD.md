@@ -406,47 +406,47 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia chờ) → C-07..C-12 → C-13..C-17 → C-18..C-22 (Verify) → C-23..C-25 → C-26..C-29.
 
 ### C-01 · Dựng repo và công cụ
-- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** —
+- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** — · **Trạng thái:** `DONE`
 - **File:** `README.md`, `requirements.txt`, `Makefile`, `.gitignore`, `.env.example`, `.streamlit/config.toml`
 - **Việc phải làm:** Tạo repo **công khai** ngay từ đầu; bật branch protection cho `main` (**chặn force-push**); `requirements.txt` ghim phiên bản; `Makefile` có `make check` = black + ruff + mypy + pytest; `.gitignore` loại `data/app.db`, `.env`, cache embedding; tạo ba nhánh `agent-a/`, `agent-b/`, `agent-c/`.
 - **Xong khi:** `make check` chạy được trên repo rỗng. **Repo phải công khai từ giờ đầu để lịch sử commit đủ dài — đây là bằng chứng đánh giá quá trình.**
 - **Tiêu chí:** Giai đoạn 0 (kho mã nguồn công khai, đủ lịch sử)
 
 ### C-02 · `infra/db.py` và migration
-- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** S-02
+- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** S-02 · **Trạng thái:** `DONE`
 - **File:** `infra/db.py`, `infra/migrations/001_init.sql`
 - **Việc phải làm:** Kết nối SQLite bật **WAL mode** (tránh lock khi Verify chạy); chạy migration khi khởi động; hàm `now_iso()` (UTC có `Z`) và `to_local(ts)` (`+07:00`) — **đây là nơi duy nhất xử lý múi giờ**; helper `fetch_one`, `fetch_all`, `execute`.
 - **Xong khi:** Xóa `app.db` rồi khởi động lại tạo đủ bảng; hai tiến trình đọc ghi đồng thời không lỗi `database is locked`.
 
 ### C-03 · `infra/settings.py` — mọi ngưỡng ở một chỗ
-- **Khối:** B0 · **Ước lượng:** 45ph · **Phụ thuộc:** —
+- **Khối:** B0 · **Ước lượng:** 45ph · **Phụ thuộc:** — · **Trạng thái:** `DONE`
 - **File:** `infra/settings.py`
 - **Việc phải làm:** Khai báo có tên và comment: `SIMILARITY_THRESHOLD=0.35`, `CITATION_RATIO_MIN=0.6`, `PENDING_SEND_SECONDS=60`, `MIN_WORDS_GUARD=15`, `LLM_TIMEOUT_S=20`, `LLM_RETRIES=1`, `RETRIEVAL_TOP_K=6`, `QUESTION_WORDS_MIN/MAX=8/45`, `RECHECK_WINDOW_DAYS=30`. Đọc override từ biến môi trường.
 - **Xong khi:** `grep` không tìm thấy số ma thuật nào trong `core/` và `corpus/`.
 
 ### C-04 · `infra/llm.py` — wrapper Gemini duy nhất
-- **Khối:** B0 · **Ước lượng:** 3h · **Phụ thuộc:** C-03
+- **Khối:** B0 · **Ước lượng:** 3h · **Phụ thuộc:** C-03 · **Trạng thái:** `DONE`
 - **File:** `infra/llm.py`
 - **Việc phải làm:** `call_json()` đúng chữ ký contract; structured output theo schema; `temperature=0`; timeout và retry đúng 1 lần; đo `latency_ms`; tính `prompt_hash`; ghi vào `step_latencies`. Ba chế độ qua `LLM_MODE`: `live` · `replay` (đọc cassette trong `tests/cassettes/`, dùng cho CI) · `record`. Cache theo `sha256(prompt)` trong SQLite để demo không tốn quota và chạy nhanh. Trả về `LLMResult` **không bao giờ ném exception**.
 - **Xong khi:** Ngắt mạng → `call_json` trả `ok=False` có `error`, pipeline vẫn ra `ESCALATE`. CI chạy được offline ở chế độ `replay`.
 - **Tiêu chí:** 3 · 7 · rủi ro rate limit khi demo
 
 ### C-05 · `infra/audit.py`
-- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** C-02, S-02
+- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** C-02, S-02 · **Trạng thái:** `DONE`
 - **File:** `infra/audit.py`
 - **Việc phải làm:** `log_event()` đúng contract, validate `action ∈ ACTIONS` (sai thì ném lỗi ngay khi phát triển); `events_for_case()`, `recent_events()`; ghi `ts` UTC; **từ chối ghi nếu `reason` rỗng với các action cần lý do** (`OVERRIDE_DECISION`, `PAUSE_AUTOMATION`, `HUMAN_DECISION`, `CANCEL_SEND`).
 - **Xong khi:** `tests/test_audit_coverage.py`: chạy một case đầu-cuối sinh ra chuỗi event liên tục, không đứt đoạn, mỗi event trả lời được *làm gì, lúc nào, trên dữ liệu nào, vì sao*.
 - **Tiêu chí:** 6 (6đ audit)
 
 ### C-06 · `infra/telemetry.py`
-- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-05
+- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-05 · **Trạng thái:** `DONE`
 - **File:** `infra/telemetry.py`
 - **Việc phải làm:** Tính đủ 8 chỉ số ở Mục 11.1 spec từ dữ liệu trong DB, không lưu trùng. `median_review_seconds` = trung vị `decided_at − shown_at`; `pct_approved_under_5s` = tỷ lệ duyệt dưới 5 giây.
 - **Xong khi:** Chạy 15 case rồi gọi `telemetry.snapshot()` trả về dict đủ 8 chỉ số, khớp với đếm tay.
 - **Tiêu chí:** 4 (Slide 3, Slide 5) · 5
 
 ### C-07 · Trang chủ
-- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-01
+- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-01 · **Trạng thái:** `WIP`
 - **File:** `streamlit_app.py`
 - **Việc phải làm:** Dòng đầu tiên là **một câu hướng dẫn duy nhất**: *"Dán email sinh viên vào ô bên dưới và bấm Xử lý."* Ngay dưới là ô nhập và nút. Banner cố định *"Chế độ mô phỏng — hệ thống không gửi email thật."* Thanh bên liệt kê 6 trang bằng tiếng Việt. Không đăng nhập, không modal, không onboarding.
 - **Xong khi:** Người lạ mở URL và biết phải làm gì trong 5 giây. **Giám khảo không xác định được thao tác cần làm = 0 điểm cho tiêu chí 1.**

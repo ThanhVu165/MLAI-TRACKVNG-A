@@ -27,6 +27,9 @@ env/
 embedding_cache/
 .cache/
 
+# Streamlit secrets
+.streamlit/secrets.toml
+
 # IDE & OS
 .DS_Store
 Thumbs.db
