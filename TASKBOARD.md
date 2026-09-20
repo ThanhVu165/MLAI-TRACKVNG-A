@@ -353,8 +353,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Xong khi:** Giám khảo có thể chọn chính hành động `ACTIVATE_SOURCE` này trong audit log và thấy đủ: ai làm, lúc nào, trên tài liệu nào, vì lý do gì. **Đây là hành động quản trị mà đề bài cho phép giám khảo soi bất kỳ.**
 - **Tiêu chí:** 6 (6đ audit)
 
-### B-12 · K9 Lập chỉ mục
-- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Trạng thái:** `WIP`
+### B-12 · K9 Lập chỉ mục [DONE]
+- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Trạng thái:** `DONE`
 - **File:** `corpus/indexer.py`
 - **Việc phải làm:** BM25 (`rank_bm25`) trên chunk đã tokenize tiếng Việt + vector (`sentence-transformers`, model đa ngữ nhẹ, cache trên đĩa). **Chỉ index chunk thuộc tài liệu ACTIVE.** Chunk `SUPERSEDED` giữ trong SQLite để truy vết audit nhưng loại khỏi vector store. Hợp nhất điểm hybrid, chuẩn hóa về `[0,1]`. Nạp index một lần khi khởi động, cache bằng `st.cache_resource`.
 - **Xong khi:** Truy vấn *"thang điểm rèn luyện"* trả chunk đúng ở vị trí đầu; thời gian truy vấn < 300ms; hạ cấp tài liệu làm chunk đó biến mất khỏi kết quả ngay.

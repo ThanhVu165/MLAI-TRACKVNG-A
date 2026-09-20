@@ -16,5 +16,6 @@
 - `[H+53][Agent B] xong B-05 (METADATA_PROMPT_V1 + JSON schema, chỉ dùng 3000 ký tự đầu, không bịa trường thiếu) · tiếp tục B-06`
 - `[H+54][Agent B] xong B-06 (form sửa metadata, kiểm tra ngày/domain/mã duy nhất/điều khoản chuyển tiếp, audit diff) · tiếp tục B-07`
 - `[H+55][Agent B] xong B-07 (chunk theo Điều/Khoản/Điểm, breadcrumb đầy đủ, tách phần >800 token, mặc định human_only) · tiếp tục B-12/B-15 rồi B-08`
+- `[H+56][Agent B] xong B-12 (BM25 + sentence-transformers, cache embedding trên đĩa, chỉ index chunk ACTIVE, điểm [0,1]) · tiếp tục B-15`
 
 
