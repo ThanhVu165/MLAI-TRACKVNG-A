@@ -278,12 +278,16 @@ Phút 7-8:   Chạy lại 1 case → diff cho thấy quyết định đã thay �
 
 ---
 
-## Quyết định cần đưa ra
+## Quyết định triển khai: Phương án A+B (Hybrid)
 
-> [!NOTE]
-> Hãy chọn một trong các phương án:
+> [!TIP]
+> **Đã phê duyệt và tiến hành triển khai Phương án A+B:**
+> - **Nhánh thực hiện**: `agent-a/A-28-hybrid-ingestion` (tách từ `agent-a/A-27-smart-poller`)
+> - **Phần A (Nền tảng vững chắc - 0s latency)**:
+>   - Soạn sẵn 6 tài liệu seed chuẩn hành chính tại `data/seed_docs/` (`doc_01.txt` đến `doc_06.txt`).
+>   - Script nạp tự động `corpus/seed.py`: Tự nạp khi SQLite DB trống; băm SHA-256, tự động chia ≥ 45 chunk; gán nhãn ~60% `auto_answerable` / ~40% `human_only`; tính `corpus_version` chuẩn xác.
+> - **Phần B (Tính năng động - Smart Poller HEAD check < 0.5s)**:
+>   - Sử dụng `core/poller.py` đã hoàn thiện.
+>   - Gửi HTTP HEAD check qua ETag / Last-Modified / Content-Length cho các URL nguồn đã đăng ký.
+>   - Khi phát hiện thay đổi hoặc nạp tài liệu mới: Đưa vào `PENDING_REVIEW` (chống trùng lặp), kích hoạt bởi quản trị viên, tự động quét và đánh dấu `NEEDS_RECHECK` cho các case liên quan.
 
-1. **Phương án A+B (Khuyến nghị)**: Pre-seed corpus + Smart Poller HEAD check cho demo cập nhật
-2. **Phương án A+C**: Pre-seed corpus + Lazy-fetch live cho demo nạp URL thật
-3. **Phương án A only**: Chỉ pre-seed, không demo tính năng cập nhật (an toàn nhất)
-4. **Phương án khác**: Mô tả ý tưởng của bạn
