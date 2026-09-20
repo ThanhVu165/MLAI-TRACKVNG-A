@@ -314,7 +314,7 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Xong khi:** Trên 6 tài liệu seed, schema hợp lệ 6/6 và `transitional_clause` đúng với tài liệu số 1.
 
 ### B-06 · K3 Biểu mẫu người sửa và kiểm tra hợp lệ
-- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-05
+- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-05 · **Trạng thái:** `WIP`
 - **File:** `corpus/metadata.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Form Streamlit hiển thị bản nháp cho người sửa từng trường; validate: `effective_from` ≤ `effective_to`, `domains` thuộc danh sách hợp lệ, `document_id` duy nhất; lưu với `status=PENDING_REVIEW`; ghi audit `SOURCE_METADATA_EDITED` với diff trường nào đổi.
 - **Xong khi:** Không lưu được metadata sai định dạng; mọi lần sửa đều có dấu vết audit.
