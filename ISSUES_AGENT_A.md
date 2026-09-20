@@ -19,7 +19,7 @@ Hai lỗ hổng làm bộ test hiện tại **không phát hiện được chín
 
 ## 🔴 Nhóm 1 — Chặn tích hợp, phải xong trước khi ráp với `corpus.api` / `infra.*` thật
 
-### 1. Lỗi hệ thống thật bị đổi thành trả lời tự động, không phải escalate
+### 1. Lỗi hệ thống thật bị đổi thành trả lời tự động, không phải escalate [Done]
 
 **File:** `core/extract.py:242-268`, `core/retrieval.py:117-127`
 
@@ -57,7 +57,7 @@ except Exception as exc:
 
 ---
 
-### 2. Pause và Override không chặn được thư đã lên lịch gửi
+### 2. Pause và Override không chặn được thư đã lên lịch gửi [Done]
 
 **File:** `core/dispatch.py` (hàm `dispatch_case`), `core/controls.py` (toàn bộ)
 
@@ -76,7 +76,7 @@ except Exception as exc:
 
 ---
 
-### 3. Groundedness Guard bỏ qua đúng loại số dễ bị bịa nhất
+### 3. Groundedness Guard bỏ qua đúng loại số dễ bị bịa nhất [Done]
 
 **File:** `core/ground_guard.py:106-108`
 
@@ -98,7 +98,7 @@ for num in body_numbers:
 
 ---
 
-### 4. Bốn hàm bàn giao không khớp chữ ký contract (Mục 5.3 spec)
+### 4. Bốn hàm bàn giao không khớp chữ ký contract (Mục 5.3 spec) [Done]
 
 **File:** `core/controls.py`, `core/resume.py`, `core/explain.py`
 
@@ -118,7 +118,7 @@ for num in body_numbers:
 
 ---
 
-### 5. Audit hành động quản trị hiện ghi được 0 sự kiện khi contract thật vào
+### 5. Audit hành động quản trị hiện ghi được 0 sự kiện khi contract thật vào [Done]
 
 **File:** `core/controls.py:144`, `core/explain.py:99`
 
@@ -157,7 +157,7 @@ Vì cả hai đều nằm trong `except (ImportError, Exception): pass`, lỗi n
 
 ## 🟡 Nhóm 2 — Sai lệch hành vi, nên sửa trước khi coi core/ là "an toàn để tích hợp"
 
-### 6. Pattern `except (ImportError, Exception): pass` lặp lại 13 lần trên toàn bộ `core/`
+### 6. Pattern `except (ImportError, Exception): pass` lặp lại 13 lần trên toàn bộ `core/` [Done]
 
 Không chỉ 2 chỗ ở mục 5 — pattern này còn ở `dispatch.py`, `evidence.py`, `question_gen.py`, `resume.py`, `pipeline.py`, `retrieval.py`, `ground_guard.py`. AGENT.md của chính đội cấm rõ: *"Cấm `except Exception: pass`."* Cần dọn toàn bộ, không riêng 2 điểm nghiêm trọng nhất.
 
@@ -174,7 +174,7 @@ except Exception:
     logger.exception("Ghi audit thất bại — đây là lỗi thật, cần xem lại")
 ```
 
-### 7. Email đa ý định: nhánh phúc khảo bị khóa bởi từ khóa thủ tục/lệ phí
+### 7. Email đa ý định: nhánh phúc khảo bị khóa bởi từ khóa thủ tục/lệ phí [Done]
 
 **File:** `core/extract.py:112`
 
@@ -189,7 +189,7 @@ if not is_procedure_or_fee_query and any(k in combined for k in ["phúc khảo",
 
 **Cách sửa:** Heuristic nên tách theo câu/mệnh đề thay vì theo toàn bộ email gộp chung (`combined`), sinh **nhiều `RequestItem`** khi phát hiện nhiều domain/ý định khác nhau trong cùng email — đúng tinh thần A-24. Nếu không kịp làm phiên bản tách câu đầy đủ trong Sprint 1, tối thiểu: bỏ điều kiện `not is_procedure_or_fee_query`, để hai cờ được đánh giá độc lập.
 
-### 8. Case tự thiết kế "E02" của Agent A trùng đúng chủ đề đã được chỉ định là xung đột
+### 8. Case tự thiết kế "E02" của Agent A trùng đúng chủ đề đã được chỉ định là xung đột [Done]
 
 **File:** `tests/test_guards.py:35-38`
 
@@ -199,7 +199,7 @@ Test này đang PASS chỉ vì `corpus.api` chưa tồn tại nên rơi vào nh�
 
 **Cách sửa:** Đổi nội dung case trong `test_guards.py` sang đúng chủ đề "hạn chót rút học phần", giữ nguyên chủ đề "hoàn học phí" cho một test case khác (nếu muốn) nhưng gắn nhãn đúng là case **không** được coi là AUTO chắc chắn cho tới khi biết corpus thật xử lý conflict thế nào.
 
-### 9. Blocklist YAML không được đọc — im lặng dùng danh sách rút gọn hard-code
+### 9. Blocklist YAML không được đọc — im lặng dùng danh sách rút gọn hard-code [Done]
 
 **File:** `core/question_guard.py:38`, `policies/blocklist.yaml`
 
@@ -211,19 +211,19 @@ YAML dùng khóa `blocked_phrases:` (11 cụm), code đọc `data.get("blocklist
 
 ## 🟢 Nhóm 3 — Vệ sinh & tuân thủ quy trình (không chặn tích hợp, nhưng ảnh hưởng Giai đoạn 0)
 
-### 10. Một commit duy nhất cho toàn bộ Block B0–B4
+### 10. Một commit duy nhất cho toàn bộ Block B0–B4 [Done]
 
 `main`, `dev`, `agent-a/...` đều trỏ chung 1 commit (`6db9e4c`, 55 file, 8660 dòng). STATUS.md tự báo cáo tiến độ theo mốc `H+01` đến `H+48` nhưng git không có commit nào tương ứng từng mốc — không thể phân biệt với squash trong mắt giám khảo, dù không phải squash kỹ thuật. AGENT.md của chính đội yêu cầu *"Commit ít nhất mỗi 45 phút."*
 
 **Cách sửa:** Từ giờ, mỗi task `[DONE]` mới = một commit riêng. Không dồn cụm nữa. Không cần rewrite lại lịch sử cũ (không squash/force-push tiếp).
 
-### 11. `AGENT.md` và `PROJECT_SPEC.md` tồn tại 2 bản y hệt (`root/` và `regulation/`)
+### 11. `AGENT.md` và `PROJECT_SPEC.md` tồn tại 2 bản y hệt (`root/` và `regulation/`) [Done]
 
 Xác nhận `diff` cho kết quả giống hệt tuyệt đối. `TASKBOARD.md` thì đã lệch (bản root có đánh dấu `[DONE]`, bản `regulation/` thì không) — nguy cơ hai bản tiếp tục trôi xa nhau.
 
 **Cách sửa:** Giữ đúng một bản ở root, xóa `regulation/`, hoặc ngược lại nhưng chỉ chọn một. Nếu cần một bản "đóng băng tham chiếu", đặt tên rõ ràng khác (`regulation/SNAPSHOT_H0.md`) và ghi chú rõ đây là bản chỉ đọc, không cập nhật.
 
-### 12. Black báo 24/32 file cần format lại; requirements.txt/README/Makefile chưa tồn tại
+### 12. Black báo 24/32 file cần format lại; requirements.txt/README/Makefile chưa tồn tại [Done]
 
 `black --check` liệt kê đúng 24 file trong `core/` và `tests/`. Chạy `black --line-length 100 .` một lần là xong, không tốn thời gian tranh luận.
 
@@ -233,17 +233,17 @@ Việc chưa có `requirements.txt`/`README.md`/`Makefile` là phần việc c�
 
 ## Checklist theo dõi
 
-- [x] 1. Tách `ImportError` khỏi lỗi thật trong `extract.py` + `retrieval.py`
-- [x] 2. `dispatch_case()` kiểm tra `is_automation_paused()`; `override_decision()` đồng bộ với `_DISPATCH_REGISTRY`
-- [x] 3. Xóa ngoại lệ số "1"/"2" trong `ground_guard.py`
-- [x] 4. Sửa chữ ký 5 hàm (`pause_automation`, `override_decision`, `rerun_case`, `resume_after_human`, `explain_plainly`) khớp Mục 5.3 spec + thêm `test_contract_signatures.py`
-- [x] 5. Xóa `created_at`/`detail`/`timestamp` khỏi lệnh gọi `log_event`; sửa `case_id="GLOBAL_CONTROL"`
-- [x] 6. Dọn toàn bộ 13 chỗ `except (ImportError, Exception): pass`
-- [x] 7. Heuristic đa ý định: bỏ khóa `not is_procedure_or_fee_query`
-- [x] 8. Đổi chủ đề case "E02" trong `test_guards.py` sang hạn chót rút học phần
-- [x] 9. Sửa khóa đọc `blocklist.yaml` thành `blocked_phrases`
-- [x] 10. Từ nay: mỗi task = một commit riêng
-- [x] 11. Xóa file trùng ở `regulation/` hoặc đổi tên rõ ràng là snapshot
-- [x] 12. Chạy `black --line-length 100 .` (đã format chuẩn ruff/black 100 ký tự)
+- [x] 1. Tách `ImportError` khỏi lỗi thật trong `extract.py` + `retrieval.py` [Done]
+- [x] 2. `dispatch_case()` kiểm tra `is_automation_paused()`; `override_decision()` đồng bộ với `_DISPATCH_REGISTRY` [Done]
+- [x] 3. Xóa ngoại lệ số "1"/"2" trong `ground_guard.py` [Done]
+- [x] 4. Sửa chữ ký 5 hàm (`pause_automation`, `override_decision`, `rerun_case`, `resume_after_human`, `explain_plainly`) khớp Mục 5.3 spec + thêm `test_contract_signatures.py` [Done]
+- [x] 5. Xóa `created_at`/`detail`/`timestamp` khỏi lệnh gọi `log_event`; sửa `case_id="GLOBAL_CONTROL"` [Done]
+- [x] 6. Dọn toàn bộ 13 chỗ `except (ImportError, Exception): pass` [Done]
+- [x] 7. Heuristic đa ý định: bỏ khóa `not is_procedure_or_fee_query` [Done]
+- [x] 8. Đổi chủ đề case "E02" trong `test_guards.py` sang hạn chót rút học phần [Done]
+- [x] 9. Sửa khóa đọc `blocklist.yaml` thành `blocked_phrases` [Done]
+- [x] 10. Từ nay: mỗi task = một commit riêng [Done]
+- [x] 11. Xóa file trùng ở `regulation/` hoặc đổi tên rõ ràng là snapshot [Done]
+- [x] 12. Chạy `black --line-length 100 .` (đã format chuẩn ruff/black 100 ký tự) [Done]
 
 Sau khi xong nhóm 🔴 (1–5), chạy lại toàn bộ test suite (116/116 passed) + ruff sạch 100%.
