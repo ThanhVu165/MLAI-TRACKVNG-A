@@ -284,7 +284,7 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → B-04..B-07 → B-12 → B-15 → B-08..B-11 → B-13, B-14 → B-16, B-17 → B-18.
 
 ### B-01 · `corpus/api.py` — facade đọc và corpus giả
-- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01 · **Ưu tiên cao nhất của làn B**
+- **Khối:** B0 · **Ước lượng:** 2h · **Phụ thuộc:** S-01 · **Ưu tiên cao nhất của làn B** · **Trạng thái:** `WIP`
 - **File:** `corpus/api.py`
 - **Việc phải làm:** Cài đủ 5 hàm ở Mục 5.3 spec. Giai đoạn đầu trả **12 chunk giả cứng trong code**, phủ 3 domain, trong đó 2 chunk `human_only` và 1 chunk `transitional_clause=true`. Về sau thay ruột bằng truy vấn thật, **giữ nguyên chữ ký**.
 - **Xong khi:** Agent A `import corpus.api` và chạy được R4–R5 mà không cần chờ phần còn lại của làn B. Đây là điều kiện để ba làn song song.
