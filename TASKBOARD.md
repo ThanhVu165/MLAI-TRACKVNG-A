@@ -320,7 +320,7 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Xong khi:** Không lưu được metadata sai định dạng; mọi lần sửa đều có dấu vết audit.
 
 ### B-07 · K4 Chunker theo đơn vị pháp lý
-- **Khối:** B1 · **Ước lượng:** 3.5h · **Phụ thuộc:** B-04
+- **Khối:** B1 · **Ước lượng:** 3.5h · **Phụ thuộc:** B-04 · **Trạng thái:** `WIP`
 - **File:** `corpus/chunker.py`
 - **Việc phải làm:** Tách theo **Điều → Khoản → Điểm**, không theo cửa sổ token cố định. Mỗi chunk giữ `doc_id`, `article_no`, `clause_no`, `breadcrumb` dạng `QĐ 3150/2026 · Điều 8 · Khoản 2`, `ord`. Khoản quá dài (> 800 token) thì tách tiếp nhưng giữ nguyên breadcrumb và đánh dấu phần. Gán `domain` theo metadata của tài liệu.
 - **Xong khi:** `tests/test_chunker.py` với 3 tài liệu mẫu: không mất điều khoản nào, breadcrumb đúng 100%, không có chunk rỗng. **Trích dẫn phải chỉ được tới điều khoản, nếu không chuyên viên vẫn phải mở file gốc.**
