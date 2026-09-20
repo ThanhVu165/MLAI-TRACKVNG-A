@@ -34,10 +34,10 @@ ROUTINE_CASES = [
         "Hỏi thời hạn rút môn",
         "Kính gửi thầy cô phòng DSA, em muốn hỏi thời hạn rút học phần của học kỳ chính là vào tuần thứ mấy của học kỳ ạ? Em xin cảm ơn quý thầy cô.",
     ),
-    # E02: Hỏi học phí hoàn lại khi rút môn
+    # E02: Hỏi hạn chót rút học phần thông thường
     (
-        "Hỏi về hoàn học phí rút môn",
-        "Dạ cho em hỏi nếu sinh viên xin rút môn học trong 4 tuần đầu tiên thì được hoàn trả bao nhiêu phần trăm học phí đã đóng ạ? Em cảm ơn.",
+        "Hỏi về hạn chót rút học phần",
+        "Dạ cho em hỏi sinh viên được phép nộp đơn xin rút học phần muộn nhất vào tuần thứ mấy của học kỳ chính ạ? Em cảm ơn.",
     ),
     # E03: Hỏi quy trình rút môn trực tuyến
     (
@@ -76,6 +76,7 @@ def test_no_over_escalation(subject: str, body: str) -> None:
 # Test sống còn 2: Chống Fail-Open (Fail-Safe Guarantee)
 # ------------------------------------------------------------------------------
 
+
 def test_no_fail_open_on_llm_timeout() -> None:
     """KHÔNG ĐƯỢC XÓA: Khi LLM timeout, kết quả PHẢI là ESCALATE, KHÔNG ĐƯỢC AUTO_REPLY."""
     inp = CaseInput(
@@ -85,7 +86,9 @@ def test_no_fail_open_on_llm_timeout() -> None:
         received_at=datetime.now(timezone.utc),
         channel="paste",
     )
-    with patch("core.pipeline.extract_facts", side_effect=TimeoutError("LLM call timed out after 20s")):
+    with patch(
+        "core.pipeline.extract_facts", side_effect=TimeoutError("LLM call timed out after 20s")
+    ):
         res = process_case(inp)
 
     assert res.decision.decision == Decision.ESCALATE
@@ -127,7 +130,11 @@ def test_no_fail_open_on_empty_corpus() -> None:
         received_at=datetime.now(timezone.utc),
         channel="paste",
     )
-    empty_ev = EvidenceResult(status=EvidenceStatus.NO_AUTHORITATIVE_SOURCE, chunks=[], failed_checks=["No chunks retrieved"])
+    empty_ev = EvidenceResult(
+        status=EvidenceStatus.NO_AUTHORITATIVE_SOURCE,
+        chunks=[],
+        failed_checks=["No chunks retrieved"],
+    )
     with (
         patch("core.pipeline.retrieve_evidence", return_value=[]),
         patch("core.pipeline.validate_evidence", return_value=empty_ev),
@@ -162,3 +169,120 @@ def test_no_fail_open_on_groundedness_guard_failure() -> None:
     assert res.decision.rule_id == "P04"
     assert res.draft is not None
     assert res.draft.grounded is False
+
+
+def test_extract_internal_llm_exception_fails_safe() -> None:
+    """Kiểm tra Item 1: Khi infra.llm tồn tại nhưng ném Exception thật bên trong extract.py.
+
+    Phải trả về Extraction có llm_error, và pipeline phải fail-safe về ESCALATE (P04),
+    KHÔNG ĐƯỢC rơi về heuristic rồi ra AUTO_REPLY.
+    """
+    import sys
+    from unittest.mock import MagicMock
+
+    from core.extract import extract_facts
+
+    inp = CaseInput(
+        sender="sv@school.edu.vn",
+        subject="Hỏi thời hạn rút môn",
+        body="Kính chào thầy cô phòng DSA, cho em hỏi hạn chót rút học phần học kỳ này là khi nào ạ?",
+        received_at=datetime.now(timezone.utc),
+        channel="paste",
+    )
+
+    mock_infra_llm = MagicMock()
+    mock_infra_llm.call_json.side_effect = RuntimeError(
+        "Database/API connection failed inside call_json"
+    )
+
+    with patch.dict(sys.modules, {"infra": MagicMock(), "infra.llm": mock_infra_llm}):
+        extraction = extract_facts(inp.body, inp.subject, "c_test", language="vi")
+        assert extraction.llm_error == "Database/API connection failed inside call_json"
+
+        # Chạy qua pipeline thật
+        res = process_case(inp)
+        assert res.decision.decision == Decision.ESCALATE
+        assert res.decision.rule_id in ("P03", "P04")
+
+
+def test_groundedness_guard_catches_number_1_and_2() -> None:
+    """Kiểm tra Item 3: Không bỏ qua số 1 hoặc 2.
+
+    Khi draft nói 'thời hạn là 1 tuần' mà evidence chỉ nói '8 tuần',
+    guard PHẢI bắt được lỗi hallucinated_number_1.
+    """
+    from datetime import date
+
+    from core.ground_guard import validate_groundedness
+    from core.types import ChunkLabel, Domain, EvidenceChunk
+
+    chunk = EvidenceChunk(
+        chunk_id="chunk_01",
+        doc_id="qd_01",
+        breadcrumb="Quy định > Rút môn",
+        text="Thời hạn nộp đơn rút môn học là 8 tuần kể từ ngày bắt đầu học kỳ chính.",
+        domain=Domain.COURSE_WITHDRAWAL,
+        label=ChunkLabel.AUTO_ANSWERABLE,
+        score=0.9,
+        effective_from=date(2026, 1, 1),
+        effective_to=None,
+        applies_to=["undergraduate"],
+        cohorts=["all"],
+        transitional_clause=False,
+        conflict_flag=False,
+    )
+    ev_res = EvidenceResult(
+        status=EvidenceStatus.OK,
+        chunks=[chunk],
+        failed_checks=[],
+    )
+    # Draft bịa số 1
+    draft = DraftReply(
+        subject="Re: Rút môn",
+        body="Thời hạn nộp đơn rút môn học là 1 tuần kể từ ngày bắt đầu học kỳ [chunk_01].",
+        citations=["chunk_01"],
+        grounded=True,
+        guard_failures=[],
+    )
+
+    passed, failures = validate_groundedness(draft, ev_res)
+    assert passed is False
+    assert any("hallucinated_number_1" in f for f in failures)
+
+
+def test_dispatch_paused_and_override_cancels_send() -> None:
+    """Kiểm tra Item 2: Pause và Override ngăn chặn dispatch gửi thư."""
+    from core.controls import override_decision, pause_automation, resume_automation
+    from core.dispatch import _DISPATCH_REGISTRY, dispatch_case
+
+    inp = CaseInput(
+        sender="sv@school.edu.vn",
+        subject="Hỏi thời hạn rút môn",
+        body="Kính chào thầy cô phòng DSA, cho em hỏi hạn chót rút học phần học kỳ này là khi nào ạ?",
+        received_at=datetime.now(timezone.utc),
+        channel="paste",
+    )
+    res = process_case(inp)
+    assert res.decision.decision == Decision.AUTO_REPLY
+    case_id = res.case_id
+
+    # 1. Test pause
+    pause_automation(actor="ADMIN:test", reason="Testing pause")
+    ok, msg = dispatch_case(case_id, force=True)
+    assert ok is False
+    assert "tạm dừng" in msg
+    assert _DISPATCH_REGISTRY[case_id].status == CaseStatus.PENDING_SEND
+
+    # 2. Test resume
+    resume_automation(actor="ADMIN:test")
+
+    # 3. Test override sang ESCALATE
+    override_decision(
+        case_id=case_id,
+        new_decision=Decision.ESCALATE,
+        actor="SPECIALIST:test",
+        reason="Cần kiểm tra",
+    )
+    ok2, _ = dispatch_case(case_id, force=True)
+    assert ok2 is False
+    assert _DISPATCH_REGISTRY[case_id].status == CaseStatus.CANCELLED

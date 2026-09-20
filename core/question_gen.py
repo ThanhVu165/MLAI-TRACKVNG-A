@@ -100,16 +100,25 @@ def _build_deterministic_card(
 
     if not basis:
         if escalation_type == EscalationType.OUT_OF_POLICY:
-            basis.append(("Phạm vi phục vụ DSA", "không tìm thấy quy định đang hiệu lực cho nội dung yêu cầu"))
+            basis.append(
+                (
+                    "Phạm vi phục vụ DSA",
+                    "không tìm thấy quy định đang hiệu lực cho nội dung yêu cầu",
+                )
+            )
         else:
-            basis.append(("Quy chế Nhà trường", "Hồ sơ cần đối chiếu với điều khoản áp dụng thực tế."))
+            basis.append(
+                ("Quy chế Nhà trường", "Hồ sơ cần đối chiếu với điều khoản áp dụng thực tế.")
+            )
 
     # -----------------------------------------------------------------------
     # Khối [1] & [4]: Tóm tắt và Câu hỏi đóng
     # -----------------------------------------------------------------------
     # Kiểm tra email đa ý định: 1 phần thường quy + 1 phần vượt quyền (Mục 8.2 spec)
     has_info = any(r.is_informational for r in extraction.requests)
-    has_auth = any(r.asks_exception or r.asks_appeal or r.asks_authority_decision for r in extraction.requests)
+    has_auth = any(
+        r.asks_exception or r.asks_appeal or r.asks_authority_decision for r in extraction.requests
+    )
     is_multi_intent = len(extraction.requests) >= 2 and has_info and has_auth
 
     partial_draft: DraftReply | None = None
@@ -131,16 +140,28 @@ def _build_deterministic_card(
         summary = "Yêu cầu chưa đủ dữ kiện thực tế để hệ thống áp dụng quy định."
 
     # Tạo câu hỏi đóng chứa ít nhất 1 dữ kiện cụ thể từ Khối [2]
-    fact_anchor = extraction.critical_facts.get("cohort") or (primary_req.intent if primary_req else "hồ sơ này")
+    fact_anchor = extraction.critical_facts.get("cohort") or (
+        primary_req.intent if primary_req else "hồ sơ này"
+    )
     if escalation_type == EscalationType.AUTHORITY_REQUIRED:
         question = f"Chuyên viên có đồng ý phê duyệt yêu cầu đối với {fact_anchor} không?"
         options = ["Đồng ý phê duyệt", "Từ chối yêu cầu", "Chuyển Trưởng phòng xem xét"]
     elif escalation_type == EscalationType.OUT_OF_POLICY:
-        question = f"Chuyên viên hướng dẫn sinh viên xử lý nội dung {fact_anchor} theo phương án nào?"
-        options = ["Chuyển tiếp đơn vị chuyên trách", "Hướng dẫn nộp đơn trực tiếp", "Từ chối tiếp nhận"]
+        question = (
+            f"Chuyên viên hướng dẫn sinh viên xử lý nội dung {fact_anchor} theo phương án nào?"
+        )
+        options = [
+            "Chuyển tiếp đơn vị chuyên trách",
+            "Hướng dẫn nộp đơn trực tiếp",
+            "Từ chối tiếp nhận",
+        ]
     else:
         question = f"Chuyên viên yêu cầu bổ sung thông tin gì cho {fact_anchor}?"
-        options = ["Yêu cầu cung cấp minh chứng cụ thể", "Hướng dẫn sinh viên tra cứu lại", "Từ chối vì thiếu dữ kiện"]
+        options = [
+            "Yêu cầu cung cấp minh chứng cụ thể",
+            "Hướng dẫn sinh viên tra cứu lại",
+            "Từ chối vì thiếu dữ kiện",
+        ]
 
     return EscalationCard(
         summary=summary,
@@ -214,7 +235,9 @@ def generate_escalation_card(
                 escalation_type=escalation_type,
                 partial_draft=None,
             )
-    except (ImportError, Exception) as exc:  # noqa: BLE001
-        logger.info("Sử dụng fallback sinh thẻ escalation: %s", exc)
+    except ImportError:
+        logger.debug("infra.llm chưa cấu hình — sử dụng deterministic escalation card")
+    except Exception as exc:  # noqa: BLE001
+        logger.error("LLM call sinh EscalationCard thất bại: %s", exc)
 
     return _build_deterministic_card(extraction, evidence_res, escalation_type, inp=inp)

@@ -67,7 +67,10 @@ def test_scenario_unsupported_domain_escalates_out_of_policy() -> None:
 
     # Domain ký túc xá nằm ngoài 3 domain -> OUT_OF_POLICY
     assert res.decision.decision == Decision.ESCALATE
-    assert res.decision.escalation_type in (EscalationType.OUT_OF_POLICY, EscalationType.FACT_UNRESOLVED)
+    assert res.decision.escalation_type in (
+        EscalationType.OUT_OF_POLICY,
+        EscalationType.FACT_UNRESOLVED,
+    )
     assert res.status == CaseStatus.AWAITING_HUMAN
 
 
@@ -97,7 +100,9 @@ def test_scenario_unexpected_crash_fails_safe_p04() -> None:
         received_at=datetime.now(timezone.utc),
         channel="paste",
     )
-    with patch("core.pipeline.validate_evidence", side_effect=ZeroDivisionError("Lỗi toán học bất ngờ")):
+    with patch(
+        "core.pipeline.validate_evidence", side_effect=ZeroDivisionError("Lỗi toán học bất ngờ")
+    ):
         res = process_case(inp)
 
     assert res.decision.decision == Decision.ESCALATE

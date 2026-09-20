@@ -27,7 +27,7 @@ def _make_evidence() -> EvidenceResult:
         doc_id="RL-2026-3150",
         breadcrumb="QĐ 3150/2026 · Điều 8 · Khoản 2",
         text="Thời hạn rút học phần được giải quyết trong 8 tuần đầu của học kỳ chính. "
-             "Sinh viên nộp đơn online qua cổng thông tin và được hoàn 50% học phí nếu rút trước tuần thứ 4.",
+        "Sinh viên nộp đơn online qua cổng thông tin và được hoàn 50% học phí nếu rút trước tuần thứ 4.",
         domain=Domain.COURSE_WITHDRAWAL,
         label=ChunkLabel.AUTO_ANSWERABLE,
         score=0.92,
@@ -42,8 +42,14 @@ def _make_evidence() -> EvidenceResult:
 
 
 def _make_case_input(lang: str = "vi") -> CaseInput:
-    subject = "Hỏi thời hạn rút môn" if lang == "vi" else "Question about course withdrawal deadline"
-    body = "Khi nào hết hạn rút môn học kỳ này ạ?" if lang == "vi" else "When is the course withdrawal deadline?"
+    subject = (
+        "Hỏi thời hạn rút môn" if lang == "vi" else "Question about course withdrawal deadline"
+    )
+    body = (
+        "Khi nào hết hạn rút môn học kỳ này ạ?"
+        if lang == "vi"
+        else "When is the course withdrawal deadline?"
+    )
     return CaseInput(
         sender="sv@school.edu.vn",
         subject=subject,

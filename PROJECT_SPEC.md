@@ -193,31 +193,41 @@ escalation-referee/
 
 ```python
 class Decision(StrEnum):
-    AUTO_REPLY    = "AUTO_REPLY"
-    ESCALATE      = "ESCALATE"
+    AUTO_REPLY = "AUTO_REPLY"
+    ESCALATE = "ESCALATE"
     INVALID_INPUT = "INVALID_INPUT"
+
 
 class EscalationType(StrEnum):
-    FACT_UNRESOLVED    = "FACT_UNRESOLVED"     # chưa xác định được thông tin thực tế
-    OUT_OF_POLICY      = "OUT_OF_POLICY"       # nằm ngoài phạm vi quy định
+    FACT_UNRESOLVED = "FACT_UNRESOLVED"  # chưa xác định được thông tin thực tế
+    OUT_OF_POLICY = "OUT_OF_POLICY"  # nằm ngoài phạm vi quy định
     AUTHORITY_REQUIRED = "AUTHORITY_REQUIRED"  # vượt thẩm quyền, cần người phê duyệt
 
+
 class EvidenceStatus(StrEnum):
-    OK                     = "ok"
+    OK = "ok"
     NO_AUTHORITATIVE_SOURCE = "no_authoritative_source"
-    AUTHORITY_CONTENT      = "authority_content"
-    CONFLICTING_SOURCES    = "conflicting_sources"
-    SCOPE_MISMATCH         = "scope_mismatch"
-    FACT_MISSING           = "fact_missing"
-    UNSUPPORTED_DOMAIN     = "unsupported_domain"
+    AUTHORITY_CONTENT = "authority_content"
+    CONFLICTING_SOURCES = "conflicting_sources"
+    SCOPE_MISMATCH = "scope_mismatch"
+    FACT_MISSING = "fact_missing"
+    UNSUPPORTED_DOMAIN = "unsupported_domain"
+
 
 class CaseStatus(StrEnum):
-    RECEIVED = "RECEIVED"; PROCESSING = "PROCESSING"
+    RECEIVED = "RECEIVED"
+    PROCESSING = "PROCESSING"
     INVALID_INPUT = "INVALID_INPUT"
-    PENDING_SEND = "PENDING_SEND"; SENT = "SENT"; CANCELLED = "CANCELLED"
-    AWAITING_HUMAN = "AWAITING_HUMAN"; HUMAN_DECIDED = "HUMAN_DECIDED"
-    PENDING_APPROVAL = "PENDING_APPROVAL"; RESOLVED = "RESOLVED"
-    NEEDS_RECHECK = "NEEDS_RECHECK"; ERROR = "ERROR"
+    PENDING_SEND = "PENDING_SEND"
+    SENT = "SENT"
+    CANCELLED = "CANCELLED"
+    AWAITING_HUMAN = "AWAITING_HUMAN"
+    HUMAN_DECIDED = "HUMAN_DECIDED"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
+    RESOLVED = "RESOLVED"
+    NEEDS_RECHECK = "NEEDS_RECHECK"
+    ERROR = "ERROR"
+
 
 class Domain(StrEnum):
     CONDUCT_SCORE = "conduct_score"
@@ -225,9 +235,13 @@ class Domain(StrEnum):
     GRADE_APPEAL = "grade_appeal"
     UNKNOWN = "unknown"
 
+
 class SourceStatus(StrEnum):
-    PENDING_REVIEW = "PENDING_REVIEW"; ACTIVE = "ACTIVE"
-    SUPERSEDED = "SUPERSEDED"; REJECTED = "REJECTED"
+    PENDING_REVIEW = "PENDING_REVIEW"
+    ACTIVE = "ACTIVE"
+    SUPERSEDED = "SUPERSEDED"
+    REJECTED = "REJECTED"
+
 
 class ChunkLabel(StrEnum):
     AUTO_ANSWERABLE = "auto_answerable"
@@ -239,10 +253,13 @@ class ChunkLabel(StrEnum):
 ```python
 @dataclass(frozen=True)
 class CaseInput:
-    sender: str; subject: str; body: str
-    received_at: datetime          # tz-aware, Asia/Ho_Chi_Minh
+    sender: str
+    subject: str
+    body: str
+    received_at: datetime  # tz-aware, Asia/Ho_Chi_Minh
     channel: Literal["paste", "inbox", "verify"]
     external_id: str | None = None
+
 
 @dataclass
 class RequestItem:
@@ -254,6 +271,7 @@ class RequestItem:
     asks_appeal: bool
     asks_authority_decision: bool
 
+
 @dataclass
 class Extraction:
     language: Literal["vi", "en", "other"]
@@ -264,18 +282,23 @@ class Extraction:
     raw_json: str
     llm_error: str | None = None
 
+
 @dataclass(frozen=True)
 class EvidenceChunk:
-    chunk_id: str; doc_id: str
-    breadcrumb: str                # "QĐ 3150/2026 · Điều 8 · Khoản 2"
+    chunk_id: str
+    doc_id: str
+    breadcrumb: str  # "QĐ 3150/2026 · Điều 8 · Khoản 2"
     text: str
     domain: Domain
     label: ChunkLabel
     score: float
-    effective_from: date; effective_to: date | None
-    applies_to: list[str]; cohorts: list[str]
+    effective_from: date
+    effective_to: date | None
+    applies_to: list[str]
+    cohorts: list[str]
     transitional_clause: bool
     conflict_flag: bool
+
 
 @dataclass
 class EvidenceResult:
@@ -283,35 +306,41 @@ class EvidenceResult:
     chunks: list[EvidenceChunk]
     failed_checks: list[str]
 
+
 @dataclass
 class PolicyDecision:
     decision: Decision
     escalation_type: EscalationType | None
-    rule_id: str                   # "P01".."P05"
-    reason: str                    # tiếng Việt, một câu, cho người đọc
+    rule_id: str  # "P01".."P05"
+    reason: str  # tiếng Việt, một câu, cho người đọc
     evidence_ids: list[str]
     corpus_version: str
 
+
 @dataclass
 class DraftReply:
-    subject: str; body: str
-    citations: list[str]           # chunk_id
+    subject: str
+    body: str
+    citations: list[str]  # chunk_id
     grounded: bool
     guard_failures: list[str]
 
+
 @dataclass
 class EscalationCard:
-    summary: str                   # khối [1] ≤ 30 từ
-    facts: list[str]               # khối [2]
-    basis: list[tuple[str, str]]   # khối [3] (breadcrumb, trích dẫn)
-    question: str                  # khối [4] một câu hỏi đóng
-    options: list[str]             # phương án trả lời sẵn
+    summary: str  # khối [1] ≤ 30 từ
+    facts: list[str]  # khối [2]
+    basis: list[tuple[str, str]]  # khối [3] (breadcrumb, trích dẫn)
+    question: str  # khối [4] một câu hỏi đóng
+    options: list[str]  # phương án trả lời sẵn
     escalation_type: EscalationType
-    partial_draft: DraftReply | None   # phần thường quy của email đa ý định
+    partial_draft: DraftReply | None  # phần thường quy của email đa ý định
+
 
 @dataclass
 class PipelineResult:
-    case_id: str; trace_id: str
+    case_id: str
+    trace_id: str
     status: CaseStatus
     decision: PolicyDecision
     extraction: Extraction | None
@@ -320,7 +349,8 @@ class PipelineResult:
     card: EscalationCard | None
     corpus_version: str
     step_latencies_ms: dict[str, int]
-    started_at: datetime; finished_at: datetime
+    started_at: datetime
+    finished_at: datetime
 ```
 
 ### 5.3 Chữ ký hàm liên module
@@ -329,39 +359,66 @@ class PipelineResult:
 # core/pipeline.py  — Agent A cung cấp, C và Verify gọi
 def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult: ...
 
+
 # core/controls.py — Agent A cung cấp, C gọi từ thanh điều khiển
 def pause_automation(actor: str, reason: str) -> None: ...
 def resume_automation(actor: str) -> None: ...
-def override_decision(case_id: str, new_decision: Decision, actor: str, reason: str) -> PipelineResult: ...
-def rerun_case(case_id: str, actor: str) -> tuple[PipelineResult, dict]: ...   # (kết quả mới, diff)
+def override_decision(
+    case_id: str, new_decision: Decision, actor: str, reason: str
+) -> PipelineResult: ...
+def rerun_case(case_id: str, actor: str) -> tuple[PipelineResult, dict]: ...  # (kết quả mới, diff)
 def cancel_send(case_id: str, actor: str, reason: str) -> None: ...
 
+
 # core/resume.py — C gọi sau khi người quyết định
-def resume_after_human(case_id: str, human_choice: str, human_reason: str, actor: str) -> DraftReply: ...
+def resume_after_human(
+    case_id: str, human_choice: str, human_reason: str, actor: str
+) -> DraftReply: ...
+
 
 # core/explain.py — C gắn vào nút "Giải thích cho người không chuyên"
-def explain_plainly(case_id: str) -> str: ...     # ≤ 120 từ, không thuật ngữ kỹ thuật
+def explain_plainly(case_id: str) -> str: ...  # ≤ 120 từ, không thuật ngữ kỹ thuật
+
 
 # corpus/api.py — Agent B cung cấp, A gọi (chỉ đọc)
 def get_corpus_version() -> str: ...
-def search(query: str, domains: list[Domain], top_k: int = 6,
-           at: datetime | None = None) -> list[EvidenceChunk]: ...
+def search(
+    query: str, domains: list[Domain], top_k: int = 6, at: datetime | None = None
+) -> list[EvidenceChunk]: ...
 def get_chunk(chunk_id: str) -> EvidenceChunk | None: ...
 def is_active(chunk_id: str) -> bool: ...
 def supported_domains() -> list[Domain]: ...
 
+
 # infra/llm.py — Agent C cung cấp, A và B gọi
-def call_json(prompt: str, *, schema: dict, step: str, case_id: str,
-              timeout_s: int = 20, retries: int = 1,
-              temperature: float = 0.0) -> LLMResult: ...
+def call_json(
+    prompt: str,
+    *,
+    schema: dict,
+    step: str,
+    case_id: str,
+    timeout_s: int = 20,
+    retries: int = 1,
+    temperature: float = 0.0,
+) -> LLMResult: ...
+
+
 # LLMResult: .ok  .data(dict)  .error(str|None)  .latency_ms  .prompt_hash  .model
 
+
 # infra/audit.py — Agent C cung cấp, tất cả gọi
-def log_event(*, case_id: str | None, actor: str, action: str,
-              rule_id: str | None = None, input_ref: str | None = None,
-              output_ref: str | None = None, reason: str | None = None,
-              sources: list[str] | None = None,
-              corpus_version: str | None = None) -> str: ...   # -> event_id
+def log_event(
+    *,
+    case_id: str | None,
+    actor: str,
+    action: str,
+    rule_id: str | None = None,
+    input_ref: str | None = None,
+    output_ref: str | None = None,
+    reason: str | None = None,
+    sources: list[str] | None = None,
+    corpus_version: str | None = None,
+) -> str: ...  # -> event_id
 def events_for_case(case_id: str) -> list[AuditEvent]: ...
 def recent_events(limit: int = 200) -> list[AuditEvent]: ...
 ```

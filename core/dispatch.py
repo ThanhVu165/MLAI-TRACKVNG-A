@@ -50,7 +50,9 @@ def schedule_dispatch(
     )
     _DISPATCH_REGISTRY[case_id] = record
 
-    _log_dispatch_audit(case_id, "SEND_SCHEDULED", actor="SYSTEM", detail=f"countdown={countdown_seconds}s")
+    _log_dispatch_audit(
+        case_id, "SEND_SCHEDULED", actor="SYSTEM", detail=f"countdown={countdown_seconds}s"
+    )
     return record
 
 
@@ -59,7 +61,7 @@ def get_dispatch_record(case_id: str) -> PendingDispatchRecord | None:
     return _DISPATCH_REGISTRY.get(case_id)
 
 
-def cancel_send(case_id: str, actor: str = "HUMAN") -> tuple[bool, str]:
+def cancel_send(case_id: str, actor: str = "HUMAN", reason: str = "") -> tuple[bool, str]:
     """Hành động can thiệp 1: Hủy gửi trong vòng 60 giây (Task A-19 & Tiêu chí 6).
 
     Chuyển trạng thái case từ PENDING_SEND sang CANCELLED.
@@ -73,7 +75,12 @@ def cancel_send(case_id: str, actor: str = "HUMAN") -> tuple[bool, str]:
         return False, f"Case {case_id} đang ở trạng thái {record.status}, không thể hủy gửi."
 
     record.status = CaseStatus.CANCELLED
-    _log_dispatch_audit(case_id, "CANCEL_SEND", actor=actor, detail="Chuyên viên bấm hủy gửi trong thời gian đếm ngược")
+    _log_dispatch_audit(
+        case_id,
+        "CANCEL_SEND",
+        actor=actor,
+        detail=reason or "Chuyên viên bấm hủy gửi trong thời gian đếm ngược",
+    )
     return True, f"Đã hủy gửi thành công cho case {case_id}."
 
 
@@ -100,6 +107,11 @@ def dispatch_case(case_id: str, *, force: bool = False) -> tuple[bool, str]:
 
     Case chuyển sang trạng thái SENT và bị đóng băng, không được sửa trực tiếp.
     """
+    from core.controls import is_automation_paused
+
+    if is_automation_paused():
+        return False, "Hệ thống đang tạm dừng tự động hóa, không tự động gửi."
+
     record = _DISPATCH_REGISTRY.get(case_id)
     if not record:
         return False, f"Không tìm thấy case {case_id}."
@@ -113,7 +125,9 @@ def dispatch_case(case_id: str, *, force: bool = False) -> tuple[bool, str]:
         return False, f"Case {case_id} chưa hết thời gian đếm ngược ({remaining}s còn lại)."
 
     record.status = CaseStatus.SENT
-    _log_dispatch_audit(case_id, "SEND_DISPATCHED", actor="SYSTEM", detail="Mô phỏng gửi thành công qua Mock Mailer")
+    _log_dispatch_audit(
+        case_id, "SEND_DISPATCHED", actor="SYSTEM", detail="Mô phỏng gửi thành công qua Mock Mailer"
+    )
     return True, f"Case {case_id} đã được gửi thành công (SENT)."
 
 
@@ -142,38 +156,42 @@ def create_correction_email(
         guard_failures=[],
     )
 
-    now = time.time()
-    corr_record = PendingDispatchRecord(
+    _DISPATCH_REGISTRY[new_case_id] = PendingDispatchRecord(
         case_id=new_case_id,
         trace_id=new_trace_id,
         draft=new_draft,
         status=CaseStatus.PENDING_SEND,
-        scheduled_at=now,
-        expires_at=now + DISPATCH_COUNTDOWN_SECONDS,
+        scheduled_at=time.time(),
+        expires_at=time.time() + 60.0,
         parent_case_id=parent_case_id,
+        audit_trail=[],
     )
-    _DISPATCH_REGISTRY[new_case_id] = corr_record
 
     _log_dispatch_audit(
-        parent_case_id,
+        new_case_id,
         "CORRECTION_CREATED",
         actor=actor,
-        detail=f"Tạo email đính chính mới {new_case_id}",
+        detail=f"Tạo correction cho parent_case_id={parent_case_id}",
     )
-    return new_case_id, f"Đã tạo email đính chính mới {new_case_id} liên kết với case {parent_case_id}."
+    return new_case_id, f"Đã tạo email đính chính {new_case_id} thành công."
 
 
 def _log_dispatch_audit(case_id: str, action: str, actor: str, detail: str) -> None:
     """Ghi nhận nhật ký kiểm toán cho chu trình Dispatch."""
     if case_id in _DISPATCH_REGISTRY:
-        _DISPATCH_REGISTRY[case_id].audit_trail.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "action": action,
-            "actor": actor,
-            "detail": detail,
-        })
+        _DISPATCH_REGISTRY[case_id].audit_trail.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "action": action,
+                "actor": actor,
+                "detail": detail,
+            }
+        )
     try:
         from infra.audit import log_event  # type: ignore[import-not-found]
+
         log_event(case_id=case_id, actor=actor, action=action, output_ref=detail)
-    except (ImportError, Exception):  # noqa: BLE001, S110
-        pass
+    except ImportError:
+        logger.debug("infra.audit chưa cấu hình — bỏ qua")
+    except Exception:
+        logger.exception("Ghi audit dispatch thất bại")

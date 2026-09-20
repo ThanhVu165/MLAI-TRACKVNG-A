@@ -1,9 +1,26 @@
 from __future__ import annotations
 
+import logging
 import os
 import time
 import uuid
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
+
+# Bộ nhớ tạm lưu case phục vụ controls, resume, explain khi chưa có DB thật
+_CASES_STORE: dict[str, tuple[CaseInput, PipelineResult]] = {}
+
+
+def get_stored_case(case_id: str) -> tuple[CaseInput, PipelineResult] | None:
+    """Tra cứu case đã xử lý theo case_id."""
+    return _CASES_STORE.get(case_id)
+
+
+def store_case(case_id: str, inp: CaseInput, result: PipelineResult) -> None:
+    """Lưu case vào bộ nhớ phục vụ controls, resume và explain."""
+    _CASES_STORE[case_id] = (inp, result)
+
 
 from core.dispatch import schedule_dispatch
 from core.evidence import validate_evidence
@@ -56,8 +73,13 @@ def _get_frozen_corpus_version() -> str:
     """Lấy phiên bản corpus hiện tại từ corpus.api và đóng băng cho suốt case."""
     try:
         from corpus.api import get_corpus_version  # type: ignore[import-not-found]
+
         return get_corpus_version()
-    except (ImportError, Exception):  # noqa: BLE001 - Dự phòng khi corpus.api chưa cấu hình
+    except ImportError:
+        logger.debug("corpus.api chưa cấu hình — sử dụng cv_v1_initial")
+        return "cv_v1_initial"
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Lấy corpus_version thất bại: %s", exc)
         return "cv_v1_initial"
 
 
@@ -70,8 +92,6 @@ def _step_r0_intake(inp: CaseInput) -> tuple[bool, str | None]:
     if not inp.subject or not inp.subject.strip():
         return False, "Tiêu đề email (subject) không được để trống."
     return True, None
-
-
 
 
 def _step_r9_lifecycle(decision: PolicyDecision) -> CaseStatus:
@@ -87,9 +107,12 @@ def _step_r14_audit_telemetry(case_id: str, trace_id: str, action: str) -> None:
     """R14: Audit & Telemetry - Ghi nhật ký kiểm toán."""
     try:
         from infra.audit import log_event  # type: ignore[import-not-found]
+
         log_event(case_id=case_id, actor="SYSTEM", action=action)
-    except (ImportError, Exception):  # noqa: BLE001, S110 - Dự phòng khi infra.audit chưa cấu hình
-        pass
+    except ImportError:
+        logger.debug("infra.audit chưa cấu hình — bỏ qua")
+    except Exception:
+        logger.exception("Ghi audit R14 thất bại")
 
 
 def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
@@ -114,7 +137,7 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
 
         if not r0_valid:
             finished_at = datetime.now(timezone.utc)
-            return PipelineResult(
+            inv_res = PipelineResult(
                 case_id=case_id,
                 trace_id=trace_id,
                 status=CaseStatus.INVALID_INPUT,
@@ -135,6 +158,8 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
                 started_at=started_at,
                 finished_at=finished_at,
             )
+            store_case(case_id, inp, inv_res)
+            return inv_res
 
         # -------------------------------------------------------------------
         # R1: Sanitize & 3 chốt chặn rẻ
@@ -148,7 +173,11 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
 
         if guard_decision is not None:
             finished_at = datetime.now(timezone.utc)
-            st = CaseStatus.INVALID_INPUT if guard_decision == Decision.INVALID_INPUT else CaseStatus.AWAITING_HUMAN
+            st = (
+                CaseStatus.INVALID_INPUT
+                if guard_decision == Decision.INVALID_INPUT
+                else CaseStatus.AWAITING_HUMAN
+            )
             r_id = "P00" if guard_decision == Decision.INVALID_INPUT else "P02"
             return PipelineResult(
                 case_id=case_id,
@@ -234,7 +263,9 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
         t7 = time.perf_counter()
         if decision.decision == Decision.AUTO_REPLY:
             draft = generate_reply(evidence_res, inp, extraction, case_id=case_id)
-            grounded_pass, guard_failures = validate_groundedness(draft, evidence_res, case_id=case_id)
+            grounded_pass, guard_failures = validate_groundedness(
+                draft, evidence_res, case_id=case_id
+            )
             if not grounded_pass:
                 # Mục 8.5 spec: Fail bất kỳ mục nào -> ESCALATE / FACT_UNRESOLVED,
                 # reason = "groundedness_failed:<mục>", lưu bản nháp với grounded=false để DSA đối chiếu.
@@ -285,6 +316,7 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
         # -------------------------------------------------------------------
         t9 = time.perf_counter()
         from core.controls import is_automation_paused
+
         status = _step_r9_lifecycle(decision)
         if status == CaseStatus.PENDING_SEND and is_automation_paused():
             status = CaseStatus.AWAITING_HUMAN
@@ -306,7 +338,7 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
         step_latencies["R14_audit"] = max(1, int((time.perf_counter() - t14) * 1000))
 
         finished_at = datetime.now(timezone.utc)
-        return PipelineResult(
+        final_res = PipelineResult(
             case_id=case_id,
             trace_id=trace_id,
             status=status,
@@ -320,11 +352,13 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
             started_at=started_at,
             finished_at=finished_at,
         )
+        store_case(case_id, inp, final_res)
+        return final_res
 
     except Exception as exc:  # noqa: BLE001 - Bắt buộc bọc mọi lỗi theo nguyên tắc Fail-safe của spec
         finished_at = datetime.now(timezone.utc)
         step_latencies["ERROR_HANDLER"] = 1
-        return PipelineResult(
+        err_res = PipelineResult(
             case_id=case_id,
             trace_id=trace_id,
             status=CaseStatus.ERROR,
@@ -345,3 +379,5 @@ def process_case(inp: CaseInput, *, actor: str = "SYSTEM") -> PipelineResult:
             started_at=started_at,
             finished_at=finished_at,
         )
+        store_case(case_id, inp, err_res)
+        return err_res

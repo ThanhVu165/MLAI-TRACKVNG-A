@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, Literal
 
 from core.types import Domain, Extraction, RequestItem
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Prompt & JSON Schema theo mục 5.2 và 8.0 của PROJECT_SPEC.md
@@ -89,55 +92,144 @@ def _heuristic_extract(clean_text: str, subject: str, language: str) -> Extracti
     domain = Domain.UNKNOWN
     if any(k in combined for k in ["rèn luyện", "ren luyen", "đrl", "drl"]):
         domain = Domain.CONDUCT_SCORE
-    elif any(k in combined for k in ["rút môn", "rut mon", "rút học phần", "rut hoc phan", "hủy môn", "withdrawal"]):
+    elif any(
+        k in combined
+        for k in ["rút môn", "rut mon", "rút học phần", "rut hoc phan", "hủy môn", "withdrawal"]
+    ):
         domain = Domain.COURSE_WITHDRAWAL
-    elif any(k in combined for k in ["phúc khảo", "phuc khao", "khiếu nại điểm", "appeal", "re-grade"]):
+    elif any(
+        k in combined for k in ["phúc khảo", "phuc khao", "khiếu nại điểm", "appeal", "re-grade"]
+    ):
         domain = Domain.GRADE_APPEAL
 
     # Kiểm tra các cờ thẩm quyền theo đúng quy tắc vàng Mục 8.0 spec
-    is_procedure_or_fee_query = any(k in combined for k in [
-        "lệ phí", "le phi", "bao nhiêu", "bao nhieu", "thời hạn", "thoi han",
-        "khi nào", "khi nao", "hạn chót", "han chot", "quy trình", "quy trinh",
-        "thủ tục", "thu tuc", "hướng dẫn", "huong dan", "mẫu đơn", "mau don",
-        "điều kiện", "dieu kien", "thang điểm", "thang diem",
-    ])
+    is_procedure_or_fee_query = any(
+        k in combined
+        for k in [
+            "lệ phí",
+            "le phi",
+            "bao nhiêu",
+            "bao nhieu",
+            "thời hạn",
+            "thoi han",
+            "khi nào",
+            "khi nao",
+            "hạn chót",
+            "han chot",
+            "quy trình",
+            "quy trinh",
+            "thủ tục",
+            "thu tuc",
+            "hướng dẫn",
+            "huong dan",
+            "mẫu đơn",
+            "mau don",
+            "điều kiện",
+            "dieu kien",
+            "thang điểm",
+            "thang diem",
+        ]
+    )
 
-    asks_exception = any(k in combined for k in [
-        "ngoại lệ", "ngoai le", "sau hạn", "sau han", "quá hạn", "qua han",
-        "châm chước", "cham chuoc", "được không", "duoc khong"
-    ]) and any(k in combined for k in ["xin", "cho em", "mong"])
+    asks_exception = any(
+        k in combined
+        for k in [
+            "ngoại lệ",
+            "ngoai le",
+            "sau hạn",
+            "sau han",
+            "quá hạn",
+            "qua han",
+            "châm chước",
+            "cham chuoc",
+            "được không",
+            "duoc khong",
+        ]
+    ) and any(k in combined for k in ["xin", "cho em", "mong"])
 
-    # Chỉ bật asks_appeal khi thực sự đề nghị chấm lại cho bản thân, không phải hỏi lệ phí/thủ tục
+    # Chỉ bật asks_appeal khi thực sự đề nghị chấm lại cho bản thân, không bị chặn bởi từ hỏi lệ phí
     asks_appeal = False
-    if not is_procedure_or_fee_query and any(k in combined for k in ["phúc khảo", "appeal", "khiếu nại", "kháng nghị", "xem xét lại"]):
-        asks_appeal = any(k in combined for k in [
-            "em muốn phúc khảo", "xin phúc khảo", "nộp đơn phúc khảo bài",
-            "chấm lại bài", "cho em phúc khảo", "phúc khảo bài thi",
-            "khiếu nại", "kháng nghị", "xem xét lại", "bị trừ điểm"
-        ])
+    if any(
+        k in combined for k in ["phúc khảo", "appeal", "khiếu nại", "kháng nghị", "xem xét lại"]
+    ):
+        asks_appeal = any(
+            k in combined
+            for k in [
+                "em muốn phúc khảo",
+                "xin phúc khảo",
+                "nộp đơn phúc khảo bài",
+                "chấm lại bài",
+                "cho em phúc khảo",
+                "phúc khảo bài thi",
+                "khiếu nại",
+                "kháng nghị",
+                "xem xét lại",
+                "bị trừ điểm",
+            ]
+        )
 
-    asks_authority_decision = any(k in combined for k in [
-        "nhờ thầy duyệt", "nhờ cô duyệt", "kính xin thầy", "kính xin cô",
-        "duyệt giúp em", "phê duyệt cho em"
-    ])
+    asks_authority_decision = any(
+        k in combined
+        for k in [
+            "nhờ thầy duyệt",
+            "nhờ cô duyệt",
+            "kính xin thầy",
+            "kính xin cô",
+            "duyệt giúp em",
+            "phê duyệt cho em",
+        ]
+    )
 
-    requires_personal_record = any(k in combined for k in [
-        "[mssv]", "mssv", "điểm của em", "kết quả của em", "hồ sơ của em"
-    ]) and not asks_exception
+    requires_personal_record = (
+        any(
+            k in combined
+            for k in ["[mssv]", "mssv", "điểm của em", "kết quả của em", "hồ sơ của em"]
+        )
+        and not asks_exception
+    )
 
-    is_info = is_procedure_or_fee_query or not (
+    requests: list[RequestItem] = []
+    has_authority = (
         asks_exception or asks_appeal or asks_authority_decision or requires_personal_record
     )
 
-    req = RequestItem(
-        domain=domain,
-        intent=subject.strip() or "Yêu cầu thông tin",
-        is_informational=is_info,
-        requires_personal_record=requires_personal_record,
-        asks_exception=asks_exception,
-        asks_appeal=asks_appeal,
-        asks_authority_decision=asks_authority_decision,
-    )
+    if is_procedure_or_fee_query and has_authority:
+        # Email đa ý định (A-24): 1 phần thường quy tra cứu + 1 phần cần thẩm quyền
+        requests.append(
+            RequestItem(
+                domain=domain,
+                intent=f"Hỏi thủ tục/thông tin {domain.value}",
+                is_informational=True,
+                requires_personal_record=False,
+                asks_exception=False,
+                asks_appeal=False,
+                asks_authority_decision=False,
+            )
+        )
+        requests.append(
+            RequestItem(
+                domain=domain,
+                intent=subject.strip() or f"Yêu cầu xử lý {domain.value}",
+                is_informational=False,
+                requires_personal_record=requires_personal_record,
+                asks_exception=asks_exception,
+                asks_appeal=asks_appeal,
+                asks_authority_decision=asks_authority_decision,
+            )
+        )
+    else:
+        is_info = is_procedure_or_fee_query or not has_authority
+        requests.append(
+            RequestItem(
+                domain=domain,
+                intent=subject.strip() or "Yêu cầu thông tin",
+                is_informational=is_info,
+                requires_personal_record=requires_personal_record,
+                asks_exception=asks_exception,
+                asks_appeal=asks_appeal,
+                asks_authority_decision=asks_authority_decision,
+            )
+        )
 
     critical_facts: dict[str, str] = {}
     missing_facts: list[str] = []
@@ -152,22 +244,25 @@ def _heuristic_extract(clean_text: str, subject: str, language: str) -> Extracti
 
     raw_dict = {
         "language": language,
-        "requests": [{
-            "domain": domain.value,
-            "intent": req.intent,
-            "is_informational": req.is_informational,
-            "requires_personal_record": req.requires_personal_record,
-            "asks_exception": req.asks_exception,
-            "asks_appeal": req.asks_appeal,
-            "asks_authority_decision": req.asks_authority_decision,
-        }],
+        "requests": [
+            {
+                "domain": r.domain.value,
+                "intent": r.intent,
+                "is_informational": r.is_informational,
+                "requires_personal_record": r.requires_personal_record,
+                "asks_exception": r.asks_exception,
+                "asks_appeal": r.asks_appeal,
+                "asks_authority_decision": r.asks_authority_decision,
+            }
+            for r in requests
+        ],
         "critical_facts": critical_facts,
         "missing_critical_facts": missing_facts,
     }
 
     return Extraction(
         language=_normalize_lang(language),
-        requests=[req],
+        requests=requests,
         critical_facts=critical_facts,
         missing_critical_facts=missing_facts,
         injection_suspected=False,
@@ -241,7 +336,12 @@ def extract_facts(
     try:
         # Thử import infra.llm nếu Agent C đã cấu hình
         from infra.llm import call_json  # type: ignore[import-not-found]
+    except ImportError:
+        # Môi trường stub / chưa cấu hình infra.llm: Chạy fallback heuristic
+        logger.debug("infra.llm chưa cấu hình — sử dụng fallback heuristic")
+        return _heuristic_extract(clean_text, subject, language)
 
+    try:
         prompt = f"{EXTRACT_PROMPT_V1}\n\nEmail Tiêu đề: {subject}\nNội dung:\n{clean_text}"
         res = call_json(
             prompt,
@@ -265,6 +365,14 @@ def extract_facts(
                 raw_json="",
                 llm_error=res.error or "LLM extraction failed",
             )
-    except (ImportError, Exception):  # noqa: BLE001 - Dự phòng khi infra.llm chưa cấu hình
-        # Môi trường stub / chưa cấu hình infra.llm: Chạy fallback heuristic
-        return _heuristic_extract(clean_text, subject, language)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("LLM extraction call failed: %s", exc)
+        return Extraction(
+            language=_normalize_lang(language),
+            requests=[],
+            critical_facts={},
+            missing_critical_facts=[],
+            injection_suspected=False,
+            raw_json="",
+            llm_error=str(exc),
+        )

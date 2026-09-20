@@ -48,7 +48,9 @@ def test_pause_and_resume_automation() -> None:
     # Chạy email thường quy khi Pause -> dừng tại hàng chờ AWAITING_HUMAN
     res2 = process_case(inp)
     assert res2.status == CaseStatus.AWAITING_HUMAN
-    assert res2.decision.decision == Decision.AUTO_REPLY  # Quyết định vẫn là AUTO_REPLY nhưng dừng lại không gửi
+    assert (
+        res2.decision.decision == Decision.AUTO_REPLY
+    )  # Quyết định vẫn là AUTO_REPLY nhưng dừng lại không gửi
 
     # Khôi phục bình thường
     resume_automation(actor="ADMIN:LeaderCTSV")

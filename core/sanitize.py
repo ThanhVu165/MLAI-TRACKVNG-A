@@ -27,7 +27,10 @@ QUOTE_PATTERNS = [
 SIGNATURE_PATTERNS = [
     re.compile(r"^\s*--\s*$", re.MULTILINE),
     re.compile(r"^\s*---+\s*$", re.MULTILINE),
-    re.compile(r"^\s*(?:Trân trọng|Best regards|Kính thư|Thân ái|Regards|Thanks & regards)[,.]?\s*$", re.IGNORECASE | re.MULTILINE),
+    re.compile(
+        r"^\s*(?:Trân trọng|Best regards|Kính thư|Thân ái|Regards|Thanks & regards)[,.]?\s*$",
+        re.IGNORECASE | re.MULTILINE,
+    ),
 ]
 
 # Regex PII
@@ -57,30 +60,113 @@ INJECTION_KEYWORDS = [
     "hãy đóng giả",
 ]
 
-VIETNAMESE_ACCENTED_CHARS = set("àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ"
-                                "ÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ")
+VIETNAMESE_ACCENTED_CHARS = set(
+    "àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ"
+    "ÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ"
+)
 
 VIETNAMESE_UNACCENTED_WORDS = {
-    "em", "thay", "co", "cho", "xin", "hoi", "hoc", "phan", "mon", "diem",
-    "truong", "khi", "nao", "chao", "da", "nhe", "giup", "rut", "phuc", "khao",
-    "ren", "luyen", "sinh", "vien", "nop", "don", "khoa", "nam", "bao",
-    "nhieu", "sao", "khong", "duoc", "ve", "viec",
+    "em",
+    "thay",
+    "co",
+    "cho",
+    "xin",
+    "hoi",
+    "hoc",
+    "phan",
+    "mon",
+    "diem",
+    "truong",
+    "khi",
+    "nao",
+    "chao",
+    "da",
+    "nhe",
+    "giup",
+    "rut",
+    "phuc",
+    "khao",
+    "ren",
+    "luyen",
+    "sinh",
+    "vien",
+    "nop",
+    "don",
+    "khoa",
+    "nam",
+    "bao",
+    "nhieu",
+    "sao",
+    "khong",
+    "duoc",
+    "ve",
+    "viec",
 }
 
 ENGLISH_WORDS = {
-    "hello", "hi", "dear", "please", "when", "what", "where", "how", "why",
-    "course", "withdrawal", "grade", "appeal", "student", "deadline", "fee",
-    "thanks", "thank", "regards", "help", "information", "office", "dsa",
+    "hello",
+    "hi",
+    "dear",
+    "please",
+    "when",
+    "what",
+    "where",
+    "how",
+    "why",
+    "course",
+    "withdrawal",
+    "grade",
+    "appeal",
+    "student",
+    "deadline",
+    "fee",
+    "thanks",
+    "thank",
+    "regards",
+    "help",
+    "information",
+    "office",
+    "dsa",
 }
 
 QUESTION_WORDS_VI = {
-    "ai", "gì", "gi", "nào", "nao", "sao", "đâu", "dau", "bao giờ", "bao gio",
-    "khi nào", "khi nao", "thế nào", "the nao", "làm sao", "lam sao", "hỏi",
-    "hoi", "xin hỏi", "xin hoi", "bao nhiêu", "bao nhieu", "được không", "duoc khong",
+    "ai",
+    "gì",
+    "gi",
+    "nào",
+    "nao",
+    "sao",
+    "đâu",
+    "dau",
+    "bao giờ",
+    "bao gio",
+    "khi nào",
+    "khi nao",
+    "thế nào",
+    "the nao",
+    "làm sao",
+    "lam sao",
+    "hỏi",
+    "hoi",
+    "xin hỏi",
+    "xin hoi",
+    "bao nhiêu",
+    "bao nhieu",
+    "được không",
+    "duoc khong",
 }
 
 QUESTION_WORDS_EN = {
-    "what", "when", "where", "how", "why", "who", "which", "could", "can", "would",
+    "what",
+    "when",
+    "where",
+    "how",
+    "why",
+    "who",
+    "which",
+    "could",
+    "can",
+    "would",
 }
 
 
@@ -268,7 +354,11 @@ def evaluate_cheap_guards(
     """
     stripped = body_clean.strip()
     if not stripped:
-        return Decision.INVALID_INPUT, None, "Nội dung email rỗng. Vui lòng cung cấp nội dung cần hỗ trợ."
+        return (
+            Decision.INVALID_INPUT,
+            None,
+            "Nội dung email rỗng. Vui lòng cung cấp nội dung cần hỗ trợ.",
+        )
 
     # Ngôn ngữ ngoài vi/en
     if language not in ("vi", "en"):

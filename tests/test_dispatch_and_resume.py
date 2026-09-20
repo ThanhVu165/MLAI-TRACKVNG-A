@@ -90,7 +90,9 @@ def test_escalate_from_pending() -> None:
     draft = _make_draft()
     schedule_dispatch(case_id, draft, countdown_seconds=60)
 
-    ok, msg = escalate_from_pending(case_id, actor="ADMIN:ChuyenVienA", reason="Cần kiểm tra lại điểm số")
+    ok, msg = escalate_from_pending(
+        case_id, actor="ADMIN:ChuyenVienA", reason="Cần kiểm tra lại điểm số"
+    )
     assert ok is True
     assert "chuyên viên" in msg.lower()
 
