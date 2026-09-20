@@ -307,8 +307,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Việc phải làm:** PDF → text (`pdfplumber`), DOCX → text (`python-docx`); bỏ header/footer lặp bằng cách đếm dòng xuất hiện trên đa số trang; **giữ nguyên đánh số Điều / Khoản / Điểm**; chuẩn hóa dấu tiếng Việt về NFC; gộp dòng bị ngắt giữa câu.
 - **Xong khi:** Với 6 tài liệu seed, mọi tiêu đề `Điều N.` đều còn nguyên và nằm đầu dòng. **Mất đánh số là hỏng toàn bộ breadcrumb, kéo theo mất điểm chất lượng câu hỏi.**
 
-### B-05 · K3 LLM đề xuất metadata
-- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-04, C-04 · **Trạng thái:** `WIP`
+### B-05 · K3 LLM đề xuất metadata [DONE]
+- **Khối:** B2 · **Ước lượng:** 2h · **Phụ thuộc:** B-04, C-04 · **Trạng thái:** `DONE`
 - **File:** `corpus/metadata.py`
 - **Việc phải làm:** Prompt `METADATA_PROMPT_V1` sinh bản nháp đúng schema Mục 9.1 spec từ 3000 ký tự đầu của tài liệu. Trường không suy ra được thì để `null`, **không bịa**. Đặc biệt chú ý `supersedes`, `effective_from`, `cohorts`, `transitional_clause`.
 - **Xong khi:** Trên 6 tài liệu seed, schema hợp lệ 6/6 và `transitional_clause` đúng với tài liệu số 1.

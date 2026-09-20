@@ -13,5 +13,6 @@
 - `[H+50][Agent B] xong B-02 (CRUD sources/chunks/corpus_versions, corpus_version đổi khi tập ACTIVE đổi) · kiểm thử SQLite in-memory xanh · tiếp tục B-03`
 - `[H+51][Agent B] xong B-03 (nạp PDF/DOCX, URL một lần, text; chống trùng SHA-256; audit SOURCE_UPLOADED) · tiếp tục B-04`
 - `[H+52][Agent B] xong B-04 (trích xuất PDF/DOCX/text, bỏ header/footer lặp, giữ Điều/Khoản/Điểm, NFC) · tiếp tục B-05`
+- `[H+53][Agent B] xong B-05 (METADATA_PROMPT_V1 + JSON schema, chỉ dùng 3000 ký tự đầu, không bịa trường thiếu) · tiếp tục B-06`
 
 
