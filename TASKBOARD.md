@@ -333,8 +333,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Xong khi:** Tài liệu seed #3 và #5 (hạn chót rút học phần khác nhau) bị gắn cờ, và runtime tự trả `OUT_OF_POLICY` cho vùng chủ đề đó. `tests/test_conflict.py` xanh.
 - **Tiêu chí:** 7 · 3
 
-### B-09 · K6 Gán nhãn thẩm quyền cho từng chunk
-- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Đây là bước quan trọng nhất của làn B** · **Trạng thái:** `WIP`
+### B-09 · K6 Gán nhãn thẩm quyền cho từng chunk [DONE]
+- **Khối:** B3 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Đây là bước quan trọng nhất của làn B** · **Trạng thái:** `DONE`
 - **File:** `corpus/coverage.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Bảng liệt kê mọi chunk của tài liệu, mỗi dòng có breadcrumb, trích đoạn và một công tắc hai trạng thái `auto_answerable` / `human_only`. **Mặc định mọi chunk mới là `human_only`** — con người phải chủ động mở quyền. Có gợi ý tự động (LLM đề xuất nhãn) nhưng **không được tự áp dụng**. Ghi audit `CHUNK_LABELLED` cho từng lần đổi, kèm actor và nhãn cũ/mới.
 - **Xong khi:** Tài liệu mới nạp vào có 100% chunk `human_only`; đổi một nhãn sinh đúng một audit event. Câu chốt pitch: **quyền tự động của AI không do AI tự đánh giá, mà do con người cấp ở cấp độ từng điều khoản.**

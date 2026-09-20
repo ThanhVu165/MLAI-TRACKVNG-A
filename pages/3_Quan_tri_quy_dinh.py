@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import sqlite3
+
 import streamlit as st
 
+from corpus.coverage import LABELS, label_chunk, list_coverage
 from corpus.metadata import SUPPORTED_DOMAINS, SourceMetadata
 
 
@@ -47,6 +50,24 @@ def render_metadata_form(draft: SourceMetadata) -> SourceMetadata | None:
         status="PENDING_REVIEW",
         content_hash=draft.content_hash,
     )
+
+
+def render_coverage_editor(conn: sqlite3.Connection, doc_id: str, actor: str) -> None:
+    st.subheader("Quyền trả lời theo từng điều khoản")
+    st.caption("Mặc định là human_only. AI chỉ đề xuất; quản trị viên quyết định nhãn cuối cùng.")
+    for chunk in list_coverage(conn, doc_id):
+        with st.container(border=True):
+            st.markdown(f"**{chunk['breadcrumb']}**")
+            st.write(str(chunk["text"])[:300])
+            label = st.selectbox(
+                "Nhãn thẩm quyền",
+                sorted(LABELS),
+                index=sorted(LABELS).index(str(chunk["label"])),
+                key=f"label_{chunk['chunk_id']}",
+            )
+            if st.button("Lưu nhãn", key=f"save_{chunk['chunk_id']}"):
+                changed = label_chunk(conn, str(chunk["chunk_id"]), label, actor=actor)
+                st.success("Đã lưu nhãn.") if changed else st.info("Nhãn không thay đổi.")
 
 
 st.title("Quản trị quy định")
