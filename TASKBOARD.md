@@ -579,7 +579,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 2 · 7 · Giai đoạn 0
 
 ### C-26 · Triển khai lên Streamlit Cloud
-- **Khối:** B5 · **Ước lượng:** 2.5h · **Phụ thuộc:** S-06
+- **Khối:** B5 · **Ước lượng:** 2.5h · **Phụ thuộc:** S-06 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `.streamlit/config.toml`, `RUNBOOK.md`
 - **Việc phải làm:** Deploy public, **không login**; khóa API đặt trong Secrets, không trong repo; seed corpus tự chạy khi DB trống; giảm kích thước model embedding để vừa giới hạn bộ nhớ; ping giữ ấm chống cold start; kiểm tra trên **điện thoại** và trên trình duyệt ẩn danh.
 - **Xong khi:** Mở URL ở cửa sổ ẩn danh, chưa từng đăng nhập, tải xong dưới 10 giây và chạy được một case. **Liên kết lỗi = 0 điểm tiêu chí 1 và không đủ điều kiện vào chung kết.**
