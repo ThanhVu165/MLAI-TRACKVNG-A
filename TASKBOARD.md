@@ -425,7 +425,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Xong khi:** `grep` không tìm thấy số ma thuật nào trong `core/` và `corpus/`.
 
 ### C-04 · `infra/llm.py` — wrapper Gemini duy nhất
-- **Khối:** B0 · **Ước lượng:** 3h · **Phụ thuộc:** C-03
+- **Khối:** B0 · **Ước lượng:** 3h · **Phụ thuộc:** C-03 · **Trạng thái:** `WIP`
 - **File:** `infra/llm.py`
 - **Việc phải làm:** `call_json()` đúng chữ ký contract; structured output theo schema; `temperature=0`; timeout và retry đúng 1 lần; đo `latency_ms`; tính `prompt_hash`; ghi vào `step_latencies`. Ba chế độ qua `LLM_MODE`: `live` · `replay` (đọc cassette trong `tests/cassettes/`, dùng cho CI) · `record`. Cache theo `sha256(prompt)` trong SQLite để demo không tốn quota và chạy nhanh. Trả về `LLMResult` **không bao giờ ném exception**.
 - **Xong khi:** Ngắt mạng → `call_json` trả `ok=False` có `error`, pipeline vẫn ra `ESCALATE`. CI chạy được offline ở chế độ `replay`.
