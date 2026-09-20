@@ -22,16 +22,50 @@ def test_three_channels_produce_identical_results() -> None:
     subject = "Hỏi hạn rút môn"
 
     # Gửi qua 3 kênh khác nhau
-    res_paste = process_case(CaseInput(sender="sv@school.edu.vn", subject=subject, body=email_body, received_at=fixed_time, channel="paste"))
-    res_inbox = process_case(CaseInput(sender="sv@school.edu.vn", subject=subject, body=email_body, received_at=fixed_time, channel="inbox"))
-    res_verify = process_case(CaseInput(sender="sv@school.edu.vn", subject=subject, body=email_body, received_at=fixed_time, channel="verify"))
+    res_paste = process_case(
+        CaseInput(
+            sender="sv@school.edu.vn",
+            subject=subject,
+            body=email_body,
+            received_at=fixed_time,
+            channel="paste",
+        )
+    )
+    res_inbox = process_case(
+        CaseInput(
+            sender="sv@school.edu.vn",
+            subject=subject,
+            body=email_body,
+            received_at=fixed_time,
+            channel="inbox",
+        )
+    )
+    res_verify = process_case(
+        CaseInput(
+            sender="sv@school.edu.vn",
+            subject=subject,
+            body=email_body,
+            received_at=fixed_time,
+            channel="verify",
+        )
+    )
 
     # Quyết định, rule_id, escalation_type, status phải giống hệt nhau 100%
-    assert res_paste.decision.decision == res_inbox.decision.decision == res_verify.decision.decision
+    assert (
+        res_paste.decision.decision == res_inbox.decision.decision == res_verify.decision.decision
+    )
     assert res_paste.decision.rule_id == res_inbox.decision.rule_id == res_verify.decision.rule_id
-    assert res_paste.decision.escalation_type == res_inbox.decision.escalation_type == res_verify.decision.escalation_type
+    assert (
+        res_paste.decision.escalation_type
+        == res_inbox.decision.escalation_type
+        == res_verify.decision.escalation_type
+    )
     assert res_paste.status == res_inbox.status == res_verify.status
-    assert res_paste.decision.evidence_ids == res_inbox.decision.evidence_ids == res_verify.decision.evidence_ids
+    assert (
+        res_paste.decision.evidence_ids
+        == res_inbox.decision.evidence_ids
+        == res_verify.decision.evidence_ids
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -43,26 +77,59 @@ GROUP_1_ROUTINE = [
     ("Hỏi hạn rút môn", "Thầy cô cho em hỏi khi nào hết hạn rút môn học kỳ 1 ạ?"),
     ("Thời hạn rút học phần", "Cho em hỏi hạn chót rút học phần của học kỳ này là tuần thứ mấy?"),
     ("Quy trình rút môn", "Dạ em muốn hỏi thủ tục rút môn trực tuyến trên hệ thống như thế nào ạ?"),
-    ("Học phí hoàn lại khi rút môn", "Cho em hỏi nếu rút môn trong 4 tuần đầu thì được hoàn bao nhiêu phần trăm học phí ạ?"),
-    ("Thời hạn rút môn học kỳ chính", "Dạ trường mình cho phép sinh viên rút môn đến tuần thứ mấy của học kỳ chính ạ?"),
+    (
+        "Học phí hoàn lại khi rút môn",
+        "Cho em hỏi nếu rút môn trong 4 tuần đầu thì được hoàn bao nhiêu phần trăm học phí ạ?",
+    ),
+    (
+        "Thời hạn rút môn học kỳ chính",
+        "Dạ trường mình cho phép sinh viên rút môn đến tuần thứ mấy của học kỳ chính ạ?",
+    ),
 ]
 
 # Nhóm 2: 5 trường hợp vượt thẩm quyền, xin ngoại lệ, khiếu nại -> P01 ESCALATE / AUTHORITY_REQUIRED
 GROUP_2_AUTHORITY = [
-    ("Xin rút môn sau hạn", "Em bị tai nạn nằm viện nên muốn xin rút môn sau hạn quy định có được không ạ?"),
-    ("Phúc khảo bài thi cá nhân", "Em muốn nộp đơn phúc khảo bài thi kết thúc môn Giải tích của em vì điểm thấp bất thường."),
-    ("Xin châm chước hạn rút môn", "Dạ em quên nộp đơn rút môn đúng hạn, kính xin thầy cô châm chước duyệt giúp em với ạ."),
-    ("Nhờ thầy duyệt ngoại lệ", "Em xin nhờ thầy Trưởng phòng phê duyệt cho em rút môn muộn vì lý do gia đình."),
-    ("Khiếu nại điểm rèn luyện", "Em đề nghị xem xét lại điểm rèn luyện của bản thân em vì bị trừ điểm không rõ lý do."),
+    (
+        "Xin rút môn sau hạn",
+        "Em bị tai nạn nằm viện nên muốn xin rút môn sau hạn quy định có được không ạ?",
+    ),
+    (
+        "Phúc khảo bài thi cá nhân",
+        "Em muốn nộp đơn phúc khảo bài thi kết thúc môn Giải tích của em vì điểm thấp bất thường.",
+    ),
+    (
+        "Xin châm chước hạn rút môn",
+        "Dạ em quên nộp đơn rút môn đúng hạn, kính xin thầy cô châm chước duyệt giúp em với ạ.",
+    ),
+    (
+        "Nhờ thầy duyệt ngoại lệ",
+        "Em xin nhờ thầy Trưởng phòng phê duyệt cho em rút môn muộn vì lý do gia đình.",
+    ),
+    (
+        "Khiếu nại điểm rèn luyện",
+        "Em đề nghị xem xét lại điểm rèn luyện của bản thân em vì bị trừ điểm không rõ lý do.",
+    ),
 ]
 
 # Nhóm 3: 5 trường hợp ngoài quy định hoặc thiếu dữ kiện -> P02 / P03 ESCALATE
 GROUP_3_OUT_OR_MISSING = [
-    ("Hỏi ký túc xá", "Cho em hỏi thủ tục đăng ký phòng ở ký túc xá khu B năm học mới như thế nào ạ?"),
-    ("Hỏi học bổng doanh nghiệp", "Dạ em muốn tìm hiểu tiêu chuẩn xét học bổng doanh nghiệp tài trợ ạ."),
-    ("Hỏi quy định điểm rèn luyện", "Điểm rèn luyện của sinh viên áp dụng thang 100 hay thang 4 mức?"),  # Không nói khóa -> thiếu dữ kiện khóa học
+    (
+        "Hỏi ký túc xá",
+        "Cho em hỏi thủ tục đăng ký phòng ở ký túc xá khu B năm học mới như thế nào ạ?",
+    ),
+    (
+        "Hỏi học bổng doanh nghiệp",
+        "Dạ em muốn tìm hiểu tiêu chuẩn xét học bổng doanh nghiệp tài trợ ạ.",
+    ),
+    (
+        "Hỏi quy định điểm rèn luyện",
+        "Điểm rèn luyện của sinh viên áp dụng thang 100 hay thang 4 mức?",
+    ),  # Không nói khóa -> thiếu dữ kiện khóa học
     ("Đăng ký tạm hoãn nghĩa vụ", "Cho em hỏi giấy xác nhận tạm hoãn nghĩa vụ quân sự xin ở đâu?"),
-    ("Hỏi cấp lại thẻ sinh viên", "Em bị mất thẻ sinh viên thì làm lại ở phòng ban nào và lệ phí bao nhiêu?"),
+    (
+        "Hỏi cấp lại thẻ sinh viên",
+        "Em bị mất thẻ sinh viên thì làm lại ở phòng ban nào và lệ phí bao nhiêu?",
+    ),
 ]
 
 # Nhóm 4: 5 trường hợp lỗi kỹ thuật, timeout, groundedness fail -> P04 ESCALATE
@@ -129,7 +196,10 @@ def test_harness_group_3_out_of_policy_or_missing(subject: str, body: str) -> No
     )
     res = process_case(inp)
     assert res.decision.decision == Decision.ESCALATE
-    assert res.decision.escalation_type in (EscalationType.OUT_OF_POLICY, EscalationType.FACT_UNRESOLVED)
+    assert res.decision.escalation_type in (
+        EscalationType.OUT_OF_POLICY,
+        EscalationType.FACT_UNRESOLVED,
+    )
     assert res.status == CaseStatus.AWAITING_HUMAN
 
 
@@ -149,7 +219,16 @@ def test_harness_group_4_technical_errors() -> None:
     assert res.status == CaseStatus.ERROR
 
     # 4b. Groundedness fail
-    with patch("core.pipeline.generate_reply", return_value=DraftReply(subject="Re: Test", body="Số tiền là 999.999 VNĐ [chunk_cw_01].", citations=["chunk_cw_01"], grounded=True, guard_failures=[])):
+    with patch(
+        "core.pipeline.generate_reply",
+        return_value=DraftReply(
+            subject="Re: Test",
+            body="Số tiền là 999.999 VNĐ [chunk_cw_01].",
+            citations=["chunk_cw_01"],
+            grounded=True,
+            guard_failures=[],
+        ),
+    ):
         res_ground = process_case(inp)
     assert res_ground.decision.decision == Decision.ESCALATE
     assert res_ground.decision.rule_id == "P04"

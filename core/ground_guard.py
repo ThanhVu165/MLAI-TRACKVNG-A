@@ -28,20 +28,35 @@ def _is_chunk_active(chunk_id: str) -> bool:
     """Kiểm tra chunk có đang ACTIVE trên corpus.api không."""
     try:
         from corpus.api import is_active  # type: ignore[import-not-found]
+
         return bool(is_active(chunk_id))
-    except (ImportError, Exception):  # noqa: BLE001
+    except ImportError:
         # Môi trường stub / offline: chunk tồn tại là active
         return True
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Kiểm tra chunk active thất bại: %s", exc)
+        return False
 
 
 def _clean_body_for_sentence_counting(body: str) -> list[str]:
     """Tách body thành danh sách các câu có nghĩa để tính tỷ lệ citation."""
     # Loại bỏ các dòng chào hỏi và chữ ký thông thường
     skip_phrases = [
-        "chào em", "kính gửi", "thân chào", "dear", "hello",
-        "cảm ơn em", "thank you", "chúc em",
-        "trân trọng", "thân ái", "văn phòng công tác sinh viên",
-        "department of student affairs", "sincerely", "regards", "best regards",
+        "chào em",
+        "kính gửi",
+        "thân chào",
+        "dear",
+        "hello",
+        "cảm ơn em",
+        "thank you",
+        "chúc em",
+        "trân trọng",
+        "thân ái",
+        "văn phòng công tác sinh viên",
+        "department of student affairs",
+        "sincerely",
+        "regards",
+        "best regards",
     ]
     lines = [line.strip() for line in body.split("\n") if line.strip()]
     content_lines: list[str] = []
@@ -77,7 +92,9 @@ def validate_groundedness(
     """
     failed_reasons: list[str] = []
     chunk_map = {c.chunk_id: c for c in evidence_res.chunks}
-    evidence_combined_text = " ".join(f"{c.breadcrumb} {c.doc_id} {c.text}" for c in evidence_res.chunks)
+    evidence_combined_text = " ".join(
+        f"{c.breadcrumb} {c.doc_id} {c.text}" for c in evidence_res.chunks
+    )
 
     # -----------------------------------------------------------------------
     # Kiểm tra 1: Mọi citation tồn tại và chunk active
@@ -102,14 +119,13 @@ def validate_groundedness(
     evidence_numbers = set(RE_NUMBERS_AND_DATES.findall(evidence_combined_text))
 
     for num in body_numbers:
-        # Bỏ qua các số nhỏ định dạng thứ tự thường gặp (1, 2) nếu không phải dữ kiện trọng yếu
-        if num in ("1", "2") and len(num) == 1:
-            continue
         if num not in evidence_numbers:
             # Kiểm tra xem có phải dạng chuẩn hóa khác (ví dụ: 50.000 vs 50000)
             clean_num = num.replace(".", "").replace(",", "")
-            clean_evidence_numbers = {en.replace(".", "").replace(",", "") for en in evidence_numbers}
-            if clean_num not in clean_evidence_numbers and clean_num not in evidence_combined_text:
+            clean_evidence_numbers = {
+                en.replace(".", "").replace(",", "") for en in evidence_numbers
+            }
+            if clean_num not in clean_evidence_numbers:
                 failed_reasons.append(f"groundedness_failed:hallucinated_number_{num}")
                 break
 
@@ -170,11 +186,14 @@ def _log_groundedness_audit(case_id: str, failed_reasons: list[str]) -> None:
         return
     try:
         from infra.audit import log_event  # type: ignore[import-not-found]
+
         log_event(
             case_id=case_id,
             actor="SYSTEM",
             action="GROUNDEDNESS_FAILED",
             reason="; ".join(failed_reasons),
         )
-    except (ImportError, Exception):  # noqa: BLE001, S110
-        pass
+    except ImportError:
+        logger.debug("infra.audit chưa cấu hình — bỏ qua")
+    except Exception:
+        logger.exception("Ghi audit GROUNDEDNESS_FAILED thất bại")

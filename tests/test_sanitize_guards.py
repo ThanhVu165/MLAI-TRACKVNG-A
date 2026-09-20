@@ -63,9 +63,15 @@ def test_detect_language():
     # Tiếng Việt không dấu
     assert detect_language("thay co cho em hoi ve viec nop don rut hoc phan khao diem") == "vi"
     # Tiếng Anh
-    assert detect_language("Hello, could you please tell me the deadline for course withdrawal?") == "en"
+    assert (
+        detect_language("Hello, could you please tell me the deadline for course withdrawal?")
+        == "en"
+    )
     # Tiếng Nhật (other)
-    assert detect_language("こんにちは、質問があります。履修登録の取り消しについて教えてください。") == "other"
+    assert (
+        detect_language("こんにちは、質問があります。履修登録の取り消しについて教えてください。")
+        == "other"
+    )
 
 
 def test_mask_pii():
@@ -102,7 +108,9 @@ def test_cheap_guards():
     assert reason is not None
 
     # 2. Dưới 15 từ và không có từ hỏi / dấu ?
-    dec, esc, reason = evaluate_cheap_guards("Xin chào thầy cô em là sinh viên của trường đại học", "vi")
+    dec, esc, reason = evaluate_cheap_guards(
+        "Xin chào thầy cô em là sinh viên của trường đại học", "vi"
+    )
     assert dec == Decision.INVALID_INPUT
     assert reason is not None
 
@@ -132,4 +140,3 @@ def test_sanitize_input_full_flow():
     assert "Trân trọng," not in result.body_clean
     assert "<p>" not in result.body_clean
     assert result.language == "vi"
-

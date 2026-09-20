@@ -116,7 +116,10 @@ def generate_reply(
 
     try:
         from infra.llm import call_json  # type: ignore[import-not-found]
+    except ImportError:
+        return _generate_heuristic_reply(answerable_chunks, inp, language=lang)
 
+    try:
         # Chuẩn bị dữ liệu evidence đã lọc (không có body thô của email)
         evidence_text = "\n\n".join(
             f"--- CHUNK ID: {c.chunk_id} ---\nNguồn: {c.breadcrumb}\nNội dung: {c.text}"
@@ -124,9 +127,9 @@ def generate_reply(
         )
 
         user_prompt = (
-            f"Ngôn ngữ yêu cầu: {lang}\n"
-            f"Tiêu đề email sinh viên: {inp.subject}\n\n"
-            f"CĂN CỨ QUY ĐỊNH ĐƯỢC PHÉP SỬ DỤNG:\n{evidence_text}\n\n"
+            f"Ngôn ngữ: {lang}\n"
+            f"Tiêu đề email nhận: {inp.subject}\n"
+            f"Căn cứ pháp lý có thẩm quyền:\n{evidence_text}\n\n"
             f"Hãy soạn thảo email trả lời theo đúng các quy tắc bắt buộc."
         )
 
@@ -164,7 +167,14 @@ def generate_reply(
                 guard_failures=[],
             )
 
-    except (ImportError, Exception) as exc:  # noqa: BLE001
-        logger.info("Chạy generator dự phòng (stub/heuristic): %s", exc)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("LLM call soạn thảo email thất bại: %s", exc)
+        return DraftReply(
+            subject=f"Re: {inp.subject}",
+            body="",
+            citations=[],
+            grounded=False,
+            guard_failures=["llm_generation_failed"],
+        )
 
     return _generate_heuristic_reply(answerable_chunks, inp, language=lang)

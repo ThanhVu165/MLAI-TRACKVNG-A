@@ -22,7 +22,9 @@ from core.types import (
 )
 
 
-def _make_evidence_result(status: EvidenceStatus, chunk_ids: list[str] | None = None) -> EvidenceResult:
+def _make_evidence_result(
+    status: EvidenceStatus, chunk_ids: list[str] | None = None
+) -> EvidenceResult:
     chunks = [
         EvidenceChunk(
             chunk_id=cid,
@@ -68,8 +70,12 @@ def _make_extraction(llm_error: bool = False) -> Extraction:
 class TestSafeExpressionEvaluator:
     def test_equality_and_booleans(self) -> None:
         ctx = {"decision_lock": "AUTHORITY_REQUIRED", "llm_error": False}
-        assert SafeExpressionEvaluator.evaluate("decision_lock == 'AUTHORITY_REQUIRED'", ctx) is True
-        assert SafeExpressionEvaluator.evaluate("decision_lock != 'AUTHORITY_REQUIRED'", ctx) is False
+        assert (
+            SafeExpressionEvaluator.evaluate("decision_lock == 'AUTHORITY_REQUIRED'", ctx) is True
+        )
+        assert (
+            SafeExpressionEvaluator.evaluate("decision_lock != 'AUTHORITY_REQUIRED'", ctx) is False
+        )
         assert SafeExpressionEvaluator.evaluate("not llm_error", ctx) is True
 
     def test_in_operator(self) -> None:

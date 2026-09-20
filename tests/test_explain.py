@@ -42,7 +42,9 @@ def test_explain_auto_reply_non_technical() -> None:
     # Khẳng định không có từ kỹ thuật cấm
     exp_lower = exp.lower()
     for term in FORBIDDEN_TECH_TERMS:
-        assert term not in exp_lower, f"Phát hiện thuật ngữ kỹ thuật cấm '{term}' trong lời giải thích!"
+        assert term not in exp_lower, (
+            f"Phát hiện thuật ngữ kỹ thuật cấm '{term}' trong lời giải thích!"
+        )
 
 
 def test_explain_escalate_non_technical() -> None:
@@ -73,9 +75,11 @@ def test_explain_logs_audit_event() -> None:
     logged_actions: list[str] = []
 
     mock_audit = MagicMock()
+
     def fake_log(*args: Any, **kwargs: Any) -> None:
         action = kwargs.get("action") or (args[2] if len(args) > 2 else "UNKNOWN")
         logged_actions.append(action)
+
     mock_audit.log_event.side_effect = fake_log
 
     with patch.dict("sys.modules", {"infra.audit": mock_audit}):

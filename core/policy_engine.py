@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -14,15 +15,19 @@ from core.types import (
     PolicyDecision,
 )
 
+logger = logging.getLogger(__name__)
+
 # Danh sách biến ngữ cảnh được phép sử dụng trong biểu thức YAML
-ALLOWED_VARIABLES = frozenset({
-    "decision_lock",
-    "evidence_status",
-    "llm_error",
-    "parse_error",
-    "timeout",
-    "guard_failed",
-})
+ALLOWED_VARIABLES = frozenset(
+    {
+        "decision_lock",
+        "evidence_status",
+        "llm_error",
+        "parse_error",
+        "timeout",
+        "guard_failed",
+    }
+)
 
 
 class SafeExpressionEvaluator:
@@ -187,6 +192,7 @@ def _log_policy_audit(case_id: str, rule_id: str, decision: str) -> None:
         return
     try:
         from infra.audit import log_event  # type: ignore[import-not-found]
+
         log_event(
             case_id=case_id,
             actor="SYSTEM",
@@ -194,5 +200,7 @@ def _log_policy_audit(case_id: str, rule_id: str, decision: str) -> None:
             rule_id=rule_id,
             output_ref=decision,
         )
-    except (ImportError, Exception):  # noqa: BLE001, S110
-        pass
+    except ImportError:
+        logger.debug("infra.audit chưa sẵn sàng — bỏ qua ghi audit trong môi trường phát triển")
+    except Exception:
+        logger.exception("Ghi audit POLICY_DECIDED thất bại")

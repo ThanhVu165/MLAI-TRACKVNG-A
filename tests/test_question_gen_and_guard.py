@@ -180,7 +180,11 @@ def test_ensure_valid_escalation_card_fallback_on_invalid() -> None:
 
 
 def test_load_fallback_template_for_all_types() -> None:
-    for et in [EscalationType.FACT_UNRESOLVED, EscalationType.OUT_OF_POLICY, EscalationType.AUTHORITY_REQUIRED]:
+    for et in [
+        EscalationType.FACT_UNRESOLVED,
+        EscalationType.OUT_OF_POLICY,
+        EscalationType.AUTHORITY_REQUIRED,
+    ]:
         tpl = load_fallback_template(et)
         assert tpl.question.endswith("?")
         assert len(tpl.options) >= 2

@@ -18,7 +18,7 @@ STUB_CHUNKS: list[EvidenceChunk] = [
         doc_id="RL-2026-3150",
         breadcrumb="QĐ 3150/2026 · Điều 8 · Khoản 2",
         text="Thời hạn rút học phần được giải quyết trong 8 tuần đầu của học kỳ chính. "
-             "Sinh viên nộp đơn online qua cổng thông tin và được hoàn 50% học phí nếu rút trước tuần thứ 4.",
+        "Sinh viên nộp đơn online qua cổng thông tin và được hoàn 50% học phí nếu rút trước tuần thứ 4.",
         domain=Domain.COURSE_WITHDRAWAL,
         label=ChunkLabel.AUTO_ANSWERABLE,
         score=0.92,
@@ -35,7 +35,7 @@ STUB_CHUNKS: list[EvidenceChunk] = [
         doc_id="RL-2026-3150",
         breadcrumb="QĐ 3150/2026 · Điều 8 · Khoản 5",
         text="Việc rút học phần sau thời hạn quy định do trường hợp bất khả kháng (tai nạn, bệnh hiểm nghèo) "
-             "phải do Trưởng phòng Công tác Sinh viên phê duyệt kèm bệnh án.",
+        "phải do Trưởng phòng Công tác Sinh viên phê duyệt kèm bệnh án.",
         domain=Domain.COURSE_WITHDRAWAL,
         label=ChunkLabel.HUMAN_ONLY,
         score=0.85,
@@ -52,7 +52,7 @@ STUB_CHUNKS: list[EvidenceChunk] = [
         doc_id="HD-2026-102",
         breadcrumb="HD 102/2026 · Mục 3 · Lệ phí",
         text="Lệ phí nộp đơn phúc khảo bài thi kết thúc học phần là 50.000 VNĐ một môn học. "
-             "Thời hạn nộp đơn là 7 ngày làm việc kể từ ngày công bố điểm thi chính thức.",
+        "Thời hạn nộp đơn là 7 ngày làm việc kể từ ngày công bố điểm thi chính thức.",
         domain=Domain.GRADE_APPEAL,
         label=ChunkLabel.AUTO_ANSWERABLE,
         score=0.89,
@@ -69,7 +69,7 @@ STUB_CHUNKS: list[EvidenceChunk] = [
         doc_id="QĐ-2026-2363",
         breadcrumb="QĐ 2363/2026 · Điều 14 · Khoản 1",
         text="Sinh viên khóa K48 áp dụng khung điểm rèn luyện cũ (thang 100). "
-             "Sinh viên từ khóa K49 trở đi áp dụng quy chế đánh giá rèn luyện theo chuẩn mới (thang 4 mức).",
+        "Sinh viên từ khóa K49 trở đi áp dụng quy chế đánh giá rèn luyện theo chuẩn mới (thang 4 mức).",
         domain=Domain.CONDUCT_SCORE,
         label=ChunkLabel.AUTO_ANSWERABLE,
         score=0.88,
@@ -103,8 +103,7 @@ def retrieve_evidence(
     Bọc lỗi corpus thành EvidenceStatus.NO_AUTHORITATIVE_SOURCE.
     """
     target_domains: list[Domain] = [
-        req.domain for req in extraction.requests
-        if req.domain != Domain.UNKNOWN
+        req.domain for req in extraction.requests if req.domain != Domain.UNKNOWN
     ]
     if not target_domains:
         target_domains = [Domain.UNKNOWN]
@@ -115,18 +114,8 @@ def retrieve_evidence(
 
     try:
         from corpus.api import search  # type: ignore[import-not-found]
-        chunks: list[EvidenceChunk] = search(query=query, domains=target_domains, top_k=6, at=at)
-
-        # Ghi audit nếu infra khả dụng
-        _log_retrieval_audit(case_id, [c.chunk_id for c in chunks])
-
-        if not chunks:
-            return [], EvidenceStatus.NO_AUTHORITATIVE_SOURCE
-        return chunks, EvidenceStatus.OK
-
-    except (ImportError, Exception) as exc:  # noqa: BLE001 - Dự phòng khi corpus chưa có DB
-        logger.info("Sử dụng stub retrieval do corpus.api chưa kết nối: %s", exc)
-
+    except ImportError:
+        logger.debug("corpus.api chưa kết nối — sử dụng stub retrieval")
         needs_human = any(
             req.asks_exception or req.asks_appeal or req.asks_authority_decision
             for req in extraction.requests
@@ -149,6 +138,19 @@ def retrieve_evidence(
             return [], EvidenceStatus.NO_AUTHORITATIVE_SOURCE
         return matched_chunks, EvidenceStatus.OK
 
+    try:
+        chunks: list[EvidenceChunk] = search(query=query, domains=target_domains, top_k=6, at=at)
+
+        # Ghi audit nếu infra khả dụng
+        _log_retrieval_audit(case_id, [c.chunk_id for c in chunks])
+
+        if not chunks:
+            return [], EvidenceStatus.NO_AUTHORITATIVE_SOURCE
+        return chunks, EvidenceStatus.OK
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Corpus search thất bại thật sự: %s", exc)
+        return [], EvidenceStatus.NO_AUTHORITATIVE_SOURCE
+
 
 def _log_retrieval_audit(case_id: str, chunk_ids: list[str]) -> None:
     """Ghi nhận audit event EVIDENCE_RETRIEVED nếu infra khả dụng."""
@@ -156,11 +158,14 @@ def _log_retrieval_audit(case_id: str, chunk_ids: list[str]) -> None:
         return
     try:
         from infra.audit import log_event  # type: ignore[import-not-found]
+
         log_event(
             case_id=case_id,
             actor="SYSTEM",
             action="EVIDENCE_RETRIEVED",
             sources=chunk_ids,
         )
-    except (ImportError, Exception):  # noqa: BLE001, S110
-        pass
+    except ImportError:
+        logger.debug("infra.audit chưa cấu hình — bỏ qua")
+    except Exception:
+        logger.exception("Ghi audit EVIDENCE_RETRIEVED thất bại")

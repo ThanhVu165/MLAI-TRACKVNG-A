@@ -35,7 +35,7 @@ def load_blocklist(blocklist_path: str = "policies/blocklist.yaml") -> list[str]
     try:
         with path.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
-        return data.get("blocklist", DEFAULT_BLOCKLIST)
+        return data.get("blocked_phrases") or data.get("blocklist") or DEFAULT_BLOCKLIST
     except Exception:  # noqa: BLE001
         return DEFAULT_BLOCKLIST
 
@@ -81,9 +81,28 @@ def validate_question_quality(
             clean_token = token.strip(".,;:!?()[]\"'")
             if not clean_token:
                 continue
-            if any(ch.isdigit() for ch in clean_token) or len(clean_token) >= 3 and clean_token not in (
-                "sinh", "viên", "yêu", "cầu", "thông", "tin", "hiện", "tại", "đang",
-                "được", "trong", "theo", "quy", "định", "nhà", "trường",
+            if (
+                any(ch.isdigit() for ch in clean_token)
+                or len(clean_token) >= 3
+                and clean_token
+                not in (
+                    "sinh",
+                    "viên",
+                    "yêu",
+                    "cầu",
+                    "thông",
+                    "tin",
+                    "hiện",
+                    "tại",
+                    "đang",
+                    "được",
+                    "trong",
+                    "theo",
+                    "quy",
+                    "định",
+                    "nhà",
+                    "trường",
+                )
             ):
                 fact_keywords.add(clean_token)
 
@@ -143,7 +162,10 @@ def ensure_valid_escalation_card(
     if passed_v2:
         return card_v2
 
-    logger.warning("Thẻ tái tạo vẫn vi phạm (%s), kích hoạt template cứng từ fallback_questions.yaml.", violations_v2)
+    logger.warning(
+        "Thẻ tái tạo vẫn vi phạm (%s), kích hoạt template cứng từ fallback_questions.yaml.",
+        violations_v2,
+    )
     # Lấy fallback template chuẩn
     fallback_card = load_fallback_template(escalation_type, fallback_path)
     # Giữ lại partial_draft nếu có

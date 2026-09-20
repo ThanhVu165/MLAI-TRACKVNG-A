@@ -15,19 +15,26 @@ logger = logging.getLogger(__name__)
 
 SIMILARITY_THRESHOLD = 0.35
 
-DEFAULT_SUPPORTED_DOMAINS = frozenset({
-    Domain.CONDUCT_SCORE,
-    Domain.COURSE_WITHDRAWAL,
-    Domain.GRADE_APPEAL,
-})
+DEFAULT_SUPPORTED_DOMAINS = frozenset(
+    {
+        Domain.CONDUCT_SCORE,
+        Domain.COURSE_WITHDRAWAL,
+        Domain.GRADE_APPEAL,
+    }
+)
 
 
 def get_supported_domains() -> frozenset[Domain]:
     """Lấy danh sách các domain được hỗ trợ trong Sprint 1."""
     try:
         from corpus.api import supported_domains  # type: ignore[import-not-found]
+    except ImportError:
+        return DEFAULT_SUPPORTED_DOMAINS
+
+    try:
         return frozenset(supported_domains())
-    except (ImportError, Exception):  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Lỗi khi gọi supported_domains từ corpus.api: %s", exc)
         return DEFAULT_SUPPORTED_DOMAINS
 
 
@@ -145,11 +152,14 @@ def _log_evidence_audit(case_id: str, failed_checks: list[str]) -> None:
         return
     try:
         from infra.audit import log_event  # type: ignore[import-not-found]
+
         log_event(
             case_id=case_id,
             actor="SYSTEM",
             action="EVIDENCE_VALIDATED",
             reason=",".join(failed_checks) if failed_checks else "all_checks_passed",
         )
-    except (ImportError, Exception):  # noqa: BLE001, S110
-        pass
+    except ImportError:
+        logger.debug("infra.audit chưa sẵn sàng — bỏ qua ghi audit trong môi trường phát triển")
+    except Exception:
+        logger.exception("Ghi audit EVIDENCE_VALIDATED thất bại")
