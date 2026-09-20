@@ -56,13 +56,16 @@ def label_chunk(
 ) -> bool:
     if label not in LABELS:
         raise ValueError("Nhãn chunk không hợp lệ")
-    row = conn.execute("SELECT label FROM chunks WHERE chunk_id = ?", (chunk_id,)).fetchone()
+    row = conn.execute(
+        "SELECT doc_id, label FROM chunks WHERE chunk_id = ?", (chunk_id,)
+    ).fetchone()
     if not row:
         raise KeyError(chunk_id)
-    old_label = str(row[0])
+    doc_id, old_label = str(row[0]), str(row[1])
     if old_label == label:
         return False
     conn.execute("UPDATE chunks SET label = ? WHERE chunk_id = ?", (label, chunk_id))
+    conn.execute("DELETE FROM settings WHERE key = ?", (f"review:{doc_id}",))
     conn.commit()
     if audit is None:
         try:

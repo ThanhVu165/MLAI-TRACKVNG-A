@@ -14,7 +14,8 @@ from corpus.store import (
 
 def _db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
-    conn.executescript("""
+    conn.executescript(
+        """
         CREATE TABLE sources (
           doc_id TEXT PRIMARY KEY, title TEXT, issuer TEXT, source_url TEXT,
           source_kind TEXT, sha256 TEXT UNIQUE, fetched_at TEXT,
@@ -39,7 +40,8 @@ def _db() -> sqlite3.Connection:
         CREATE TABLE settings (
           key TEXT PRIMARY KEY, value TEXT, updated_at TEXT, actor TEXT
         );
-        """)
+        """
+    )
     return conn
 
 
@@ -56,6 +58,8 @@ def test_crud_and_version_change_only_with_active_content() -> None:
     )
     assert get_source(conn, "DOC-1")["title"] == "Quy định 1"  # type: ignore[index]
     assert len(list_sources(conn, "PENDING_REVIEW")) == 1
+    conn.execute("INSERT INTO settings VALUES ('review:DOC-1', 'APPROVE', NULL, 'ADMIN:test')")
+    conn.commit()
 
     replace_chunks(
         conn,
@@ -71,6 +75,7 @@ def test_crud_and_version_change_only_with_active_content() -> None:
         ],
     )
     assert list_chunks(conn, doc_id="DOC-1")[0]["label"] == "human_only"
+    assert conn.execute("SELECT 1 FROM settings WHERE key='review:DOC-1'").fetchone() is None
 
     initial = bump_corpus_version(conn, "ADMIN:test", "Khởi tạo")
     assert initial == current_corpus_version(conn)

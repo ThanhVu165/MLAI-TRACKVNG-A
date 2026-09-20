@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from corpus.coverage import label_chunk
 from corpus.lifecycle import (
     activate_source,
     affected_cases,
@@ -13,13 +14,14 @@ from corpus.lifecycle import (
     submit_review,
     supersede_source,
 )
-from corpus.store import bump_corpus_version, current_corpus_version
 from corpus.seed import seed_if_empty
+from corpus.store import bump_corpus_version, current_corpus_version
 
 
 def _db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
-    conn.executescript("""
+    conn.executescript(
+        """
         CREATE TABLE sources (
           doc_id TEXT PRIMARY KEY, title TEXT, issuer TEXT, source_url TEXT,
           source_kind TEXT, sha256 TEXT UNIQUE, fetched_at TEXT,
@@ -50,7 +52,8 @@ def _db() -> sqlite3.Connection:
         CREATE TABLE decisions (
           decision_id TEXT PRIMARY KEY, case_id TEXT, evidence_ids_json TEXT
         );
-        """)
+        """
+    )
     seed_if_empty(conn)
     return conn
 
@@ -140,6 +143,34 @@ def test_activate_rejects_system_actor() -> None:
         activate_source(conn, "RL-2026-3150", actor="SYSTEM", reason="Không hợp lệ")
 
 
+def test_edit_after_approval_requires_review_again() -> None:
+    conn = _db()
+    conn.execute("UPDATE sources SET status='PENDING_REVIEW' WHERE doc_id='RL-2026-3150'")
+    conn.commit()
+    submit_review(
+        conn,
+        "RL-2026-3150",
+        "APPROVE",
+        actor="ADMIN:vu",
+        reason="Đã kiểm tra",
+        audit=lambda **_: None,
+    )
+    chunk_id, label = conn.execute(
+        "SELECT chunk_id, label FROM chunks WHERE doc_id='RL-2026-3150' LIMIT 1"
+    ).fetchone()
+
+    label_chunk(
+        conn,
+        chunk_id,
+        "human_only" if label == "auto_answerable" else "auto_answerable",
+        actor="ADMIN:vu",
+        audit=lambda **_: None,
+    )
+
+    with pytest.raises(ValueError, match="duyệt trước"):
+        activate_source(conn, "RL-2026-3150", actor="ADMIN:vu", reason="Kích hoạt")
+
+
 def test_supersede_removes_chunks_from_active_set_but_keeps_history() -> None:
     conn = _db()
     conn.execute("UPDATE sources SET status='ACTIVE' WHERE doc_id='RL-2025-2363'")
@@ -163,8 +194,13 @@ def test_supersede_removes_chunks_from_active_set_but_keeps_history() -> None:
     assert (
         conn.execute("SELECT COUNT(*) FROM chunks WHERE doc_id='RL-2025-2363'").fetchone()[0] == 9
     )
-    assert conn.execute("""SELECT COUNT(*) FROM chunks JOIN sources USING(doc_id)
-           WHERE chunks.doc_id='RL-2025-2363' AND sources.status='ACTIVE'""").fetchone()[0] == 0
+    assert (
+        conn.execute(
+            """SELECT COUNT(*) FROM chunks JOIN sources USING(doc_id)
+           WHERE chunks.doc_id='RL-2025-2363' AND sources.status='ACTIVE'"""
+        ).fetchone()[0]
+        == 0
+    )
     assert events[0]["action"] == "SUPERSEDE_SOURCE"
 
 
@@ -174,16 +210,24 @@ def test_flags_only_cases_using_source_within_30_days_and_rolls_back() -> None:
     chunk_id = conn.execute(
         "SELECT chunk_id FROM chunks WHERE doc_id='RL-2025-2363' LIMIT 1"
     ).fetchone()[0]
+    replacement_chunk_id = conn.execute(
+        "SELECT chunk_id FROM chunks WHERE doc_id='RL-2026-3150' LIMIT 1"
+    ).fetchone()[0]
     conn.executemany(
         "INSERT INTO cases(case_id, status, created_at) VALUES (?, 'RESOLVED', ?)",
         [
             ("recent", (now - timedelta(days=10)).isoformat()),
+            ("recent-new", (now - timedelta(days=5)).isoformat()),
             ("old", (now - timedelta(days=40)).isoformat()),
         ],
     )
     conn.executemany(
         "INSERT INTO decisions VALUES (?, ?, ?)",
-        [("d1", "recent", f'["{chunk_id}"]'), ("d2", "old", f'["{chunk_id}"]')],
+        [
+            ("d1", "recent", f'["{chunk_id}"]'),
+            ("d2", "old", f'["{chunk_id}"]'),
+            ("d3", "recent-new", f'["{replacement_chunk_id}"]'),
+        ],
     )
     conn.commit()
     events: list[dict[str, object]] = []
@@ -199,6 +243,7 @@ def test_flags_only_cases_using_source_within_30_days_and_rolls_back() -> None:
     assert flagged == ["recent"]
     assert dict(conn.execute("SELECT case_id, status FROM cases").fetchall()) == {
         "recent": "NEEDS_RECHECK",
+        "recent-new": "RESOLVED",
         "old": "RESOLVED",
     }
     assert events[0]["action"] == "FLAG_NEEDS_RECHECK"
@@ -214,5 +259,13 @@ def test_flags_only_cases_using_source_within_30_days_and_rolls_back() -> None:
     assert (
         conn.execute("SELECT status FROM sources WHERE doc_id='RL-2025-2363'").fetchone()[0]
         == "ACTIVE"
+    )
+    assert (
+        conn.execute("SELECT status FROM sources WHERE doc_id='RL-2026-3150'").fetchone()[0]
+        == "SUPERSEDED"
+    )
+    assert (
+        conn.execute("SELECT status FROM cases WHERE case_id='recent-new'").fetchone()[0]
+        == "NEEDS_RECHECK"
     )
     assert any(event["action"] == "ROLLBACK_SOURCE" for event in events)

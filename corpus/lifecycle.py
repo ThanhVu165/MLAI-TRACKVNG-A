@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import difflib
+import html
 import json
 import sqlite3
 from collections.abc import Callable
@@ -40,8 +41,8 @@ def document_diff(conn: sqlite3.Connection, new_doc_id: str) -> str:
     return difflib.HtmlDiff(wrapcolumn=100).make_table(
         _document_lines(conn, old_doc_id),
         _document_lines(conn, new_doc_id),
-        fromdesc=old_doc_id,
-        todesc=new_doc_id,
+        fromdesc=html.escape(old_doc_id),
+        todesc=html.escape(new_doc_id),
         context=True,
         numlines=2,
     )
@@ -85,8 +86,10 @@ def affected_cases(
     if not chunk_ids:
         return []
     cutoff = (now or datetime.now(timezone.utc)) - timedelta(days=days)
-    rows = conn.execute("""SELECT cases.case_id, cases.created_at, decisions.evidence_ids_json
-           FROM cases JOIN decisions ON decisions.case_id = cases.case_id""").fetchall()
+    rows = conn.execute(
+        """SELECT cases.case_id, cases.created_at, decisions.evidence_ids_json
+           FROM cases JOIN decisions ON decisions.case_id = cases.case_id"""
+    ).fetchall()
     affected: set[str] = set()
     for case_id, created_at, evidence_json in rows:
         created = datetime.fromisoformat(str(created_at).replace("Z", "+00:00"))
@@ -268,18 +271,42 @@ def rollback_source(
         raise ValueError("Rollback cần actor quản trị viên cụ thể")
     if not reason.strip():
         raise ValueError("Lý do là bắt buộc")
-    row = conn.execute("SELECT status FROM sources WHERE doc_id = ?", (doc_id,)).fetchone()
+    row = conn.execute(
+        "SELECT status, superseded_by FROM sources WHERE doc_id = ?", (doc_id,)
+    ).fetchone()
     if not row or row[0] != "SUPERSEDED":
         raise ValueError("Chỉ rollback tài liệu SUPERSEDED")
+    replacement_id = str(row[1] or "")
+    if (
+        not replacement_id
+        or not conn.execute(
+            "SELECT 1 FROM sources WHERE doc_id = ? AND status = 'ACTIVE'", (replacement_id,)
+        ).fetchone()
+    ):
+        raise ValueError("Không tìm thấy tài liệu ACTIVE cần rollback")
+    rolled_back_at = now_iso()
     conn.execute(
         "UPDATE sources SET status='ACTIVE', superseded_by=NULL, superseded_at=NULL, "
         "activated_at=?, activated_by=? WHERE doc_id=?",
-        (now_iso(), actor, doc_id),
+        (rolled_back_at, actor, doc_id),
+    )
+    _mark_superseded(
+        conn,
+        replacement_id,
+        doc_id,
+        rolled_back_at,
     )
     conn.commit()
+    flag_cases_for_recheck(conn, replacement_id, actor="SYSTEM", audit=audit)
     detect_conflicts(conn, audit=audit)
     version = bump_corpus_version(conn, actor, f"Rollback {doc_id}: {reason.strip()}")
-    _audit("ROLLBACK_SOURCE", doc_id, actor, reason.strip(), audit)
+    _audit(
+        "ROLLBACK_SOURCE",
+        doc_id,
+        actor,
+        f"Khôi phục {doc_id}, hạ cấp {replacement_id}: {reason.strip()}",
+        audit,
+    )
     if reindex:
         reindex()
     return version

@@ -26,7 +26,8 @@ class FakeEmbedder:
 
 def _db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
-    conn.executescript("""
+    conn.executescript(
+        """
         CREATE TABLE sources (
           doc_id TEXT PRIMARY KEY, status TEXT NOT NULL, effective_from TEXT,
           effective_to TEXT, applies_to_json TEXT, cohorts_json TEXT,
@@ -47,7 +48,8 @@ def _db() -> sqlite3.Connection:
            'Thang điểm rèn luyện cũ.', 'conduct_score', 'auto_answerable', 0, NULL, 1, 4),
           ('c-withdraw', 'ACTIVE-DOC', '2', '1', 'QĐ mới · Điều 2',
            'Hạn rút học phần là ngày 30 tháng 10.', 'course_withdrawal', 'auto_answerable', 0, NULL, 2, 9);
-        """)
+        """
+    )
     return conn
 
 

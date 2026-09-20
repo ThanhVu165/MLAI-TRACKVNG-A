@@ -179,7 +179,7 @@ def save_metadata(
         "applies_to_json": json.dumps(metadata.applies_to, ensure_ascii=False),
         "cohorts_json": json.dumps(metadata.cohorts, ensure_ascii=False),
         "supersedes_json": json.dumps(metadata.supersedes, ensure_ascii=False),
-        "transitional_clause": int(metadata.transitional_clause),
+        "transitional_clause": 1 if metadata.transitional_clause else 0,
         "domains_json": json.dumps(metadata.domains, ensure_ascii=False),
         "status": "PENDING_REVIEW",
         "content_hash": metadata.content_hash,
@@ -189,6 +189,10 @@ def save_metadata(
     conn.execute(
         f"UPDATE sources SET {assignments} WHERE doc_id = ?",
         [*values.values(), existing_doc_id],
+    )
+    conn.execute(
+        "DELETE FROM settings WHERE key IN (?, ?)",
+        (f"review:{existing_doc_id}", f"review:{metadata.document_id}"),
     )
     conn.commit()
 

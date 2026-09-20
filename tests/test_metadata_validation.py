@@ -8,7 +8,8 @@ from corpus.store import create_source
 
 def _db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
-    conn.execute("""CREATE TABLE sources (
+    conn.execute(
+        """CREATE TABLE sources (
         doc_id TEXT PRIMARY KEY, title TEXT, issuer TEXT, source_url TEXT,
         source_kind TEXT, sha256 TEXT UNIQUE, fetched_at TEXT,
         is_synthetic INTEGER DEFAULT 0, published_at TEXT, effective_from TEXT,
@@ -16,7 +17,12 @@ def _db() -> sqlite3.Connection:
         domains_json TEXT, supersedes_json TEXT, superseded_by TEXT,
         superseded_at TEXT, transitional_clause INTEGER DEFAULT 0,
         status TEXT NOT NULL, content_hash TEXT, created_at TEXT,
-        activated_at TEXT, activated_by TEXT)""")
+        activated_at TEXT, activated_by TEXT)"""
+    )
+    conn.execute(
+        """CREATE TABLE settings (
+        key TEXT PRIMARY KEY, value TEXT, updated_at TEXT, actor TEXT)"""
+    )
     return conn
 
 
@@ -43,6 +49,8 @@ def _metadata(**changes: object) -> SourceMetadata:
 def test_validate_save_and_audit_metadata_diff() -> None:
     conn = _db()
     create_source(conn, {"doc_id": "DOC-TEMP", "status": "PENDING_REVIEW", "content_hash": "a"})
+    conn.execute("INSERT INTO settings VALUES ('review:DOC-TEMP', 'APPROVE', NULL, 'ADMIN:vu')")
+    conn.commit()
     events: list[dict[str, object]] = []
 
     changed = save_metadata(
@@ -57,6 +65,7 @@ def test_validate_save_and_audit_metadata_diff() -> None:
     assert tuple(row) == ("RL-2026-3150", "PENDING_REVIEW", 1)
     assert "doc_id" in changed and "domains_json" in changed
     assert events[0]["action"] == "SOURCE_METADATA_EDITED"
+    assert conn.execute("SELECT 1 FROM settings WHERE key LIKE 'review:%'").fetchone() is None
 
 
 def test_rejects_bad_dates_domains_duplicate_id_and_unconfirmed_transition() -> None:

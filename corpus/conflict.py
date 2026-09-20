@@ -65,11 +65,15 @@ def detect_conflicts(
     audit: Callable[..., object] | None = None,
 ) -> list[tuple[str, str]]:
     conn.row_factory = sqlite3.Row
-    rows = conn.execute("""SELECT chunks.chunk_id, chunks.doc_id, chunks.text, chunks.domain
+    rows = conn.execute(
+        """SELECT chunks.chunk_id, chunks.doc_id, chunks.text, chunks.domain
            FROM chunks JOIN sources ON sources.doc_id = chunks.doc_id
-           WHERE sources.status = 'ACTIVE'""").fetchall()
-    conn.execute("""UPDATE chunks SET conflict_flag = 0, conflict_with = NULL
-           WHERE doc_id IN (SELECT doc_id FROM sources WHERE status = 'ACTIVE')""")
+           WHERE sources.status = 'ACTIVE'"""
+    ).fetchall()
+    conn.execute(
+        """UPDATE chunks SET conflict_flag = 0, conflict_with = NULL
+           WHERE doc_id IN (SELECT doc_id FROM sources WHERE status = 'ACTIVE')"""
+    )
     conflicts: list[tuple[str, str]] = []
     related: dict[str, set[str]] = {}
 

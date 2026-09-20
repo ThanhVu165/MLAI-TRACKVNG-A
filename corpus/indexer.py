@@ -42,12 +42,14 @@ def _normalize(scores: np.ndarray) -> np.ndarray:
 
 def _active_records(conn: sqlite3.Connection) -> list[dict[str, object]]:
     conn.row_factory = sqlite3.Row
-    rows = conn.execute("""SELECT chunks.*, sources.effective_from, sources.effective_to,
+    rows = conn.execute(
+        """SELECT chunks.*, sources.effective_from, sources.effective_to,
                   sources.applies_to_json, sources.cohorts_json,
                   sources.transitional_clause
            FROM chunks JOIN sources ON sources.doc_id = chunks.doc_id
            WHERE sources.status = 'ACTIVE'
-           ORDER BY chunks.doc_id, chunks.ord, chunks.chunk_id""").fetchall()
+           ORDER BY chunks.doc_id, chunks.ord, chunks.chunk_id"""
+    ).fetchall()
     return [dict(row) for row in rows]
 
 

@@ -126,6 +126,7 @@ def replace_chunks(
         prepared.append(row)
 
     conn.execute("DELETE FROM chunks WHERE doc_id = ?", (doc_id,))
+    conn.execute("DELETE FROM settings WHERE key = ?", (f"review:{doc_id}",))
     for row in prepared:
         columns = list(row)
         conn.execute(

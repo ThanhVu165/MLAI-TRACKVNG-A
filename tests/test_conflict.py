@@ -6,7 +6,8 @@ from corpus.seed import seed_if_empty
 
 def _db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
-    conn.executescript("""
+    conn.executescript(
+        """
         CREATE TABLE sources (
           doc_id TEXT PRIMARY KEY, title TEXT, issuer TEXT, source_url TEXT,
           source_kind TEXT, sha256 TEXT UNIQUE, fetched_at TEXT,
@@ -31,7 +32,8 @@ def _db() -> sqlite3.Connection:
         CREATE TABLE settings (
           key TEXT PRIMARY KEY, value TEXT, updated_at TEXT, actor TEXT
         );
-        """)
+        """
+    )
     seed_if_empty(conn)
     return conn
 

@@ -5,10 +5,10 @@ from collections.abc import Callable
 
 import streamlit as st
 
+from corpus.api import clear_index_cache
 from corpus.chunker import chunk_document
 from corpus.coverage import LABELS, label_chunk, list_coverage
 from corpus.extract_doc import extract_document
-from corpus.indexer import HybridIndex, build_index
 from corpus.intake import (
     IntakeResult,
     SourceCheck,
@@ -50,11 +50,6 @@ def _connection() -> sqlite3.Connection | None:
         return get_connection()
     except (ImportError, AttributeError):
         return None
-
-
-@st.cache_resource
-def _cached_index(_conn: sqlite3.Connection, version: str) -> HybridIndex | None:
-    return build_index(_conn, version, cache_dir="data/index_cache")
 
 
 def render_metadata_form(draft: SourceMetadata) -> SourceMetadata | None:
@@ -271,20 +266,17 @@ def main() -> None:
         return
     actor = f"ADMIN:{admin_id}"
 
-    def reindex() -> HybridIndex | None:
-        return _cached_index(conn, current_corpus_version(conn))
-
     intake_tab, review_tab, active_tab, history_tab = st.tabs(
         ["Nạp tài liệu", "Chờ duyệt", "Đang hiệu lực", "Lịch sử"]
     )
     with intake_tab:
         render_intake(conn, actor)
     with review_tab:
-        render_review_queue(conn, actor, reindex=reindex)
+        render_review_queue(conn, actor, reindex=clear_index_cache)
     with active_tab:
         render_active(conn)
     with history_tab:
-        render_history(conn, actor, reindex=reindex)
+        render_history(conn, actor, reindex=clear_index_cache)
 
 
 main()
