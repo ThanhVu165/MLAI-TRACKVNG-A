@@ -488,7 +488,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 7 (6đ)
 
 ### C-13 · Trang 2 — Hàng chờ duyệt
-- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-12
+- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-12 · **Trạng thái:** `DONE`
 - **File:** `pages/2_Hang_cho_duyet.py`
 - **Việc phải làm:** Danh sách case `AWAITING_HUMAN` sắp theo thời gian chờ; mở một case hiện thẻ bốn khối; form quyết định: Chấp thuận / Từ chối / Quyết định khác, **bắt buộc nhập lý do** (không cho submit khi rỗng). Ghi `shown_at` khi mở thẻ và `decided_at` khi bấm — đây là nguyên liệu cho `median_review_seconds`.
 - **Xong khi:** Không thể quyết định mà không nhập lý do; lý do này xuất hiện nguyên văn trong audit log.

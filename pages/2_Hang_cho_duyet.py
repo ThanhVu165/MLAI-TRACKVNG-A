@@ -24,7 +24,7 @@ cases: dict[str, PipelineResult] = st.session_state.get("case_results", {})
 queued = [
     result
     for result in cases.values()
-    if result.status == CaseStatus.AWAITING_HUMAN or result.decision.decision.value == "ESCALATE"
+    if result.status in (CaseStatus.AWAITING_HUMAN, CaseStatus.PENDING_APPROVAL)
 ]
 queued.sort(key=lambda result: result.started_at)
 
