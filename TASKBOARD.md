@@ -523,7 +523,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 6 (4đ)
 
 ### C-18 · `verify/harness.py` — lõi chạy kiểm thử
-- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** A-21
+- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** A-21 · **Trạng thái:** `DONE`
 - **File:** `verify/harness.py`
 - **Việc phải làm:** Đọc file case JSON; với mỗi case gọi `core.pipeline.process_case()` với `channel="verify"`; so `actual` với `expected` theo ba trường (`decision`, `escalation_type`, và với case AUTO thì `có ≥1 citation ACTIVE`); đo thời gian từng case; ghi audit `VERIFY_RUN_STARTED` / `VERIFY_RUN_FINISHED`; chạy **tuần tự** để tránh SQLite lock.
 - **Xong khi:** `python -m verify.harness --set verify4` chạy được từ dòng lệnh và in bảng. **Không có mock, không có nhánh riêng cho Verify** — `tests/test_harness.py` khẳng định điều này.
