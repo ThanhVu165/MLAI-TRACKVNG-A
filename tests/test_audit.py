@@ -39,3 +39,29 @@ def test_rejects_unknown_action(monkeypatch: pytest.MonkeyPatch, tmp_path: Path)
     monkeypatch.setenv("APP_DB_PATH", str(tmp_path / "audit.db"))
     with pytest.raises(ValueError, match="không hợp lệ"):
         log_event(case_id=None, actor="SYSTEM", action="MADE_UP")
+
+
+@pytest.mark.parametrize(
+    ("legacy", "contract"),
+    [
+        ("CASE_PROCESSED", "CASE_RESOLVED"),
+        ("AUTOMATION_PAUSED", "PAUSE_AUTOMATION"),
+        ("AUTOMATION_RESUMED", "RESUME_AUTOMATION"),
+        ("DECISION_OVERRIDDEN", "OVERRIDE_DECISION"),
+        ("CASE_RERUN", "RERUN_CASE"),
+    ],
+)
+def test_runtime_action_aliases_are_stored_as_contract_actions(
+    legacy: str, contract: str, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("APP_DB_PATH", str(tmp_path / "audit.db"))
+    log_event(
+        case_id="c1",
+        actor="ADMIN:test" if legacy != "CASE_PROCESSED" else "SYSTEM",
+        action=legacy,
+        output_ref="Lý do từ runtime",
+    )
+    event = events_for_case("c1")[0]
+    assert event.action == contract
+    if contract in {"PAUSE_AUTOMATION", "OVERRIDE_DECISION"}:
+        assert event.reason == "Lý do từ runtime"

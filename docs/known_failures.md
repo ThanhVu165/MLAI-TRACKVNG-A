@@ -10,3 +10,8 @@ Tài liệu này ghi nhận các giới hạn kiến trúc hiện tại của h�
 - **Giải pháp khi có `infra.db`:**
   - Chuyển toàn bộ việc đọc/ghi trạng thái case (`PENDING_SEND`, `SENT`, `AWAITING_HUMAN`, `CANCELLED`,...) về bảng `cases` trong database.
   - Cả `core/dispatch.py`, `core/controls.py`, `core/pipeline.py` và `core/resume.py` đều truy vấn và cập nhật cùng một hàng trong cơ sở dữ liệu.
+
+## 2. Tên action audit cũ từ Runtime [đã xử lý]
+- **Hiện tượng:** Runtime gửi năm tên action không nằm trong danh mục đóng, làm `infra.audit` từ chối ghi event.
+- **Điều kiện tái hiện:** Xử lý xong case hoặc dùng Pause, Resume, Override, Rerun.
+- **Xử lý:** Adapter cục bộ trong `infra.audit` đổi tên cũ sang action hợp contract; danh mục `ACTIONS` không thay đổi sau feature freeze.

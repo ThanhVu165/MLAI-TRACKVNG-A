@@ -54,5 +54,6 @@
 - `[H+91][Agent C] xong C-24 (12 email giả lập: 5 thường quy, đủ 3 loại escalation, đa ý định, English, ngoài domain, injection; toàn bộ is_synthetic) · tiếp tục C-25`
 - `[H+92][Agent C] C-25 WIP: đủ verify4/escalation5/full15, mỗi case có 7 trường và rationale theo tài liệu seed; generator tạo replay cassette · chờ Agent A duyệt A-26 và blocker retrieval của C-19`
 - `[H+93][Agent C] C-26 WIP: cấu hình Community Cloud, dependency pin và mẫu Secrets đã sẵn sàng · chưa deploy vì S-06 chưa đạt khi Verify còn đỏ và chưa có phiên Streamlit Cloud đã đăng nhập`
+- `[H+94][Agent C] fix C-05/C-17: adapter 5 tên audit cũ từ Runtime sang danh mục action đóng, không đổi contract sau feature freeze · 11 test audit passed · C-19/C-20 vẫn chặn bởi retrieval/evidence`
 
 

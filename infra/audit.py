@@ -54,6 +54,14 @@ REASON_REQUIRED = frozenset(
     {"OVERRIDE_DECISION", "PAUSE_AUTOMATION", "HUMAN_DECISION", "CANCEL_SEND"}
 )
 
+_ACTION_ALIASES = {
+    "CASE_PROCESSED": "CASE_RESOLVED",
+    "AUTOMATION_PAUSED": "PAUSE_AUTOMATION",
+    "AUTOMATION_RESUMED": "RESUME_AUTOMATION",
+    "DECISION_OVERRIDDEN": "OVERRIDE_DECISION",
+    "CASE_RERUN": "RERUN_CASE",
+}
+
 
 @dataclass(frozen=True)
 class AuditEvent:
@@ -86,6 +94,10 @@ def log_event(
     sources: list[str] | None = None,
     corpus_version: str | None = None,
 ) -> str:
+    original_action = action
+    action = _ACTION_ALIASES.get(action, action)
+    if original_action in _ACTION_ALIASES and action in REASON_REQUIRED and not reason:
+        reason = output_ref
     if action not in ACTIONS:
         raise ValueError(f"Audit action không hợp lệ: {action}")
     if not _valid_actor(actor):
