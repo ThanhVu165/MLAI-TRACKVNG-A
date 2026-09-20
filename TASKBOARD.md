@@ -361,7 +361,7 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Tiêu chí:** 1 (tốc độ live URL) · 2
 
 ### B-13 · K10 Supersede
-- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-11
+- **Khối:** B4 · **Ước lượng:** 1h · **Phụ thuộc:** B-11 · **Trạng thái:** `WIP`
 - **File:** `corpus/lifecycle.py`
 - **Việc phải làm:** Tài liệu bị thay chuyển `SUPERSEDED`, ghi `superseded_by` và `superseded_at`, loại khỏi index, giữ nguyên trong DB. Audit `SUPERSEDE_SOURCE`.
 - **Xong khi:** Sau khi kích hoạt tài liệu #1, tài liệu #2 không còn xuất hiện trong kết quả retrieval nhưng vẫn tra được trong audit của các case cũ.
