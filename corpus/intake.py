@@ -4,7 +4,7 @@ import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from sqlite3 import Connection
+from sqlite3 import Connection, Row
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -23,7 +23,25 @@ class IntakeResult:
     filename: str
 
 
-def _audit_source(actor: str, doc_id: str, reason: str, audit: AuditFn | None) -> None:
+@dataclass(frozen=True)
+class SourceCheck:
+    doc_id: str
+    url: str
+    title: str
+    filename: str
+    changed: bool
+    message: str
+    payload: bytes
+
+
+def _audit_source(
+    actor: str,
+    doc_id: str,
+    reason: str,
+    audit: AuditFn | None,
+    *,
+    action: str = "SOURCE_UPLOADED",
+) -> None:
     if audit is None:
         try:
             from infra.audit import log_event
@@ -34,7 +52,7 @@ def _audit_source(actor: str, doc_id: str, reason: str, audit: AuditFn | None) -
     audit(
         case_id=None,
         actor=actor,
-        action="SOURCE_UPLOADED",
+        action=action,
         input_ref=doc_id,
         reason=reason,
     )
@@ -157,6 +175,69 @@ def ingest_url(
         title=title or filename,
         source_kind="url",
         source_url=url,
+        actor=actor,
+        fetched_at=now_iso(),
+        audit=audit,
+    )
+
+
+def recheck_urls(
+    conn: Connection,
+    *,
+    actor: str,
+    fetcher: Callable[[str], bytes] = _fetch_once,
+    audit: AuditFn | None = None,
+) -> list[SourceCheck]:
+    conn.row_factory = Row
+    rows = conn.execute(
+        "SELECT doc_id, title, source_url, sha256 FROM sources "
+        "WHERE source_url IS NOT NULL ORDER BY doc_id"
+    ).fetchall()
+    checks: list[SourceCheck] = []
+    for row in rows:
+        url = str(row["source_url"])
+        payload = fetcher(url)
+        if not payload or len(payload) > MAX_SOURCE_BYTES:
+            raise ValueError(f"Nguồn {url} trả về nội dung không hợp lệ")
+        changed = hashlib.sha256(payload).hexdigest() != row["sha256"]
+        message = "Đã đổi" if changed else "Không đổi"
+        _audit_source(
+            actor,
+            str(row["doc_id"]),
+            f"Kiểm tra nguồn {url}: {message.lower()}",
+            audit,
+            action="SOURCE_RECHECKED",
+        )
+        checks.append(
+            SourceCheck(
+                doc_id=str(row["doc_id"]),
+                url=url,
+                title=str(row["title"] or ""),
+                filename=Path(urlparse(url).path).name or "tai-lieu-url",
+                changed=changed,
+                message=message,
+                payload=payload,
+            )
+        )
+    return checks
+
+
+def ingest_rechecked(
+    conn: Connection,
+    check: SourceCheck,
+    *,
+    actor: str,
+    audit: AuditFn | None = None,
+) -> IntakeResult:
+    if not check.changed:
+        raise ValueError("Nguồn không thay đổi")
+    return _ingest(
+        conn,
+        check.payload,
+        filename=check.filename,
+        title=check.title,
+        source_kind="url",
+        source_url=check.url,
         actor=actor,
         fetched_at=now_iso(),
         audit=audit,

@@ -24,5 +24,6 @@
 - `[H+61][Agent B] xong B-11 (activate bởi ADMIN thật, supersede theo lịch, tăng corpus_version, quét conflict và gọi reindex) · tiếp tục B-13/B-14`
 - `[H+62][Agent B] xong B-13 (SUPERSEDED giữ nguyên DB/audit, loại khỏi tập ACTIVE và gọi reindex) · tiếp tục B-14`
 - `[H+63][Agent B] xong B-14 (quét case 30 ngày, FLAG_NEEDS_RECHECK, rollback có lý do/audit/reindex) · tiếp tục B-16`
+- `[H+64][Agent B] xong B-16 (admin kiểm tra URL thủ công, SHA-256 báo đổi/không đổi dưới 10s, tạo bản PENDING_REVIEW, audit SOURCE_RECHECKED) · tiếp tục B-17`
 
 

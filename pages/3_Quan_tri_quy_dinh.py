@@ -5,6 +5,7 @@ import sqlite3
 import streamlit as st
 
 from corpus.coverage import LABELS, label_chunk, list_coverage
+from corpus.intake import SourceCheck, ingest_rechecked, recheck_urls
 from corpus.lifecycle import (
     activate_source,
     affected_cases,
@@ -124,6 +125,18 @@ def render_history(conn: sqlite3.Connection, actor: str) -> None:
                 if st.button("Rollback tài liệu", key=f"rollback_{doc_id}"):
                     version = rollback_source(conn, doc_id, actor=actor, reason=reason)
                     st.success(f"Đã rollback. Corpus hiện tại: {version}")
+
+
+def render_source_recheck(conn: sqlite3.Connection, actor: str) -> None:
+    if st.button("Kiểm tra nguồn mới"):
+        st.session_state["source_checks"] = recheck_urls(conn, actor=actor)
+    for check in st.session_state.get("source_checks", []):
+        if not isinstance(check, SourceCheck):
+            continue
+        st.write(f"{check.title or check.url}: **{check.message}**")
+        if check.changed and st.button("Nạp bản mới", key=f"ingest_{check.doc_id}"):
+            result = ingest_rechecked(conn, check, actor=actor)
+            st.success(f"Đã tạo bản chờ duyệt {result.doc_id}.")
 
 
 st.title("Quản trị quy định")
