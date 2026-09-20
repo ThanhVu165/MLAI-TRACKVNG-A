@@ -474,7 +474,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 6 · 2
 
 ### C-11 · Đồng hồ 60 giây và nút dừng
-- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-10, A-19
+- **Khối:** B3 · **Ước lượng:** 2h · **Phụ thuộc:** C-10, A-19 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`
 - **Việc phải làm:** Hiển thị đếm ngược đọc từ mốc hết hạn **trong DB** (không phải timer phía client). Hai nút: **Hủy gửi** và **Chuyển cho người**. Sau khi hết giờ đổi sang trạng thái `Đã gửi (mô phỏng)` và khóa nút. Có màn hình tạo Correction Email cho case đã gửi.
 - **Xong khi:** Giám khảo bấm Hủy gửi và thấy trạng thái đổi thật, audit ghi actor là người. **Đây là nút thật cho 4 điểm can thiệp dừng.**
