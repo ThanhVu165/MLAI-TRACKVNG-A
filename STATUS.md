@@ -18,5 +18,6 @@
 - `[H+55][Agent B] xong B-07 (chunk theo Điều/Khoản/Điểm, breadcrumb đầy đủ, tách phần >800 token, mặc định human_only) · tiếp tục B-12/B-15 rồi B-08`
 - `[H+56][Agent B] xong B-12 (BM25 + sentence-transformers, cache embedding trên đĩa, chỉ index chunk ACTIVE, điểm [0,1]) · tiếp tục B-15`
 - `[H+57][Agent B] xong B-15 (6 văn bản giả lập, 54 chunk, 59% auto_answerable/41% human_only, tự seed khi DB trống) · tiếp tục B-08`
+- `[H+58][Agent B] xong B-08 (xếp lịch supersede; phát hiện đúng xung đột hoàn học phí 70%/60%, không gắn nhầm hạn rút 30/10/2026) · tiếp tục B-09`
 
 
