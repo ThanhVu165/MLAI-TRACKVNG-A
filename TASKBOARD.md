@@ -354,7 +354,7 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Tiêu chí:** 6 (6đ audit)
 
 ### B-12 · K9 Lập chỉ mục
-- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-07
+- **Khối:** B2 · **Ước lượng:** 3h · **Phụ thuộc:** B-07 · **Trạng thái:** `WIP`
 - **File:** `corpus/indexer.py`
 - **Việc phải làm:** BM25 (`rank_bm25`) trên chunk đã tokenize tiếng Việt + vector (`sentence-transformers`, model đa ngữ nhẹ, cache trên đĩa). **Chỉ index chunk thuộc tài liệu ACTIVE.** Chunk `SUPERSEDED` giữ trong SQLite để truy vết audit nhưng loại khỏi vector store. Hợp nhất điểm hybrid, chuẩn hóa về `[0,1]`. Nạp index một lần khi khởi động, cache bằng `st.cache_resource`.
 - **Xong khi:** Truy vấn *"thang điểm rèn luyện"* trả chunk đúng ở vị trí đầu; thời gian truy vấn < 300ms; hạ cấp tài liệu làm chunk đó biến mất khỏi kết quả ngay.
