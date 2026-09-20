@@ -537,7 +537,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 2 (12đ) · Giai đoạn 0
 
 ### C-20 · Nút 2 — Chạy kiểm tra chuyển tiếp 5 trường hợp
-- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25
+- **Khối:** B3 · **Ước lượng:** 1.5h · **Phụ thuộc:** C-18, C-25 · **Trạng thái:** `WIP - BLOCKED`
 - **File:** `pages/5_Verify.py`
 - **Việc phải làm:** Nút riêng chạy E01–E05, bảng có **thêm cột hiển thị nguyên văn câu hỏi chuyển tiếp** để giám khảo đọc trực tiếp mà không phải mở từng case. Hiển thị rõ 3 case xử lý tự động và 2 case chuyển tiếp kèm phân loại.
 - **Xong khi:** Giám khảo bấm một nút và trong 90 giây thấy đủ: case nào tự động, case nào chuyển tiếp, loại chuyển tiếp, và câu hỏi tương ứng.

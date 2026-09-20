@@ -1,0 +1,47 @@
+[
+  {
+    "id": "E01",
+    "input": {"sender": "sv.k48@example.edu.vn", "subject": "Thang điểm rèn luyện", "body": "Em là sinh viên K48 học kỳ 1 năm 2026, cho em hỏi điểm rèn luyện dùng thang 100 và xếp loại như thế nào ạ?"},
+    "expected_decision": "AUTO_REPLY",
+    "expected_type": null,
+    "expected_rule_id": "P05",
+    "rationale": "QĐ 3150/2026 Điều 4 quy định thang 100; email cung cấp khóa và học kỳ.",
+    "how_to_run": "python -m verify.harness --set escalation5"
+  },
+  {
+    "id": "E02",
+    "input": {"sender": "sv.demo@example.edu.vn", "subject": "Hạn rút học phần", "body": "Cho em hỏi hạn chót nộp đơn rút học phần học kỳ 1 năm 2026 là ngày nào và nộp trực tuyến ở đâu ạ?"},
+    "expected_decision": "AUTO_REPLY",
+    "expected_type": null,
+    "expected_rule_id": "P05",
+    "rationale": "QĐ 20/2026 Điều 5 quy định hạn 30/10/2026 và nộp đơn trực tuyến; không dùng điều khoản hoàn học phí đang xung đột.",
+    "how_to_run": "python -m verify.harness --set escalation5"
+  },
+  {
+    "id": "E03",
+    "input": {"sender": "sv.demo@example.edu.vn", "subject": "Lệ phí phúc khảo", "body": "Thầy cô cho em hỏi lệ phí nộp đơn phúc khảo một học phần là bao nhiêu và nộp cùng đơn phải không ạ?"},
+    "expected_decision": "AUTO_REPLY",
+    "expected_type": null,
+    "expected_rule_id": "P05",
+    "rationale": "HD 08/2026 Điều 2 Khoản 2 quy định lệ phí 50.000 đồng; đây là hỏi thông tin, không phải yêu cầu phúc khảo cá nhân.",
+    "how_to_run": "python -m verify.harness --set escalation5"
+  },
+  {
+    "id": "E04",
+    "input": {"sender": "sv.demo@example.edu.vn", "subject": "Điểm rèn luyện của em", "body": "Em muốn hỏi điểm rèn luyện của em đạt yêu cầu không, cảm ơn thầy cô."},
+    "expected_decision": "ESCALATE",
+    "expected_type": "FACT_UNRESOLVED",
+    "expected_rule_id": "P03",
+    "rationale": "QĐ 3150/2026 có điều khoản chuyển tiếp; email thiếu khóa và học kỳ nên chưa thể chọn đúng văn bản áp dụng.",
+    "how_to_run": "python -m verify.harness --set escalation5"
+  },
+  {
+    "id": "E05",
+    "input": {"sender": "sv.demo@example.edu.vn", "subject": "Xin miễn điều kiện rút môn", "body": "Em xin được miễn điều kiện và rút học phần sau hạn vì hoàn cảnh gia đình, nhờ thầy duyệt ngoại lệ giúp em ạ."},
+    "expected_decision": "ESCALATE",
+    "expected_type": "AUTHORITY_REQUIRED",
+    "expected_rule_id": "P01",
+    "rationale": "QĐ phân cấp 01/2026 quy định ngoại lệ rút học phần phải do người có thẩm quyền phê duyệt.",
+    "how_to_run": "python -m verify.harness --set escalation5"
+  }
+]
