@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import date
 from typing import Protocol
 
 METADATA_PROMPT_V1 = """Bạn chỉ trích xuất metadata từ văn bản quy định bên dưới.
@@ -68,6 +71,9 @@ class SourceMetadata:
     content_hash: str
 
 
+SUPPORTED_DOMAINS = frozenset({"conduct_score", "course_withdrawal", "grade_appeal"})
+
+
 def _optional_string(value: object) -> str | None:
     return value.strip() if isinstance(value, str) and value.strip() else None
 
@@ -116,3 +122,90 @@ def suggest_metadata(
         status="PENDING_REVIEW",
         content_hash=hashlib.sha256(text.encode()).hexdigest(),
     )
+
+
+def validate_metadata(
+    conn: sqlite3.Connection,
+    metadata: SourceMetadata,
+    *,
+    existing_doc_id: str | None = None,
+) -> None:
+    if not metadata.document_id or not metadata.title or not metadata.issuer:
+        raise ValueError("Mã văn bản, tiêu đề và đơn vị ban hành là bắt buộc")
+    if not metadata.effective_from:
+        raise ValueError("Ngày bắt đầu hiệu lực là bắt buộc")
+    try:
+        effective_from = date.fromisoformat(metadata.effective_from)
+        effective_to = date.fromisoformat(metadata.effective_to) if metadata.effective_to else None
+        if metadata.published_at:
+            date.fromisoformat(metadata.published_at)
+    except ValueError as exc:
+        raise ValueError("Ngày phải có định dạng YYYY-MM-DD") from exc
+    if effective_to and effective_from > effective_to:
+        raise ValueError("Ngày bắt đầu hiệu lực phải trước hoặc bằng ngày kết thúc")
+    if not metadata.domains or not set(metadata.domains) <= SUPPORTED_DOMAINS:
+        raise ValueError("Domain không thuộc phạm vi hỗ trợ")
+    if metadata.transitional_clause is None:
+        raise ValueError("Phải xác nhận có điều khoản chuyển tiếp hay không")
+    duplicate = conn.execute(
+        "SELECT 1 FROM sources WHERE doc_id = ? AND doc_id != ?",
+        (metadata.document_id, existing_doc_id or ""),
+    ).fetchone()
+    if duplicate:
+        raise ValueError("Mã văn bản đã tồn tại")
+
+
+def save_metadata(
+    conn: sqlite3.Connection,
+    existing_doc_id: str,
+    metadata: SourceMetadata,
+    *,
+    actor: str,
+    audit: Callable[..., object] | None = None,
+) -> list[str]:
+    validate_metadata(conn, metadata, existing_doc_id=existing_doc_id)
+    conn.row_factory = sqlite3.Row
+    old_row = conn.execute("SELECT * FROM sources WHERE doc_id = ?", (existing_doc_id,)).fetchone()
+    if not old_row:
+        raise KeyError(existing_doc_id)
+
+    values: dict[str, object] = {
+        "doc_id": metadata.document_id,
+        "title": metadata.title,
+        "issuer": metadata.issuer,
+        "published_at": metadata.published_at,
+        "effective_from": metadata.effective_from,
+        "effective_to": metadata.effective_to,
+        "applies_to_json": json.dumps(metadata.applies_to, ensure_ascii=False),
+        "cohorts_json": json.dumps(metadata.cohorts, ensure_ascii=False),
+        "supersedes_json": json.dumps(metadata.supersedes, ensure_ascii=False),
+        "transitional_clause": int(metadata.transitional_clause),
+        "domains_json": json.dumps(metadata.domains, ensure_ascii=False),
+        "status": "PENDING_REVIEW",
+        "content_hash": metadata.content_hash,
+    }
+    changed = [column for column, value in values.items() if old_row[column] != value]
+    assignments = ", ".join(f"{column} = ?" for column in values)
+    conn.execute(
+        f"UPDATE sources SET {assignments} WHERE doc_id = ?",
+        [*values.values(), existing_doc_id],
+    )
+    conn.commit()
+
+    if changed:
+        if audit is None:
+            try:
+                from infra.audit import log_event
+
+                audit = log_event
+            except ImportError:
+                audit = None
+        if audit:
+            audit(
+                case_id=None,
+                actor=actor,
+                action="SOURCE_METADATA_EDITED",
+                input_ref=str(metadata.document_id),
+                reason="Đã sửa metadata: " + ", ".join(changed),
+            )
+    return changed
