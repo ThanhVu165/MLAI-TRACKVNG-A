@@ -516,7 +516,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 6 (6đ) · chặng 6:30–7:30 của buổi chấm
 
 ### C-17 · Thanh điều khiển toàn cục
-- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** A-22
+- **Khối:** B4 · **Ước lượng:** 2h · **Phụ thuộc:** A-22 · **Trạng thái:** `DONE`
 - **File:** `streamlit_app.py` (thanh bên), `pages/4_Nhat_ky_kiem_toan.py`
 - **Việc phải làm:** Bốn điều khiển luôn nhìn thấy: **Tạm dừng tự động** (có chỉ báo trạng thái rõ) · **Tiếp tục** · **Ghi đè quyết định** (chọn case, đổi chiều, bắt buộc lý do) · **Chạy lại case** (hiện bảng diff hai lần chạy). Mọi thao tác ghi audit với actor `ADMIN`.
 - **Xong khi:** Bật Tạm dừng rồi xử lý một email thường quy → case dừng ở hàng chờ, banner hiện rõ đang tạm dừng.
