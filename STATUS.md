@@ -42,5 +42,6 @@
 - `[H+79][Agent C] xong C-12 (thẻ 4 khối, tên loại chuyển tiếp tiếng Việt, phương án chọn và partial draft) · tiếp tục C-13`
 - `[H+80][Agent C] xong C-13 (hàng chờ theo thời gian, lý do bắt buộc, shown_at/decided_at/review_seconds và audit nguyên văn) · tiếp tục C-14`
 - `[H+81][Agent C] xong C-14 (xem trước, cảnh báo guard, Duyệt và gửi/Sửa nội dung/Trả lại; không có đường tự gửi escalation) · tiếp tục C-15`
+- `[H+82][Agent C] xong C-15 (nút giải thích dễ hiểu trên trang xử lý, hàng chờ và audit; ghi EXPLAIN_REQUESTED) · tiếp tục C-16`
 
 
