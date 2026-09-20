@@ -33,5 +33,6 @@
 - `[H+70][Agent C] xong C-03 (đủ 10 ngưỡng có tên, comment và override từ biến môi trường) · test cấu hình xanh · tiếp tục C-04`
 - `[H+71][Agent C] xong C-04 (Gemini JSON qua REST, live/replay/record, cache SQLite, timeout + retry một lần, latency và prompt hash, không ném lỗi) · test wrapper xanh · tiếp tục C-05`
 - `[H+72][Agent C] xong C-05 (ACTIONS đóng, actor chuẩn hóa, bắt buộc lý do cho 4 hành động nhạy cảm, truy vấn audit theo case/gần đây) · test audit xanh · tiếp tục C-06`
+- `[H+73][Agent C] xong C-06 (telemetry tính trực tiếp từ DB: quyết định, escalation, latency, review, override, groundedness và Verify) · test đếm tay xanh · tiếp tục C-07`
 
 
