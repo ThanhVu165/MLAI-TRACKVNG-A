@@ -32,7 +32,7 @@ def tokenize(text: str) -> list[str]:
 
 
 def _normalize(scores: np.ndarray) -> np.ndarray:
-    if not len(scores):
+    if len(scores) == 0:
         return scores
     minimum, maximum = float(scores.min()), float(scores.max())
     if maximum == minimum:
@@ -53,10 +53,35 @@ def _active_records(conn: sqlite3.Connection) -> list[dict[str, object]]:
     return [dict(row) for row in rows]
 
 
-def _load_embedder(model_name: str) -> Embedder:
-    from sentence_transformers import SentenceTransformer
+class DefaultEmbedder:
+    """Lightweight stdlib + numpy embedder (no sentence-transformers/torch required)."""
 
-    return SentenceTransformer(model_name)
+    def encode(
+        self, sentences: str | list[str], *, normalize_embeddings: bool = True
+    ) -> np.ndarray:
+        values = [sentences] if isinstance(sentences, str) else sentences
+        vectors: list[np.ndarray] = []
+        for text in values:
+            vec = np.zeros(128, dtype=float)
+            tokens = TOKEN_RE.findall(text.casefold())
+            for t in tokens:
+                idx = int(hashlib.md5(t.encode("utf-8")).hexdigest()[:8], 16) % 128
+                vec[idx] += 1.0
+            norm = float(np.linalg.norm(vec))
+            if norm > 0 and normalize_embeddings:
+                vec = vec / norm
+            vectors.append(vec)
+        res = np.vstack(vectors)
+        return res[0] if isinstance(sentences, str) else res
+
+
+def _load_embedder(model_name: str) -> Embedder:
+    try:
+        from sentence_transformers import SentenceTransformer
+
+        return SentenceTransformer(model_name)
+    except (ImportError, RuntimeError, OSError, ValueError):
+        return DefaultEmbedder()
 
 
 def _cached_embeddings(
@@ -68,9 +93,15 @@ def _cached_embeddings(
 ) -> np.ndarray:
     texts = [f"{record['breadcrumb']} {record['text']}" for record in records]
     digest = hashlib.sha256("\n".join(texts).encode()).hexdigest()[:12]
-    cache_path = cache_dir / f"{corpus_version}_{digest}.npz" if cache_dir else None
+    embedder_tag = embedder.__class__.__name__
+    cache_path = cache_dir / f"{corpus_version}_{embedder_tag}_{digest}.npz" if cache_dir else None
     if cache_path and cache_path.exists():
-        return np.load(cache_path)["embeddings"]
+        try:
+            cached = np.load(cache_path)["embeddings"]
+            if len(cached) == len(records):
+                return cached
+        except (OSError, ValueError, KeyError):
+            pass
     embeddings = np.asarray(embedder.encode(texts, normalize_embeddings=True), dtype=float)
     if cache_path:
         cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -97,8 +128,11 @@ class HybridIndex:
         query_vector = np.asarray(
             self.embedder.encode(query, normalize_embeddings=True), dtype=float
         ).reshape(-1)
-        vector_scores = _normalize(self.embeddings @ query_vector)
-        combined = (bm25_scores + vector_scores) / 2
+        if self.embeddings.ndim == 2 and self.embeddings.shape[1] == query_vector.shape[0]:
+            vector_scores = _normalize(self.embeddings @ query_vector)
+            combined = (bm25_scores + vector_scores) / 2
+        else:
+            combined = bm25_scores
         allowed = set(domains)
         indices = sorted(range(len(self.records)), key=lambda index: -combined[index])
         return [

@@ -50,9 +50,19 @@ def _evidence(record: dict[str, object], score: float) -> EvidenceChunk:
     )
 
 
+def _ensure_seeded(conn: sqlite3.Connection) -> None:
+    try:
+        from corpus.seed import seed_if_empty
+
+        seed_if_empty(conn)
+    except (sqlite3.Error, OSError, ImportError):
+        return
+
+
 def get_corpus_version() -> str:
     """Return the current database version."""
     conn = _get_connection()
+    _ensure_seeded(conn)
     return current_corpus_version(conn)
 
 
@@ -67,7 +77,9 @@ def search(
         return []
 
     conn = _get_connection()
-    index = _index(conn, current_corpus_version(conn))
+    _ensure_seeded(conn)
+    version = current_corpus_version(conn)
+    index = _index(conn, version)
     if index is None:
         return []
     requested = {domain.value for domain in domains if domain != Domain.UNKNOWN}

@@ -6,22 +6,6 @@ import time
 import uuid
 from datetime import datetime, timezone
 
-logger = logging.getLogger(__name__)
-
-# Bộ nhớ tạm lưu case phục vụ controls, resume, explain khi chưa có DB thật
-_CASES_STORE: dict[str, tuple[CaseInput, PipelineResult]] = {}
-
-
-def get_stored_case(case_id: str) -> tuple[CaseInput, PipelineResult] | None:
-    """Tra cứu case đã xử lý theo case_id."""
-    return _CASES_STORE.get(case_id)
-
-
-def store_case(case_id: str, inp: CaseInput, result: PipelineResult) -> None:
-    """Lưu case vào bộ nhớ phục vụ controls, resume và explain."""
-    _CASES_STORE[case_id] = (inp, result)
-
-
 from core.dispatch import schedule_dispatch
 from core.evidence import validate_evidence
 from core.extract import extract_facts
@@ -43,6 +27,22 @@ from core.types import (
     PipelineResult,
     PolicyDecision,
 )
+
+logger = logging.getLogger(__name__)
+
+# Bộ nhớ tạm lưu case phục vụ controls, resume, explain khi chưa có DB thật
+_CASES_STORE: dict[str, tuple[CaseInput, PipelineResult]] = {}
+
+
+def get_stored_case(case_id: str) -> tuple[CaseInput, PipelineResult] | None:
+    """Tra cứu case đã xử lý theo case_id."""
+    return _CASES_STORE.get(case_id)
+
+
+def store_case(case_id: str, inp: CaseInput, result: PipelineResult) -> None:
+    """Lưu case vào bộ nhớ phục vụ controls, resume và explain."""
+    _CASES_STORE[case_id] = (inp, result)
+
 
 # Bảng mã Crockford Base32 dùng cho ULID
 _CROCKFORD_CHARS = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"

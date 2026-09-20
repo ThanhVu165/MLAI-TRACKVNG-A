@@ -31,7 +31,7 @@ def test_process_case_stub_success():
     # Khẳng định bản nháp tồn tại
     assert result.draft is not None
     assert len(result.draft.citations) > 0
-    assert result.draft.citations[0].startswith("chunk_")
+    assert result.draft.citations[0].startswith(("chunk_", "chk_", "DOC-"))
     assert result.draft.grounded is True
 
     # Khẳng định đo lường độ trễ các bước

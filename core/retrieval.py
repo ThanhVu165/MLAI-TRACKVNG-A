@@ -42,6 +42,16 @@ def retrieve_evidence(
 
         chunks: list[EvidenceChunk] = search(query=query, domains=target_domains, top_k=6, at=at)
 
+        # Nếu câu hỏi thông tin thường quy (không xin ngoại lệ/thẩm quyền), ưu tiên chunk auto_answerable
+        needs_human = any(
+            req.asks_exception or req.asks_appeal or req.asks_authority_decision
+            for req in extraction.requests
+        )
+        if not needs_human:
+            auto_chunks = [c for c in chunks if c.label == "auto_answerable"]
+            if auto_chunks:
+                chunks = auto_chunks
+
         # Ghi audit nếu infra khả dụng
         _log_retrieval_audit(case_id, [c.chunk_id for c in chunks])
 

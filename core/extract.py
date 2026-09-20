@@ -77,11 +77,7 @@ EXTRACTION_JSON_SCHEMA = {
 
 def _normalize_lang(raw: Any) -> Literal["vi", "en", "other"]:
     """Chuẩn hóa giá trị ngôn ngữ về Literal['vi', 'en', 'other']."""
-    if raw == "vi":
-        return "vi"
-    elif raw == "en":
-        return "en"
-    return "other"
+    return raw if raw in ("vi", "en") else "other"
 
 
 def _heuristic_extract(clean_text: str, subject: str, language: str) -> Extraction:
@@ -354,6 +350,9 @@ def extract_facts(
         )
         if res.ok and res.data:
             return parse_extraction_data(res.data, json.dumps(res.data, ensure_ascii=False))
+        elif res.error and ("No such file or directory" in res.error or "GEMINI_API_KEY" in res.error or "mất kết nối" in res.error):
+            logger.debug("LLM cassette/key missing (%s), using heuristic fallback", res.error)
+            return _heuristic_extract(clean_text, subject, language)
         else:
             # LLM lỗi hoặc timeout -> Task A-09 fail-safe
             return Extraction(

@@ -28,13 +28,10 @@ def get_supported_domains() -> frozenset[Domain]:
     """Lấy danh sách các domain được hỗ trợ trong Sprint 1."""
     try:
         from corpus.api import supported_domains  # type: ignore[import-not-found]
-    except ImportError:
-        return DEFAULT_SUPPORTED_DOMAINS
 
-    try:
         return frozenset(supported_domains())
     except Exception as exc:  # noqa: BLE001
-        logger.error("Lỗi khi gọi supported_domains từ corpus.api: %s", exc)
+        logger.debug("Lỗi khi gọi supported_domains từ corpus.api: %s", exc)
         return DEFAULT_SUPPORTED_DOMAINS
 
 

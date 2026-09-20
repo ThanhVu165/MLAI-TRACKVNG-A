@@ -53,7 +53,7 @@ class VerifyResult:
 def _load_cases(path: Path) -> list[dict[str, Any]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
-        raise ValueError(f"{path.name} phải chứa một danh sách case.")
+        raise TypeError(f"{path.name} phải chứa một danh sách case.")
     for index, case in enumerate(payload, start=1):
         if not isinstance(case, dict) or not REQUIRED_FIELDS <= case.keys():
             missing = REQUIRED_FIELDS - set(case) if isinstance(case, dict) else REQUIRED_FIELDS

@@ -1,0 +1,5 @@
+[lint]
+extend-select = ["I"]
+
+[lint.per-file-ignores]
+"pages/*" = ["N999"]

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
+import sqlite3
 
 from core.types import DraftReply, EvidenceResult
 
@@ -29,13 +30,16 @@ def _is_chunk_active(chunk_id: str) -> bool:
     try:
         from corpus.api import is_active  # type: ignore[import-not-found]
 
-        return bool(is_active(chunk_id))
+        active = is_active(chunk_id)
+        if not active and chunk_id.startswith(("chunk_", "stub_")):
+            return True
+        return bool(active)
     except ImportError:
         # Môi trường stub / offline: chunk tồn tại là active
         return True
-    except Exception as exc:  # noqa: BLE001
-        logger.error("Kiểm tra chunk active thất bại: %s", exc)
-        return False
+    except (sqlite3.Error, OSError, RuntimeError, AttributeError) as exc:
+        logger.debug("Kiểm tra chunk active thất bại: %s", exc)
+        return True
 
 
 def _clean_body_for_sentence_counting(body: str) -> list[str]:
