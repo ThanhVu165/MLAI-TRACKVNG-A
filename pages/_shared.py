@@ -287,12 +287,18 @@ def render_dispatch(result: PipelineResult) -> None:
 
 def render_result(result: PipelineResult, *, key_prefix: str) -> None:
     elapsed = int((result.finished_at - result.started_at).total_seconds() * 1000)
-    st.subheader(DECISION_LABELS[result.decision.decision])
+    label = DECISION_LABELS[result.decision.decision]
+    color = "#0f766e" if result.decision.decision == Decision.AUTO_REPLY else "#c2410c"
+    st.markdown(
+        f'<span style="background:{color};color:white;padding:.35rem .7rem;'
+        f'border-radius:999px;font-weight:700">{label}</span>',
+        unsafe_allow_html=True,
+    )
     st.caption(
         f"Case {result.case_id} · {result.decision.rule_id} · {elapsed} ms · "
         f"Corpus {result.corpus_version}"
     )
-    st.write(result.decision.reason)
+    st.markdown(f"**Lý do:** {result.decision.reason}")
     if result.decision.decision == Decision.AUTO_REPLY and result.draft:
         st.markdown(f"**{result.draft.subject}**")
         st.write(result.draft.body)

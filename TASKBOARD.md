@@ -467,7 +467,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 1 · 3
 
 ### C-10 · Màn hình kết quả nhánh tự động
-- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-09
+- **Khối:** B2 · **Ước lượng:** 2.5h · **Phụ thuộc:** C-09 · **Trạng thái:** `DONE`
 - **File:** `pages/1_Xu_ly_email.py`
 - **Việc phải làm:** Huy hiệu quyết định (`Trả lời tự động` / `Chuyển tiếp`), `rule_id` và `reason` bằng tiếng Việt, nội dung email nháp, **danh sách trích dẫn có breadcrumb đầy đủ** và mở rộng được để xem nguyên văn điều khoản, `corpus_version`, liên kết sang audit log của case.
 - **Xong khi:** Giám khảo đọc màn hình này và biết ngay hệ thống dựa vào điều khoản nào để trả lời.
