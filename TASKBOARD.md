@@ -439,7 +439,7 @@ Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia
 - **Tiêu chí:** 6 (6đ audit)
 
 ### C-06 · `infra/telemetry.py`
-- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-05
+- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** C-05 · **Trạng thái:** `WIP`
 - **File:** `infra/telemetry.py`
 - **Việc phải làm:** Tính đủ 8 chỉ số ở Mục 11.1 spec từ dữ liệu trong DB, không lưu trùng. `median_review_seconds` = trung vị `decided_at − shown_at`; `pct_approved_under_5s` = tỷ lệ duyệt dưới 5 giây.
 - **Xong khi:** Chạy 15 case rồi gọi `telemetry.snapshot()` trả về dict đủ 8 chỉ số, khớp với đếm tay.
