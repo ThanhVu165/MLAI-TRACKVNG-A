@@ -43,5 +43,6 @@
 - `[H+80][Agent C] xong C-13 (hàng chờ theo thời gian, lý do bắt buộc, shown_at/decided_at/review_seconds và audit nguyên văn) · tiếp tục C-14`
 - `[H+81][Agent C] xong C-14 (xem trước, cảnh báo guard, Duyệt và gửi/Sửa nội dung/Trả lại; không có đường tự gửi escalation) · tiếp tục C-15`
 - `[H+82][Agent C] xong C-15 (nút giải thích dễ hiểu trên trang xử lý, hàng chờ và audit; ghi EXPLAIN_REQUESTED) · tiếp tục C-16`
+- `[H+83][Agent C] xong C-16 (audit mới nhất trước, lọc case/actor/action/ngày, chi tiết 4 câu hỏi và deep link theo case) · tiếp tục C-17`
 
 
