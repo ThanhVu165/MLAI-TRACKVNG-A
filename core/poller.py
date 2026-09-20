@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -13,6 +14,8 @@ from urllib.request import Request, urlopen
 
 MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024  # 20 MB limit
 DEFAULT_TIMEOUT_SECS = 10
+
+logger = logging.getLogger(__name__)
 
 
 def now_iso() -> str:
@@ -80,6 +83,7 @@ def check_url_head(
                 accessible=True,
             )
     except (URLError, TimeoutError, Exception) as exc:  # noqa: BLE001
+        logger.warning("HEAD request thất bại cho %s: %s", url, exc)
         return HeadInfo(
             url=url,
             etag=None,
@@ -238,8 +242,7 @@ def log_poll_audit(
             reason=reason,
         )
     except TypeError:
-        # Fallback if strict kwargs mismatch
-        pass
+        logger.warning("log_poll_audit: audit_fn không nhận đúng kwargs contract cho doc %s", doc_id)
 
 
 def poll_sources_from_db(

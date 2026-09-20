@@ -366,3 +366,140 @@ def test_cancel_send_within_countdown() -> None:
     ok, _msg = cancel_send("case-cancel-test", actor="ADMIN:staff", reason="Phát hiện sai sót")
     assert ok is True
     assert get_dispatch_record("case-cancel-test").status == CaseStatus.CANCELLED
+
+
+# ─── Test 14: Last-Modified fast-path skip download ────────────────────
+def test_poller_last_modified_fast_path() -> None:
+    """Nhánh Last-Modified match + Content-Length match → skip download."""
+    download_called = False
+
+    def dummy_fetcher(url: str) -> bytes:
+        nonlocal download_called
+        download_called = True
+        return b"should not be called"
+
+    def head_checker(url: str) -> HeadInfo:
+        return HeadInfo(
+            url=url,
+            etag=None,  # No ETag — falls to Last-Modified path
+            last_modified="Sun, 20 Sep 2026 08:00:00 GMT",
+            content_length=5000,
+            accessible=True,
+        )
+
+    res = check_source_update(
+        doc_id="D02",
+        url="https://school.edu.vn/qc2.pdf",
+        title="QC2",
+        stored_sha256="any_hash",
+        stored_etag=None,
+        stored_last_modified="Sun, 20 Sep 2026 08:00:00 GMT",
+        stored_content_length=5000,
+        head_checker=head_checker,
+        body_fetcher=dummy_fetcher,
+    )
+    assert res.changed is False
+    assert res.skipped_download is True
+    assert download_called is False
+    assert res.status_message == "Không đổi"
+
+
+# ─── Test 15: Download error returns safe result ───────────────────────
+def test_poller_download_error_safe_result() -> None:
+    """Lỗi download phải trả changed=False, không crash."""
+
+    def head_checker(url: str) -> HeadInfo:
+        return HeadInfo(
+            url=url, etag="new-etag", last_modified=None, content_length=None, accessible=True
+        )
+
+    def broken_fetcher(url: str) -> bytes:
+        raise ConnectionError("Server refused connection")
+
+    res = check_source_update(
+        doc_id="D03",
+        url="https://broken.edu.vn/qc.pdf",
+        title="QC Error",
+        stored_sha256="old_hash",
+        stored_etag="old-etag",
+        head_checker=head_checker,
+        body_fetcher=broken_fetcher,
+    )
+    assert res.changed is False
+    assert "Lỗi tải file" in res.status_message
+    assert res.payload is None
+
+
+# ─── Test 16: stage_updated_source rejects unchanged source ────────────
+def test_stage_rejects_unchanged_source() -> None:
+    """stage_updated_source phải raise ValueError khi changed=False."""
+    conn = _make_db()
+
+    from core.poller import PollCheckResult
+
+    unchanged_check = PollCheckResult(
+        doc_id="D01",
+        url="https://school.edu.vn/qc.pdf",
+        title="QC",
+        changed=False,
+        status_message="Không đổi",
+        skipped_download=True,
+        new_sha256=None,
+        payload=None,
+    )
+    try:
+        stage_updated_source(conn, unchanged_check)
+        assert False, "Expected ValueError"
+    except ValueError as e:
+        assert "chưa thay đổi" in str(e)
+
+
+# ─── Test 17: Network inaccessible → poll marks not changed ───────────
+def test_poll_network_inaccessible() -> None:
+    """URL không truy cập được → changed=False, error message."""
+    res = check_source_update(
+        doc_id="D04",
+        url="https://unreachable.edu.vn/qc.pdf",
+        title="QC Offline",
+        stored_sha256="any",
+        head_checker=lambda url: HeadInfo(
+            url=url,
+            etag=None,
+            last_modified=None,
+            content_length=None,
+            accessible=False,
+            error="Connection timed out",
+        ),
+    )
+    assert res.changed is False
+    assert "Lỗi kết nối" in res.status_message
+    assert res.skipped_download is True
+
+
+# ─── Test 18: Correction email lifecycle ───────────────────────────────
+def test_correction_email_lifecycle() -> None:
+    """Tạo correction email: case mới liên kết parent, trạng thái PENDING_SEND."""
+    from core.dispatch import create_correction_email
+
+    draft = DraftReply(
+        subject="Re: Thời hạn rút môn",
+        body="Trả lời gốc",
+        citations=[],
+        grounded=True,
+        guard_failures=[],
+    )
+    schedule_dispatch("parent-case-001", draft, countdown_seconds=0)
+    dispatch_case("parent-case-001", force=True)
+
+    new_id, _msg = create_correction_email(
+        "parent-case-001",
+        correction_body="Xin đính chính: thời hạn rút môn là tuần thứ 6, không phải tuần thứ 4.",
+        actor="ADMIN:staff",
+    )
+    assert new_id.startswith("c_corr_")
+    record = get_dispatch_record(new_id)
+    assert record is not None
+    assert record.status == CaseStatus.PENDING_SEND
+    assert record.parent_case_id == "parent-case-001"
+    assert "[ĐÍNH CHÍNH]" in record.draft.subject
+
