@@ -340,8 +340,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Xong khi:** Tài liệu mới nạp vào có 100% chunk `human_only`; đổi một nhãn sinh đúng một audit event. Câu chốt pitch: **quyền tự động của AI không do AI tự đánh giá, mà do con người cấp ở cấp độ từng điều khoản.**
 - **Tiêu chí:** 6 (6đ ranh giới quyết định) · 7
 
-### B-10 · K7 Hàng chờ duyệt và màn hình diff
-- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09 · **Trạng thái:** `WIP`
+### B-10 · K7 Hàng chờ duyệt và màn hình diff [DONE]
+- **Khối:** B3 · **Ước lượng:** 2.5h · **Phụ thuộc:** B-06, B-09 · **Trạng thái:** `DONE`
 - **File:** `corpus/lifecycle.py`, `pages/3_Quan_tri_quy_dinh.py`
 - **Việc phải làm:** Danh sách tài liệu `PENDING_REVIEW`; mỗi tài liệu hiển thị metadata đề xuất, danh sách chunk kèm nhãn, và **diff với phiên bản cũ** nếu có `supersedes` (dùng `difflib`, tô màu thêm/bớt). Ba hành động: Duyệt · Từ chối · Yêu cầu chỉnh sửa, đều bắt buộc nhập lý do.
 - **Xong khi:** Nạp tài liệu #1 (thay thế #2) hiển thị đúng phần văn bản đã đổi.

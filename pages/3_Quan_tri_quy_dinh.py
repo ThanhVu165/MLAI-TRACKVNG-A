@@ -5,6 +5,7 @@ import sqlite3
 import streamlit as st
 
 from corpus.coverage import LABELS, label_chunk, list_coverage
+from corpus.lifecycle import document_diff, pending_reviews, submit_review
 from corpus.metadata import SUPPORTED_DOMAINS, SourceMetadata
 
 
@@ -68,6 +69,28 @@ def render_coverage_editor(conn: sqlite3.Connection, doc_id: str, actor: str) ->
             if st.button("Lưu nhãn", key=f"save_{chunk['chunk_id']}"):
                 changed = label_chunk(conn, str(chunk["chunk_id"]), label, actor=actor)
                 st.success("Đã lưu nhãn.") if changed else st.info("Nhãn không thay đổi.")
+
+
+def render_review_queue(conn: sqlite3.Connection, actor: str) -> None:
+    for document in pending_reviews(conn):
+        doc_id = str(document["doc_id"])
+        with st.expander(f"{document['title'] or doc_id} · {doc_id}"):
+            st.json(document)
+            st.dataframe(list_coverage(conn, doc_id), use_container_width=True)
+            diff = document_diff(conn, doc_id)
+            if diff:
+                st.markdown(diff, unsafe_allow_html=True)
+            reason = st.text_input("Lý do", key=f"review_reason_{doc_id}")
+            approve, reject, change = st.columns(3)
+            if approve.button("Duyệt", key=f"approve_{doc_id}"):
+                submit_review(conn, doc_id, "APPROVE", actor=actor, reason=reason)
+                st.success("Đã duyệt. Tài liệu sẵn sàng để kích hoạt.")
+            if reject.button("Từ chối", key=f"reject_{doc_id}"):
+                submit_review(conn, doc_id, "REJECT", actor=actor, reason=reason)
+                st.warning("Đã từ chối tài liệu.")
+            if change.button("Yêu cầu chỉnh sửa", key=f"change_{doc_id}"):
+                submit_review(conn, doc_id, "REQUEST_CHANGES", actor=actor, reason=reason)
+                st.info("Đã ghi nhận yêu cầu chỉnh sửa.")
 
 
 st.title("Quản trị quy định")
