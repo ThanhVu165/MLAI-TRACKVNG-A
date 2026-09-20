@@ -406,7 +406,7 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 Thứ tự khuyến nghị: C-01..C-06 (hạ tầng, làm sớm vì hai làn kia chờ) → C-07..C-12 → C-13..C-17 → C-18..C-22 (Verify) → C-23..C-25 → C-26..C-29.
 
 ### C-01 · Dựng repo và công cụ
-- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** — · **Trạng thái:** `WIP`
+- **Khối:** B0 · **Ước lượng:** 1.5h · **Phụ thuộc:** — · **Trạng thái:** `DONE`
 - **File:** `README.md`, `requirements.txt`, `Makefile`, `.gitignore`, `.env.example`, `.streamlit/config.toml`
 - **Việc phải làm:** Tạo repo **công khai** ngay từ đầu; bật branch protection cho `main` (**chặn force-push**); `requirements.txt` ghim phiên bản; `Makefile` có `make check` = black + ruff + mypy + pytest; `.gitignore` loại `data/app.db`, `.env`, cache embedding; tạo ba nhánh `agent-a/`, `agent-b/`, `agent-c/`.
 - **Xong khi:** `make check` chạy được trên repo rỗng. **Repo phải công khai từ giờ đầu để lịch sử commit đủ dài — đây là bằng chứng đánh giá quá trình.**
