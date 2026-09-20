@@ -9,7 +9,7 @@
 | Làn | Số task | Ước lượng | Trọng tâm |
 |---|---|---|---|
 | S — Đồng bộ | 11 | 14h chung | Contract, checkpoint, gói nộp |
-| A — Runtime | 26 | 48h | `core/` · Policy Engine · guards |
+| A — Runtime | 27 | 49.5h | `core/` · Policy Engine · guards · poller |
 | B — Corpus | 18 | 36h | `corpus/` · vòng đời văn bản |
 | C — UI/Verify/Infra | 29 | 54h | `infra/` · `pages/` · `verify/` · deploy |
 
@@ -276,6 +276,13 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Với từng case, xác nhận `expected_decision`, `expected_type` và `expected_rule_id` **suy ra được từ tài liệu quy định của đội**, không phải từ hành vi hiện tại của code. Nếu code sai thì sửa code, không sửa kỳ vọng.
 - **Xong khi:** Mỗi dòng case có một câu ghi rõ căn cứ: *"E05 → AUTHORITY_REQUIRED vì Điều 12 QĐ phân cấp quy định Trưởng phòng quyết các trường hợp miễn điều kiện."*
 - **Tiêu chí:** 2 · 7 · chống gian lận Verify
+
+### A-27 · Smart Poller giám sát cập nhật quy chế (Cách 1) [DONE]
+- **Khối:** B4 · **Ước lượng:** 1.5h · **Phụ thuộc:** A-22 · **Trạng thái:** `DONE`
+- **File:** `core/poller.py`, `tests/test_smart_poller.py`
+- **Việc phải làm:** Triển khai Smart Poller (Cách 1) giám sát URL quy chế trường: kiểm tra nhẹ HTTP HEAD (ETag, Last-Modified, Content-Length) để tiết kiệm băng thông; tải payload và so sánh mã băm SHA-256; phát hiện thay đổi và tự động đưa vào `PENDING_REVIEW` với cơ chế chống trùng lặp; ghi nhận audit `SOURCE_RECHECKED` / `SOURCE_UPLOADED`; cung cấp hàm kết nối rerun case khi quy chế cập nhật.
+- **Xong khi:** `tests/test_smart_poller.py` 7/7 test pass, ruff check sạch, tích hợp trơn tru với `core/controls.py::rerun_case`.
+- **Tiêu chí:** 6 (quản trị thay đổi quy chế) · 7 (chống ảo giác do quy chế cũ)
 
 ---
 
