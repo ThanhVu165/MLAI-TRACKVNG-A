@@ -50,5 +50,6 @@
 - `[H+87][Agent C] C-20 WIP: nút 5 case, cột câu hỏi và cassette đã chạy tuần tự, hiện 1/5 PASS · cùng blocker retrieval/evidence của C-19; tiếp tục C-21/C-22`
 - `[H+88][Agent C] C-21 WIP: Run All 15 chạy tuần tự, ma trận 4 lớp và hai tỷ lệ đã test khớp đếm tay; thực tế 8/15 PASS · chặn bởi C-19/C-20 retrieval/evidence · tiếp tục C-22`
 - `[H+89][Agent C] xong C-22 (bảng đủ trường bắt buộc, timestamp +07:00, deep link audit từng case và tải JSON) · tiếp tục C-23`
+- `[H+90][Agent C] xong C-23 (trang đo lường tách hiệu quả/rủi ro, hiện công thức cạnh số và cảnh báo dữ liệu nội bộ giả lập) · tiếp tục C-24`
 
 
