@@ -289,8 +289,8 @@ Thứ tự khuyến nghị: B-01 (sớm nhất, mở khóa làn A) → B-02 → 
 - **Việc phải làm:** Cài đủ 5 hàm ở Mục 5.3 spec. Giai đoạn đầu trả **12 chunk giả cứng trong code**, phủ 3 domain, trong đó 2 chunk `human_only` và 1 chunk `transitional_clause=true`. Về sau thay ruột bằng truy vấn thật, **giữ nguyên chữ ký**.
 - **Xong khi:** Agent A `import corpus.api` và chạy được R4–R5 mà không cần chờ phần còn lại của làn B. Đây là điều kiện để ba làn song song.
 
-### B-02 · Lớp truy cập bảng `sources` / `chunks` / `corpus_versions`
-- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** S-02 · **Trạng thái:** `WIP`
+### B-02 · Lớp truy cập bảng `sources` / `chunks` / `corpus_versions` [DONE]
+- **Khối:** B1 · **Ước lượng:** 2h · **Phụ thuộc:** S-02 · **Trạng thái:** `DONE`
 - **File:** `corpus/store.py`
 - **Việc phải làm:** Hàm CRUD cho ba bảng qua `infra.db`; hàm `compute_corpus_version()` theo công thức Mục 6 spec; hàm `bump_corpus_version(actor, note)` ghi hàng mới và cập nhật `settings.current_corpus_version`.
 - **Xong khi:** Kích hoạt một tài liệu làm `corpus_version` đổi; hạ cấp cũng làm đổi; không kích hoạt gì thì không đổi.
