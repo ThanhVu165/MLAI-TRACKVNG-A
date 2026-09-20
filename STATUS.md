@@ -35,5 +35,6 @@
 - `[H+72][Agent C] xong C-05 (ACTIONS đóng, actor chuẩn hóa, bắt buộc lý do cho 4 hành động nhạy cảm, truy vấn audit theo case/gần đây) · test audit xanh · tiếp tục C-06`
 - `[H+73][Agent C] xong C-06 (telemetry tính trực tiếp từ DB: quyết định, escalation, latency, review, override, groundedness và Verify) · test đếm tay xanh · tiếp tục C-07`
 - `[H+74][Agent C] xong C-07 (homepage một hướng dẫn, xử lý email trực tiếp, banner mô phỏng và điều hướng 6 màn hình) · kiểm tra cú pháp xanh · tiếp tục C-08`
+- `[H+75][Agent C] xong C-08 (một SVG dùng chung cho homepage và Slide 2, đánh dấu hai điểm con người quyết định) · tiếp tục C-09`
 
 
