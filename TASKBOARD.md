@@ -277,6 +277,24 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Xong khi:** Mỗi dòng case có một câu ghi rõ căn cứ: *"E05 → AUTHORITY_REQUIRED vì Điều 12 QĐ phân cấp quy định Trưởng phòng quyết các trường hợp miễn điều kiện."* (Đã rà soát và chuẩn hóa F15 về P02 / OUT_OF_POLICY theo đúng Mục 8.3 & 9.2 của spec).
 - **Tiêu chí:** 2 · 7 · chống gian lận Verify
 
+### A-29 · Cho phép truy vấn ngắn có ý nghĩa [WIP]
+- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 1h · **Phụ thuộc:** A-07 · **Trạng thái:** `WIP`
+- **File:** `core/sanitize.py`, `tests/test_sanitize_guards.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Bỏ chốt độ dài dưới 15 từ; chỉ từ chối nội dung rỗng hoặc chỉ gồm ký hiệu không mang nghĩa. Câu hỏi và yêu cầu ngắn vẫn phải đi qua pipeline bình thường.
+- **Xong khi:** Các đầu vào `"Hạn rút môn?"`, `"Xin rút môn sau hạn"` không bị trả `INVALID_INPUT`; đầu vào rỗng và `"..."` vẫn bị chặn.
+
+### A-30 · Chuẩn hóa nhận diện ý định sinh viên bằng NLP nhẹ [WIP]
+- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 2h · **Phụ thuộc:** A-08, A-10 · **Trạng thái:** `WIP`
+- **File:** `core/extract.py`, `tests/test_extract_prepolicy.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Chuẩn hóa Unicode/token và nhận diện theo cụm từ có ngữ cảnh để phân biệt câu hỏi thông tin với yêu cầu áp dụng cho hồ sơ cá nhân; không thêm dependency nặng và không cho NLP quyết định policy.
+- **Xong khi:** Các biến thể có dấu/không dấu và cách diễn đạt ngắn nhận đúng domain, intent, cờ ngoại lệ/phúc khảo/thẩm quyền; câu hỏi thông tin không bị escalate thừa.
+
+### A-31 · Gợi ý căn cứ cho người thứ ba xét duyệt [WIP]
+- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 1.5h · **Phụ thuộc:** A-11, A-17, A-18 · **Trạng thái:** `WIP`
+- **File:** `core/question_gen.py`, `policies/fallback_questions.yaml`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Khi hệ thống chuyển tiếp, dùng các evidence chunk đã truy xuất để gợi ý câu trả lời tương đương hoặc tài liệu liên quan cho người xét duyệt; không bịa nguồn khi retrieval rỗng.
+- **Xong khi:** Thẻ escalation có căn cứ được xếp theo độ liên quan, trích đoạn đọc được và phương án tham chiếu tài liệu; trường hợp không có nguồn ghi rõ không tìm thấy quy định đang hiệu lực.
+
 ---
 
 # Làn B — Corpus Admin (`corpus/`)
