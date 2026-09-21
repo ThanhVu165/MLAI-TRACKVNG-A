@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -236,6 +237,46 @@ def test_live_generation_error_does_not_fallback_to_grounded_template(monkeypatc
     assert draft.body == ""
     assert draft.grounded is False
     assert draft.guard_failures == ["llm_generation_failed:Gemini timeout"]
+
+
+def test_generate_prompt_uses_normalized_requests_without_raw_email(monkeypatch) -> None:
+    monkeypatch.setenv("LLM_MODE", "live")
+    captured: dict[str, str] = {}
+    extraction = _make_extraction()
+    extraction.requests.append(
+        RequestItem(
+            domain=Domain.GRADE_APPEAL,
+            intent="hoi_thoi_han_phuc_khao",
+            is_informational=True,
+            requires_personal_record=False,
+            asks_exception=False,
+            asks_appeal=False,
+            asks_authority_decision=False,
+        )
+    )
+    inp = replace(_make_case_input(), subject="MSSV: 20211234 hỏi thời hạn rút môn")
+
+    def fake_call_json(*, prompt: str, **_kwargs: object) -> SimpleNamespace:
+        captured["prompt"] = prompt
+        return SimpleNamespace(
+            ok=True,
+            data={
+                "subject": f"Re: {inp.subject}",
+                "body": "Thời hạn là 8 tuần [chunk_cw_01].",
+                "citations": ["chunk_cw_01"],
+            },
+            error=None,
+        )
+
+    with patch("infra.llm.call_json", side_effect=fake_call_json):
+        generate_reply(_make_evidence(), inp, extraction)
+
+    assert "course_withdrawal: hoi_thoi_han_rut_mon" in captured["prompt"]
+    assert "grade_appeal: hoi_thoi_han_phuc_khao" in captured["prompt"]
+    assert inp.body not in captured["prompt"]
+    assert inp.sender not in captured["prompt"]
+    assert "20211234" not in captured["prompt"]
+    assert "[MSSV]" in captured["prompt"]
 
 
 def test_active_check_fails_closed_on_database_error() -> None:

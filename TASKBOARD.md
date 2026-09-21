@@ -325,8 +325,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Với email đa ý định, chọn request cần ngoại lệ, phúc khảo hoặc phê duyệt làm trọng tâm thẻ; không dùng mặc định phần tử đầu tiên nếu đó chỉ là câu hỏi thông tin.
 - **Xong khi:** Dữ kiện và câu hỏi đóng nói đúng phần cần chuyên viên quyết định, bất kể thứ tự request do bước trích xuất trả về.
 
-### A-37 · Truyền intent chuẩn hóa vào prompt sinh thư [WIP]
-- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-15, A-30 · **Trạng thái:** `WIP`
+### A-37 · Truyền intent chuẩn hóa vào prompt sinh thư [DONE]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-15, A-30 · **Trạng thái:** `DONE`
 - **File:** `core/generate.py`, `tests/test_generate_and_ground_guard.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Prompt R7a nhận danh sách domain và intent đã chuẩn hóa từ R2 để bám đúng vấn đề sinh viên hỏi; không đưa email thô hoặc PII vào prompt.
 - **Xong khi:** Test bắt prompt có đủ request đã chuẩn hóa, không có body và sender gốc của sinh viên.

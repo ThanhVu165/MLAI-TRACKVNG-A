@@ -4,6 +4,7 @@ import logging
 import os
 import re
 
+from core.sanitize import mask_pii
 from core.types import (
     CaseInput,
     DraftReply,
@@ -23,7 +24,8 @@ QUY TẮC BẮT BUỘC:
 3. KHÔNG được cam kết thay mặt DSA, không hứa hẹn phê duyệt ngoại lệ.
 4. KHÔNG nhắc tới hoặc khẳng định thông tin hồ sơ cá nhân của sinh viên.
 5. Phản hồi đúng ngôn ngữ của sinh viên (tiếng Việt hoặc tiếng Anh).
-6. Định dạng đầu ra là JSON hợp lệ:
+6. Trả lời đầy đủ các yêu cầu đã chuẩn hóa, không tự suy diễn thêm yêu cầu mới.
+7. Định dạng đầu ra là JSON hợp lệ:
 {
   "subject": "Re: <tiêu đề email>",
   "body": "<nội dung thư trả lời sinh viên kèm trích dẫn [chunk_id]>",
@@ -142,10 +144,18 @@ def generate_reply(
             f"--- CHUNK ID: {c.chunk_id} ---\nNguồn: {c.breadcrumb}\nNội dung: {c.text}"
             for c in answerable_chunks
         )
+        requests_text = (
+            "\n".join(
+                f"- {request.domain.value}: {mask_pii(request.intent)}"
+                for request in extraction.requests
+            )
+            or "- Không xác định"
+        )
 
         user_prompt = (
             f"Ngôn ngữ: {lang}\n"
-            f"Tiêu đề email nhận: {inp.subject}\n"
+            f"Tiêu đề email nhận (đã che PII): {mask_pii(inp.subject)}\n"
+            f"Các yêu cầu đã chuẩn hóa:\n{requests_text}\n"
             f"Căn cứ pháp lý có thẩm quyền:\n{evidence_text}\n\n"
             f"Hãy soạn thảo email trả lời theo đúng các quy tắc bắt buộc."
         )

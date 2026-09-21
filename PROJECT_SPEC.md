@@ -566,6 +566,8 @@ Bảng đọc theo cột: bước, loại (`D` deterministic / `L` LLM / `H` hum
 
 Fallback heuristic chỉ được dùng khi `LLM_MODE=replay` và thiếu cassette. Ở `live`/`record`, lỗi cấu hình, timeout hoặc phản hồi lỗi phải được giữ trong `llm_error`/draft không grounded để policy hạ về P04; cấm fallback âm thầm thành kết quả thành công.
 
+R7a nhận toàn bộ `domain` và `intent` đã chuẩn hóa từ R2 để trả lời đúng vấn đề. Prompt chỉ dùng tiêu đề đã che PII, intent đã che PII và evidence đã lọc; không truyền body hoặc sender thô của sinh viên.
+
 ### 8.0 Định nghĩa 4 trường boolean trong `RequestItem` — bắt buộc trong system prompt R2
 
 Bốn trường này điều khiển R3 Pre-policy Lock. Định nghĩa sai → over-escalation → mất 6–8 điểm.
