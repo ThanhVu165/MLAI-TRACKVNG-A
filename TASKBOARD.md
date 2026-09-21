@@ -319,6 +319,12 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Phần thường quy của email đa ý định phải được dựng từ evidence thật kèm citation; không đánh dấu grounded cho câu placeholder.
 - **Xong khi:** Partial draft chứa trích đoạn căn cứ tương ứng, citation thật và vượt Ground Guard.
 
+### A-36 · Câu hỏi chuyển tiếp bám đúng ý cần quyết định [WIP]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-17, A-30 · **Trạng thái:** `WIP`
+- **File:** `core/question_gen.py`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Với email đa ý định, chọn request cần ngoại lệ, phúc khảo hoặc phê duyệt làm trọng tâm thẻ; không dùng mặc định phần tử đầu tiên nếu đó chỉ là câu hỏi thông tin.
+- **Xong khi:** Dữ kiện và câu hỏi đóng nói đúng phần cần chuyên viên quyết định, bất kể thứ tự request do bước trích xuất trả về.
+
 ---
 
 # Làn B — Corpus Admin (`corpus/`)
