@@ -139,7 +139,7 @@ def call_json(
     del temperature  # Mọi quyết định dùng nhiệt độ 0 theo contract.
     started = time.perf_counter()
     prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
     mode = os.getenv("LLM_MODE", "replay").lower()
     error: str | None = None
 
