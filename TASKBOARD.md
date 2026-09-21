@@ -295,6 +295,30 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Khi hệ thống chuyển tiếp, dùng các evidence chunk đã truy xuất để gợi ý câu trả lời tương đương hoặc tài liệu liên quan cho người xét duyệt; không bịa nguồn khi retrieval rỗng.
 - **Xong khi:** Thẻ escalation có căn cứ được xếp theo độ liên quan, trích đoạn đọc được và phương án tham chiếu tài liệu; trường hợp không có nguồn ghi rõ không tìm thấy quy định đang hiệu lực.
 
+### A-32 · Chỉ đưa evidence đủ điều kiện vào câu trả lời [WIP]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-12, A-30 · **Trạng thái:** `WIP`
+- **File:** `core/evidence.py`, `tests/test_evidence_validator.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Khi evidence hợp lệ để AUTO_REPLY, loại chunk dưới ngưỡng, sai domain và chunk conflict không liên quan trước khi chuyển sang generator; conflict đúng chủ đề vẫn phải chuyển người.
+- **Xong khi:** Câu hỏi hạn rút môn không chứa điều khoản hoàn học phí có conflict; câu hỏi hoàn học phí vẫn ra `CONFLICTING_SOURCES`.
+
+### A-33 · Fail-safe nghiêm ngặt cho lỗi live [WIP]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1.5h · **Phụ thuộc:** A-09, A-16 · **Trạng thái:** `WIP`
+- **File:** `core/extract.py`, `core/generate.py`, `core/ground_guard.py`, `tests/test_guards.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Chỉ fallback heuristic trong replay/offline; live thiếu API key hoặc LLM lỗi phải đặt lỗi để Policy Engine chuyển người. Kiểm tra trạng thái chunk lỗi phải fail-closed; generate lỗi không được âm thầm tạo thư tự động.
+- **Xong khi:** Ba lỗi mô phỏng đều không thể dẫn tới `AUTO_REPLY` hoặc draft grounded.
+
+### A-34 · Kiểm tra scope và giữ đủ domain yêu cầu [WIP]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 2h · **Phụ thuộc:** A-12, A-30 · **Trạng thái:** `WIP`
+- **File:** `core/extract.py`, `core/evidence.py`, `tests/test_extract_prepolicy.py`, `tests/test_evidence_validator.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Nhận diện nhiều domain trong một email và kiểm tra `applies_to` khi sinh viên nêu đối tượng áp dụng; thiếu hoặc lệch scope phải chuyển người thay vì áp dụng quy định đại học.
+- **Xong khi:** Email ghép hai domain giữ hai request; câu hỏi cao học không dùng chunk chỉ áp dụng undergraduate.
+
+### A-35 · Bỏ partial draft placeholder [WIP]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-24, A-32 · **Trạng thái:** `WIP`
+- **File:** `core/question_gen.py`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
+- **Việc phải làm:** Phần thường quy của email đa ý định phải được dựng từ evidence thật kèm citation; không đánh dấu grounded cho câu placeholder.
+- **Xong khi:** Partial draft chứa trích đoạn căn cứ tương ứng, citation thật và vượt Ground Guard.
+
 ---
 
 # Làn B — Corpus Admin (`corpus/`)
