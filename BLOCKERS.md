@@ -10,3 +10,10 @@
 - `[H+93][Agent C][C-26]` Chưa thể deploy public: S-06 chưa đạt do C-19/C-20 còn đỏ,
   đồng thời thao tác Community Cloud cần phiên đăng nhập có quyền quản trị GitHub repo. Cấu hình và
   mẫu Secrets đã sẵn sàng, không có khóa thật trong repo.
+- `[H+108][Audit][Agent A/C]` Trạng thái runtime vẫn tách giữa `_CASES_STORE`/`_DISPATCH_REGISTRY`
+  trong bộ nhớ và các bảng SQLite. Cần adapter dùng lược đồ hiện có để restart hoặc nhiều process
+  không làm mất trạng thái; không được đổi contract sau feature freeze.
+- `[H+108][Audit][Agent C]` `infra/llm.py` vẫn tạo cache key chỉ từ `prompt_hash`; cần tách thêm
+  `LLM_MODE`, model và schema để live/record không thể đọc nhầm phản hồi replay.
+- `[H+108][Audit][Agent C]` Verify hiện đã xanh nhưng live URL vẫn chưa được kiểm chứng bằng cửa sổ
+  ẩn danh; C-26 còn cần phiên Community Cloud đã đăng nhập và kiểm tra tải/chạy case thật.
