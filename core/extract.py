@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import unicodedata
 from typing import Any, Literal
@@ -164,6 +165,22 @@ EXTRACTION_JSON_SCHEMA = {
 def _normalize_lang(raw: Any) -> Literal["vi", "en", "other"]:
     """Chuẩn hóa giá trị ngôn ngữ về Literal['vi', 'en', 'other']."""
     return raw if raw in ("vi", "en") else "other"
+
+
+def _replay_mode() -> bool:
+    return os.getenv("LLM_MODE", "replay").casefold() == "replay"
+
+
+def _failed_extraction(language: str, error: str) -> Extraction:
+    return Extraction(
+        language=_normalize_lang(language),
+        requests=[],
+        critical_facts={},
+        missing_critical_facts=[],
+        injection_suspected=False,
+        raw_json="",
+        llm_error=error,
+    )
 
 
 def _normalize_for_matching(text: str) -> str:
@@ -373,15 +390,16 @@ def extract_facts(
     """R2: Trích xuất sự kiện và ý định từ email đã làm sạch (Mục 8.0 & Task A-08, A-09).
 
     Tuân thủ quy tắc retry 1 lần và timeout fail-safe.
-    Nếu infra.llm khả dụng thì gọi qua LLM, ngược lại sử dụng heuristic an toàn.
+    Replay thiếu cassette được dùng heuristic; live/record lỗi luôn fail-safe để Policy Engine ra P04.
     """
     try:
         # Thử import infra.llm nếu Agent C đã cấu hình
         from infra.llm import call_json  # type: ignore[import-not-found]
-    except ImportError:
-        # Môi trường stub / chưa cấu hình infra.llm: Chạy fallback heuristic
-        logger.debug("infra.llm chưa cấu hình — sử dụng fallback heuristic")
-        return _heuristic_extract(clean_text, subject, language)
+    except ImportError as exc:
+        if _replay_mode():
+            logger.debug("infra.llm chưa cấu hình — sử dụng fallback heuristic trong replay")
+            return _heuristic_extract(clean_text, subject, language)
+        return _failed_extraction(language, f"Không tải được infra.llm: {exc}")
 
     try:
         prompt = f"{EXTRACT_PROMPT_V2}\n\nEmail Tiêu đề: {subject}\nNội dung:\n{clean_text}"
@@ -396,32 +414,11 @@ def extract_facts(
         )
         if res.ok and res.data:
             return parse_extraction_data(res.data, json.dumps(res.data, ensure_ascii=False))
-        elif res.error and (
-            "No such file or directory" in res.error
-            or "GEMINI_API_KEY" in res.error
-            or "mất kết nối" in res.error
-        ):
-            logger.debug("LLM cassette/key missing (%s), using heuristic fallback", res.error)
+        elif res.error and _replay_mode() and "No such file or directory" in res.error:
+            logger.debug("Thiếu cassette replay (%s), sử dụng heuristic", res.error)
             return _heuristic_extract(clean_text, subject, language)
         else:
-            # LLM lỗi hoặc timeout -> Task A-09 fail-safe
-            return Extraction(
-                language=_normalize_lang(language),
-                requests=[],
-                critical_facts={},
-                missing_critical_facts=[],
-                injection_suspected=False,
-                raw_json="",
-                llm_error=res.error or "LLM extraction failed",
-            )
+            return _failed_extraction(language, res.error or "LLM extraction failed")
     except Exception as exc:  # noqa: BLE001
         logger.error("LLM extraction call failed: %s", exc)
-        return Extraction(
-            language=_normalize_lang(language),
-            requests=[],
-            critical_facts={},
-            missing_critical_facts=[],
-            injection_suspected=False,
-            raw_json="",
-            llm_error=str(exc),
-        )
+        return _failed_extraction(language, str(exc))

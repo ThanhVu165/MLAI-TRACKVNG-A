@@ -301,8 +301,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Khi evidence hợp lệ để AUTO_REPLY, loại chunk dưới ngưỡng, sai domain và chunk conflict không liên quan trước khi chuyển sang generator; conflict đúng chủ đề vẫn phải chuyển người.
 - **Xong khi:** Câu hỏi hạn rút môn không chứa điều khoản hoàn học phí có conflict; câu hỏi hoàn học phí vẫn ra `CONFLICTING_SOURCES`.
 
-### A-33 · Fail-safe nghiêm ngặt cho lỗi live [WIP]
-- **Khối:** Ổn định sau audit · **Ước lượng:** 1.5h · **Phụ thuộc:** A-09, A-16 · **Trạng thái:** `WIP`
+### A-33 · Fail-safe nghiêm ngặt cho lỗi live [DONE]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1.5h · **Phụ thuộc:** A-09, A-16 · **Trạng thái:** `DONE`
 - **File:** `core/extract.py`, `core/generate.py`, `core/ground_guard.py`, `tests/test_guards.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Chỉ fallback heuristic trong replay/offline; live thiếu API key hoặc LLM lỗi phải đặt lỗi để Policy Engine chuyển người. Kiểm tra trạng thái chunk lỗi phải fail-closed; generate lỗi không được âm thầm tạo thư tự động.
 - **Xong khi:** Ba lỗi mô phỏng đều không thể dẫn tới `AUTO_REPLY` hoặc draft grounded.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 
 from core.types import (
@@ -29,6 +30,20 @@ QUY TẮC BẮT BUỘC:
   "citations": ["chunk_id_1", "chunk_id_2"]
 }
 """
+
+
+def _replay_mode() -> bool:
+    return os.getenv("LLM_MODE", "replay").casefold() == "replay"
+
+
+def _failed_reply(inp: CaseInput, error: str) -> DraftReply:
+    return DraftReply(
+        subject=f"Re: {inp.subject}",
+        body="",
+        citations=[],
+        grounded=False,
+        guard_failures=[f"llm_generation_failed:{error}"],
+    )
 
 
 def _generate_heuristic_reply(
@@ -116,8 +131,10 @@ def generate_reply(
 
     try:
         from infra.llm import call_json  # type: ignore[import-not-found]
-    except ImportError:
-        return _generate_heuristic_reply(answerable_chunks, inp, language=lang)
+    except ImportError as exc:
+        if _replay_mode():
+            return _generate_heuristic_reply(answerable_chunks, inp, language=lang)
+        return _failed_reply(inp, f"Không tải được infra.llm: {exc}")
 
     try:
         # Chuẩn bị dữ liệu evidence đã lọc (không có body thô của email)
@@ -148,8 +165,6 @@ def generate_reply(
             schema=schema,
             step="R7a_generate",
             case_id=case_id,
-            temperature=0.1,
-            timeout_s=25,
         )
 
         if res.ok and res.data:
@@ -166,15 +181,10 @@ def generate_reply(
                 grounded=True,
                 guard_failures=[],
             )
+        if res.error and _replay_mode() and "No such file or directory" in res.error:
+            return _generate_heuristic_reply(answerable_chunks, inp, language=lang)
+        return _failed_reply(inp, res.error or "LLM generation failed")
 
     except Exception as exc:  # noqa: BLE001
         logger.error("LLM call soạn thảo email thất bại: %s", exc)
-        return DraftReply(
-            subject=f"Re: {inp.subject}",
-            body="",
-            citations=[],
-            grounded=False,
-            guard_failures=["llm_generation_failed"],
-        )
-
-    return _generate_heuristic_reply(answerable_chunks, inp, language=lang)
+        return _failed_reply(inp, str(exc))

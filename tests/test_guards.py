@@ -205,6 +205,34 @@ def test_extract_internal_llm_exception_fails_safe() -> None:
         assert res.decision.rule_id in ("P03", "P04")
 
 
+def test_live_missing_api_key_does_not_use_heuristic(monkeypatch) -> None:
+    """Live lỗi cấu hình phải giữ llm_error, không được giả vờ xử lý offline thành công."""
+    import sys
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from core.extract import extract_facts
+
+    monkeypatch.setenv("LLM_MODE", "live")
+    mock_infra_llm = MagicMock()
+    mock_infra_llm.call_json.return_value = SimpleNamespace(
+        ok=False,
+        data={},
+        error="Thiếu GEMINI_API_KEY",
+    )
+
+    with patch.dict(sys.modules, {"infra": MagicMock(), "infra.llm": mock_infra_llm}):
+        extraction = extract_facts(
+            "Cho em hỏi hạn rút học phần?",
+            "Hỏi rút học phần",
+            "c_live_missing_key",
+            language="vi",
+        )
+
+    assert extraction.requests == []
+    assert extraction.llm_error == "Thiếu GEMINI_API_KEY"
+
+
 def test_groundedness_guard_catches_number_1_and_2() -> None:
     """Kiểm tra Item 3: Không bỏ qua số 1 hoặc 2.
 

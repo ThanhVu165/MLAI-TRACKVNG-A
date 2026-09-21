@@ -30,16 +30,13 @@ def _is_chunk_active(chunk_id: str) -> bool:
     try:
         from corpus.api import is_active  # type: ignore[import-not-found]
 
-        active = is_active(chunk_id)
-        if not active and chunk_id.startswith(("chunk_", "stub_")):
-            return True
-        return bool(active)
-    except ImportError:
-        # Môi trường stub / offline: chunk tồn tại là active
-        return True
+        return bool(is_active(chunk_id))
+    except ImportError as exc:
+        logger.warning("Không tải được corpus.api khi kiểm tra chunk %s: %s", chunk_id, exc)
+        return False
     except (sqlite3.Error, OSError, RuntimeError, AttributeError) as exc:
-        logger.debug("Kiểm tra chunk active thất bại: %s", exc)
-        return True
+        logger.warning("Kiểm tra chunk active thất bại cho %s: %s", chunk_id, exc)
+        return False
 
 
 def _clean_body_for_sentence_counting(body: str) -> list[str]:

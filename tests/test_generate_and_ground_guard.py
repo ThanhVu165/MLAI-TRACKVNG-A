@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from core.generate import generate_reply
 from core.ground_guard import validate_groundedness
@@ -112,7 +114,8 @@ def test_ground_guard_passes_clean_draft() -> None:
         guard_failures=[],
     )
 
-    passed, violations = validate_groundedness(draft, ev)
+    with patch("core.ground_guard._is_chunk_active", return_value=True):
+        passed, violations = validate_groundedness(draft, ev)
     assert passed is True
     assert len(violations) == 0
     assert draft.grounded is True
@@ -189,8 +192,6 @@ def test_ground_guard_fails_on_low_citation_ratio() -> None:
 
 def test_pipeline_downgrades_to_escalate_when_groundedness_fails() -> None:
     """Mục 8.5 spec: Fail bất kỳ mục nào -> ESCALATE / FACT_UNRESOLVED, giữ bản nháp cho người xem."""
-    from unittest.mock import patch
-
     inp = _make_case_input("vi")
 
     # Mô phỏng generator sinh ra bản thảo chứa con số bịa đặt 999.000
@@ -223,3 +224,24 @@ def test_pipeline_downgrades_to_escalate_when_groundedness_fails() -> None:
     assert res.draft is not None
     assert res.draft.grounded is False
     assert res.card is not None
+
+
+def test_live_generation_error_does_not_fallback_to_grounded_template(monkeypatch) -> None:
+    monkeypatch.setenv("LLM_MODE", "live")
+    failed = SimpleNamespace(ok=False, data={}, error="Gemini timeout")
+
+    with patch("infra.llm.call_json", return_value=failed):
+        draft = generate_reply(_make_evidence(), _make_case_input(), _make_extraction())
+
+    assert draft.body == ""
+    assert draft.grounded is False
+    assert draft.guard_failures == ["llm_generation_failed:Gemini timeout"]
+
+
+def test_active_check_fails_closed_on_database_error() -> None:
+    import sqlite3
+
+    from core.ground_guard import _is_chunk_active
+
+    with patch("corpus.api.is_active", side_effect=sqlite3.OperationalError("database locked")):
+        assert _is_chunk_active("chunk_cw_01") is False

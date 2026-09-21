@@ -564,6 +564,8 @@ Bảng đọc theo cột: bước, loại (`D` deterministic / `L` LLM / `H` hum
 | R13 Dispatch | D | draft | status `SENT` (mô phỏng) | — |
 | R14 Audit & Telemetry | D | mọi bước | event + latency | Ghi audit lỗi cũng phải ghi được |
 
+Fallback heuristic chỉ được dùng khi `LLM_MODE=replay` và thiếu cassette. Ở `live`/`record`, lỗi cấu hình, timeout hoặc phản hồi lỗi phải được giữ trong `llm_error`/draft không grounded để policy hạ về P04; cấm fallback âm thầm thành kết quả thành công.
+
 ### 8.0 Định nghĩa 4 trường boolean trong `RequestItem` — bắt buộc trong system prompt R2
 
 Bốn trường này điều khiển R3 Pre-policy Lock. Định nghĩa sai → over-escalation → mất 6–8 điểm.
@@ -660,6 +662,8 @@ Khi kết quả là `OK`, `EvidenceResult.chunks` chỉ giữ chunk vượt ngư
 4. Tỷ lệ câu có citation ≥ **0.6**.
 
 Fail bất kỳ mục nào → `ESCALATE / FACT_UNRESOLVED`, `reason = "groundedness_failed:<mục>"`, lưu bản nháp với `grounded=false` để DSA đối chiếu.
+
+Nếu không xác minh được trạng thái ACTIVE do lỗi DB/API/import, kiểm tra 1 phải fail-closed. Không suy ra ACTIVE từ tiền tố `chunk_` hoặc `stub_`.
 
 ### 8.6 R7b — Bốn khối bắt buộc của thẻ escalation
 
