@@ -14,12 +14,31 @@ from core.types import (
     EscalationType,
     EvidenceResult,
     Extraction,
+    RequestItem,
 )
 
 logger = logging.getLogger(__name__)
 
 REVIEW_SUGGESTION_LIMIT = 3
 REVIEW_QUOTE_CHARS = 180
+
+
+def _select_review_request(
+    extraction: Extraction,
+    escalation_type: EscalationType,
+) -> RequestItem | None:
+    if escalation_type == EscalationType.AUTHORITY_REQUIRED:
+        authority_request = next(
+            (
+                request
+                for request in extraction.requests
+                if request.asks_exception or request.asks_appeal or request.asks_authority_decision
+            ),
+            None,
+        )
+        if authority_request:
+            return authority_request
+    return extraction.requests[0] if extraction.requests else None
 
 
 def _build_partial_draft(
@@ -150,7 +169,7 @@ def _build_deterministic_card(
     # Khối [2]: Dữ kiện (Fact)
     # -----------------------------------------------------------------------
     facts: list[str] = []
-    primary_req = extraction.requests[0] if extraction.requests else None
+    primary_req = _select_review_request(extraction, escalation_type)
 
     if primary_req:
         facts.append(f"Ý định sinh viên: {primary_req.intent}")
@@ -243,10 +262,13 @@ def generate_escalation_card(
         )
         reviewer_basis = build_reviewer_suggestions(evidence_res)
         basis_text = "\n".join(f"- {breadcrumb}: {quote}" for breadcrumb, quote in reviewer_basis)
+        review_request = _select_review_request(extraction, escalation_type)
+        review_intent = review_request.intent if review_request else "hồ sơ này"
 
         prompt = (
             f"Bạn là chuyên viên tiếp nhận DSA. Hãy tạo EscalationCard 4 khối cho case chuyển tiếp.\n"
             f"Loại escalation: {escalation_type.value}\n"
+            f"Trọng tâm cần chuyên viên quyết định: {review_intent}\n"
             f"Dữ kiện đã có:\n{facts_text}\n"
             f"Căn cứ trích dẫn:\n{basis_text}\n\n"
             f"Yêu cầu định dạng JSON:\n"

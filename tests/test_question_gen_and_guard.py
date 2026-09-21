@@ -141,6 +141,18 @@ def test_multi_intent_without_answerable_evidence_has_no_fake_partial_draft() ->
     assert "đã soạn sẵn" not in card.summary
 
 
+def test_multi_intent_question_targets_authority_request_regardless_of_order() -> None:
+    ext = _make_extraction(asks_exception=True, multi_intent=True)
+    ext.requests.reverse()
+    ext.critical_facts = {"reason": "nằm viện"}
+
+    card = generate_escalation_card(ext, _make_evidence(), EscalationType.AUTHORITY_REQUIRED)
+
+    assert "Xin rút môn sau hạn" in card.question
+    assert "Hỏi thời hạn" not in card.question
+    assert card.facts[0] == "Ý định sinh viên: Xin rút môn sau hạn vì lý do sức khỏe"
+
+
 def test_question_guard_passes_clean_card() -> None:
     card = EscalationCard(
         summary="Yêu cầu xin rút môn sau hạn của sinh viên.",

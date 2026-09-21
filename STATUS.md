@@ -64,5 +64,6 @@
 - `[H+101][Agent A] xong A-33 · live/record lỗi LLM không fallback âm thầm; lỗi xác minh ACTIVE fail-closed và draft lỗi không grounded.`
 - `[H+102][Agent A] xong A-34 · giữ nhiều domain trong một email và kiểm tra applies_to/cohort với wildcard all trước khi tự động trả lời.`
 - `[H+103][Agent A] xong A-35 · partial draft đa ý định được dựng từ evidence auto-answerable thật, có citation và không tạo placeholder khi thiếu căn cứ.`
+- `[H+104][Agent A] xong A-36 · dữ kiện, prompt và câu hỏi chuyển tiếp ưu tiên đúng request cần ngoại lệ/phúc khảo/phê duyệt, không phụ thuộc thứ tự trích xuất.`
 
 

@@ -680,6 +680,8 @@ Nếu không xác minh được trạng thái ACTIVE do lỗi DB/API/import, ki�
 
 Đây là cấu trúc quyết định 6 điểm ở bài "Chất lượng câu hỏi chuyển tiếp": chuyên viên phải quyết được **ngay trong một câu trả lời, không cần mở lại hồ sơ gốc**.
 
+Với email đa ý định, khối `[2]` và `[4]` phải lấy ý cần ngoại lệ, phúc khảo hoặc phê duyệt làm trọng tâm, không phụ thuộc thứ tự `requests[]`; phần hỏi thông tin thường quy không được thay thế nội dung cần chuyên viên quyết định.
+
 Khi chuyển tiếp, khối `[3]` xếp tối đa ba evidence thật theo độ liên quan và ghi rõ *"Gợi ý đối chiếu"*; `options` gợi ý hành động dựa trên dữ kiện còn thiếu và breadcrumb tương ứng. Nếu retrieval rỗng, thẻ phải ghi rõ chưa tìm thấy tài liệu đang hiệu lực và yêu cầu tra cứu nguồn chính thức, tuyệt đối không tạo tên văn bản giả.
 
 Với email đa ý định, `partial_draft` chỉ chứa phần thường quy đã có căn cứ `auto_answerable`, không conflict. Nội dung và citation phải cùng lấy từ evidence đã lọc; không được dùng câu mẫu giả rồi đánh dấu `grounded=true`.
