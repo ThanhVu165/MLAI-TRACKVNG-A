@@ -162,6 +162,7 @@ def ensure_valid_escalation_card(
         evidence_res,
         escalation_type,
         case_id=case_id,
+        guard_feedback=violations,
     )
     passed_v2, violations_v2 = validate_question_quality(card_v2, blocklist_path)
     if passed_v2:

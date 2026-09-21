@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import date, datetime, timezone
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from core.ground_guard import validate_groundedness
@@ -226,6 +227,44 @@ def test_ensure_valid_escalation_card_fallback_on_invalid() -> None:
     assert passed is True
     assert len(violations) == 0
     assert 2 <= len(fixed_card.options) <= 4
+
+
+def test_question_regeneration_prompt_includes_guard_feedback() -> None:
+    bad_card = EscalationCard(
+        summary="Yêu cầu sinh viên.",
+        facts=["Sinh viên K49"],
+        basis=[("QĐ 3150/2026 · Điều 8", "Cần đối chiếu")],
+        question="Vui lòng xem xét trường hợp sinh viên K49 này?",
+        options=["Đồng ý", "Từ chối"],
+        escalation_type=EscalationType.AUTHORITY_REQUIRED,
+        partial_draft=None,
+    )
+    captured: dict[str, str] = {}
+
+    def fake_call_json(*, prompt: str, **_kwargs: object) -> SimpleNamespace:
+        captured["prompt"] = prompt
+        return SimpleNamespace(
+            ok=True,
+            data={
+                "summary": "Yêu cầu cần chuyên viên quyết định.",
+                "facts": ["Sinh viên K49 xin rút môn sau hạn"],
+                "basis": [],
+                "question": "Chuyên viên có đồng ý phê duyệt đơn rút môn sau hạn cho sinh viên K49 không?",
+                "options": ["Đồng ý", "Từ chối"],
+            },
+            error=None,
+        )
+
+    with patch("infra.llm.call_json", side_effect=fake_call_json):
+        fixed_card = ensure_valid_escalation_card(
+            bad_card,
+            _make_extraction(asks_exception=True),
+            _make_evidence(),
+            EscalationType.AUTHORITY_REQUIRED,
+        )
+
+    assert "rule_7:forbidden_blocklist" in captured["prompt"]
+    assert "Vui lòng xem xét" not in fixed_card.question
 
 
 def test_load_fallback_template_for_all_types() -> None:

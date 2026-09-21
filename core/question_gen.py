@@ -249,6 +249,7 @@ def generate_escalation_card(
     escalation_type: EscalationType,
     case_id: str = "",
     inp: CaseInput | None = None,
+    guard_feedback: list[str] | None = None,
 ) -> EscalationCard:
     """R7b: Sinh thẻ EscalationCard 4 khối chuẩn Mục 8.6 spec (Task A-17)."""
     try:
@@ -264,6 +265,10 @@ def generate_escalation_card(
         basis_text = "\n".join(f"- {breadcrumb}: {quote}" for breadcrumb, quote in reviewer_basis)
         review_request = _select_review_request(extraction, escalation_type)
         review_intent = review_request.intent if review_request else "hồ sơ này"
+        feedback_items = "\n- ".join(guard_feedback or [])
+        feedback_text = (
+            f"Các lỗi của thẻ trước phải sửa:\n- {feedback_items}\n" if feedback_items else ""
+        )
 
         prompt = (
             f"Bạn là chuyên viên tiếp nhận DSA. Hãy tạo EscalationCard 4 khối cho case chuyển tiếp.\n"
@@ -271,6 +276,7 @@ def generate_escalation_card(
             f"Trọng tâm cần chuyên viên quyết định: {review_intent}\n"
             f"Dữ kiện đã có:\n{facts_text}\n"
             f"Căn cứ trích dẫn:\n{basis_text}\n\n"
+            f"{feedback_text}"
             f"Yêu cầu định dạng JSON:\n"
             f"1. summary: Tóm tắt 1 câu, <= 30 từ.\n"
             f"2. facts: Danh sách 2-4 dữ kiện đã xác định.\n"

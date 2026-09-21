@@ -697,7 +697,7 @@ Chặn bằng luật deterministic:
 - Khối `[3]` có ≥ 1 breadcrumb (trừ `OUT_OF_POLICY` khi thực sự không có nguồn — khi đó ghi rõ *"không tìm thấy quy định đang hiệu lực"*).
 - Không chứa cụm trong `blocklist.yaml`: `vui lòng xem xét`, `kiểm tra lại`, `xử lý giúp`, `nhờ anh/chị xem`, `please review`, `kindly check`, `cần xem xét thêm`.
 
-Fail → regenerate **1 lần** → fallback template cứng theo `escalation_type` trong `fallback_questions.yaml`.
+Fail → regenerate **1 lần**, truyền danh sách vi phạm vào prompt để sửa cụ thể và tránh lặp cùng cache → vẫn fail thì dùng fallback template cứng theo `escalation_type` trong `fallback_questions.yaml`.
 
 ### 8.8 R9a / R13 — Vòng đời gửi
 

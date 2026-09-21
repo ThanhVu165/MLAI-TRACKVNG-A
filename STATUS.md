@@ -67,5 +67,6 @@
 - `[H+104][Agent A] xong A-36 · dữ kiện, prompt và câu hỏi chuyển tiếp ưu tiên đúng request cần ngoại lệ/phúc khảo/phê duyệt, không phụ thuộc thứ tự trích xuất.`
 - `[H+105][Agent A] xong A-37 · prompt sinh thư nhận đủ domain/intent chuẩn hóa, che PII trong tiêu đề và không truyền body hoặc sender thô.`
 - `[H+106][Agent A] xong A-38 · khai báo đúng PipelineResult tùy chọn trong rerun_case; mypy toàn core 17 file xanh.`
+- `[H+107][Agent A] xong A-39 · lần tái tạo thẻ nhận danh sách vi phạm Question Guard nên prompt/cache khác và có chỉ dẫn sửa cụ thể.`
 
 

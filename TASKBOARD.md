@@ -337,8 +337,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Khai báo đúng kiểu tùy chọn của kết quả case gốc trong `rerun_case()` khi case chỉ có input hoặc không tìm thấy bản kết quả đã lưu; không đổi contract hay hành vi runtime.
 - **Xong khi:** `mypy --ignore-missing-imports core/` xanh và test controls giữ nguyên kết quả.
 
-### A-39 · Tái tạo câu hỏi với phản hồi từ guard [WIP]
-- **Khối:** Ổn định sau audit · **Ước lượng:** 45ph · **Phụ thuộc:** A-17, A-18 · **Trạng thái:** `WIP`
+### A-39 · Tái tạo câu hỏi với phản hồi từ guard [DONE]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 45ph · **Phụ thuộc:** A-17, A-18 · **Trạng thái:** `DONE`
 - **File:** `core/question_gen.py`, `core/question_guard.py`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Lần tạo lại thẻ phải đưa danh sách vi phạm Question Guard vào prompt để không lặp lại cùng prompt/cache và cùng lỗi.
 - **Xong khi:** Test xác nhận prompt tái tạo chứa phản hồi guard cụ thể; nếu vẫn lỗi mới dùng fallback deterministic.
