@@ -283,8 +283,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Bỏ chốt độ dài dưới 15 từ; chỉ từ chối nội dung rỗng hoặc chỉ gồm ký hiệu không mang nghĩa. Câu hỏi và yêu cầu ngắn vẫn phải đi qua pipeline bình thường.
 - **Xong khi:** Các đầu vào `"Hạn rút môn?"`, `"Xin rút môn sau hạn"` không bị trả `INVALID_INPUT`; đầu vào rỗng và `"..."` vẫn bị chặn.
 
-### A-30 · Chuẩn hóa nhận diện ý định sinh viên bằng NLP nhẹ [WIP]
-- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 2h · **Phụ thuộc:** A-08, A-10 · **Trạng thái:** `WIP`
+### A-30 · Chuẩn hóa nhận diện ý định sinh viên bằng NLP nhẹ [DONE]
+- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 2h · **Phụ thuộc:** A-08, A-10 · **Trạng thái:** `DONE`
 - **File:** `core/extract.py`, `tests/test_extract_prepolicy.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Chuẩn hóa Unicode/token và nhận diện theo cụm từ có ngữ cảnh để phân biệt câu hỏi thông tin với yêu cầu áp dụng cho hồ sơ cá nhân; không thêm dependency nặng và không cho NLP quyết định policy.
 - **Xong khi:** Các biến thể có dấu/không dấu và cách diễn đạt ngắn nhận đúng domain, intent, cờ ngoại lệ/phúc khảo/thẩm quyền; câu hỏi thông tin không bị escalate thừa.

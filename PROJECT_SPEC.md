@@ -579,6 +579,8 @@ Bốn trường này điều khiển R3 Pre-policy Lock. Định nghĩa sai → 
 
 Câu phân biệt nhanh cho prompt: *"Sinh viên này đang hỏi THÔNG TIN về quy trình, hay đang YÊU CẦU một quyết định áp dụng cho hồ sơ cá nhân của họ?"*
 
+R2 chuẩn hóa Unicode, dấu câu và biến thể có/không dấu trước khi nhận diện cụm hành động. Intent phải nêu đúng vấn đề (`hỏi thời hạn`, `hỏi lệ phí`, `xin ngoại lệ`, `yêu cầu phúc khảo`, `yêu cầu phê duyệt`) để retrieval dùng được; không được bật cờ thẩm quyền chỉ vì xuất hiện tên một thủ tục.
+
 ### 8.1 Các chốt chặn rẻ ở R1 (chống mất điểm do input rác của giám khảo)
 
 | Điều kiện | Kết quả | Vì sao không escalate |

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
+import re
+import unicodedata
 from typing import Any, Literal
 
 from core.types import Domain, Extraction, RequestItem
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 # Prompt & JSON Schema theo mục 5.2 và 8.0 của PROJECT_SPEC.md
 # ---------------------------------------------------------------------------
 
-EXTRACT_PROMPT_V1 = """Bạn là trợ lý AI chuyên trích xuất thông tin hành chính từ email sinh viên gửi văn phòng Công tác Sinh viên (DSA).
+EXTRACT_PROMPT_V2 = """Bạn là trợ lý AI chuyên trích xuất thông tin hành chính từ email sinh viên gửi văn phòng Công tác Sinh viên (DSA).
 Nhiệm vụ của bạn DUY NHẤT là trích xuất sự kiện và phân loại ý định. TUYỆT ĐỐI không trả lời câu hỏi, không suy đoán.
 
 Các domain hợp lệ:
@@ -27,8 +29,92 @@ QUY TẮC PHÂN LOẠI 4 CỜ BOOLEAN:
 3. asks_exception: TRUE khi sinh viên XIN NGOẠI LỆ áp dụng khác quy định (ví dụ: "em muốn rút môn sau hạn"). Nếu chỉ hỏi "hạn rút môn là ngày nào?" -> FALSE.
 4. asks_authority_decision: TRUE khi YÊU CẦU người có thẩm quyền phê duyệt trường hợp cá nhân (ví dụ: "nhờ thầy duyệt cho em"). Nếu chỉ hỏi "ai có thẩm quyền duyệt?" -> FALSE.
 
+Trước khi phân loại, hãy xác định cụm hành động chính và đối tượng mà sinh viên hỏi hoặc yêu cầu. Câu ngắn vẫn hợp lệ. Phân biệt theo ngữ cảnh, không chỉ theo một từ khóa đơn lẻ.
+
 Hãy trả về định dạng JSON theo đúng schema được yêu cầu.
 """
+
+# Giữ alias cho script tạo cassette cũ; prompt đang dùng là phiên bản V2.
+EXTRACT_PROMPT_V1 = EXTRACT_PROMPT_V2
+
+DOMAIN_PHRASES = {
+    Domain.CONDUCT_SCORE: ("diem ren luyen", "drl"),
+    Domain.COURSE_WITHDRAWAL: (
+        "rut mon",
+        "rut hoc phan",
+        "huy mon",
+        "course withdrawal",
+        "withdraw course",
+    ),
+    Domain.GRADE_APPEAL: (
+        "phuc khao",
+        "khieu nai diem",
+        "khang nghi diem",
+        "cham lai",
+        "xem lai diem",
+        "grade appeal",
+        "re grade",
+    ),
+}
+
+DOMAIN_LABELS = {
+    Domain.CONDUCT_SCORE: "điểm rèn luyện",
+    Domain.COURSE_WITHDRAWAL: "rút học phần",
+    Domain.GRADE_APPEAL: "phúc khảo điểm",
+    Domain.UNKNOWN: "yêu cầu của sinh viên",
+}
+
+INFORMATION_PHRASES = (
+    "cho em hoi",
+    "muon hoi",
+    "muon biet",
+    "cho em biet",
+    "bao nhieu",
+    "khi nao",
+    "o dau",
+    "thu tuc",
+    "quy trinh",
+    "le phi",
+    "han chot",
+    "huong dan",
+    "what",
+    "when",
+    "where",
+    "how",
+    "procedure",
+    "deadline",
+    "fee",
+)
+
+REQUEST_PHRASES = ("xin", "muon", "de nghi", "mong", "cho em", "co the", "please")
+EXCEPTION_PHRASES = ("ngoai le", "sau han", "qua han", "tre", "cham chuoc", "mien")
+APPEAL_ACTION_PHRASES = (
+    "muon phuc khao",
+    "xin phuc khao",
+    "de nghi phuc khao",
+    "cho em phuc khao",
+    "phuc khao bai thi",
+    "cham lai",
+    "xem lai diem",
+    "xem xet lai diem",
+    "khieu nai diem",
+    "khang nghi diem",
+)
+APPROVAL_PHRASES = (
+    "nho duyet",
+    "duyet cho em",
+    "duyet giup em",
+    "phe duyet cho em",
+    "kinh xin thay",
+    "kinh xin co",
+)
+PERSONAL_RECORD_PHRASES = (
+    "mssv",
+    "diem cua em",
+    "ket qua cua em",
+    "ho so cua em",
+    "truong hop cua em",
+)
 
 EXTRACTION_JSON_SCHEMA = {
     "type": "object",
@@ -80,121 +166,70 @@ def _normalize_lang(raw: Any) -> Literal["vi", "en", "other"]:
     return raw if raw in ("vi", "en") else "other"
 
 
-def _heuristic_extract(clean_text: str, subject: str, language: str) -> Extraction:
-    """Bộ trích xuất rule-based thông minh phục vụ môi trường offline/stub."""
-    combined = f"{subject} {clean_text}".lower()
+def _normalize_for_matching(text: str) -> str:
+    """Chuẩn hóa Unicode và dấu câu để so khớp cụm từ ổn định."""
+    decomposed = unicodedata.normalize("NFD", text.casefold().replace("đ", "d"))
+    without_marks = "".join(ch for ch in decomposed if unicodedata.category(ch) != "Mn")
+    return re.sub(r"[^\w]+", " ", without_marks).strip()
 
-    # Nhận diện Domain
-    domain = Domain.UNKNOWN
-    if any(k in combined for k in ["rèn luyện", "ren luyen", "đrl", "drl"]):
-        domain = Domain.CONDUCT_SCORE
-    elif any(
-        k in combined
-        for k in ["rút môn", "rut mon", "rút học phần", "rut hoc phan", "hủy môn", "withdrawal"]
-    ):
-        domain = Domain.COURSE_WITHDRAWAL
-    elif any(
-        k in combined for k in ["phúc khảo", "phuc khao", "khiếu nại điểm", "appeal", "re-grade"]
-    ):
-        domain = Domain.GRADE_APPEAL
 
-    # Kiểm tra các cờ thẩm quyền theo đúng quy tắc vàng Mục 8.0 spec
-    is_procedure_or_fee_query = any(
-        k in combined
-        for k in [
-            "lệ phí",
-            "le phi",
-            "bao nhiêu",
-            "bao nhieu",
-            "thời hạn",
-            "thoi han",
-            "khi nào",
-            "khi nao",
-            "hạn chót",
-            "han chot",
-            "quy trình",
-            "quy trinh",
-            "thủ tục",
-            "thu tuc",
-            "hướng dẫn",
-            "huong dan",
-            "mẫu đơn",
-            "mau don",
-            "điều kiện",
-            "dieu kien",
-            "thang điểm",
-            "thang diem",
-        ]
+def _contains(text: str, phrases: tuple[str, ...]) -> bool:
+    padded = f" {text} "
+    return any(f" {phrase} " in padded for phrase in phrases)
+
+
+def _detect_domain(text: str) -> Domain:
+    return next(
+        (domain for domain, phrases in DOMAIN_PHRASES.items() if _contains(text, phrases)),
+        Domain.UNKNOWN,
     )
 
-    asks_exception = any(
-        k in combined
-        for k in [
-            "ngoại lệ",
-            "ngoai le",
-            "sau hạn",
-            "sau han",
-            "quá hạn",
-            "qua han",
-            "châm chước",
-            "cham chuoc",
-            "được không",
-            "duoc khong",
-        ]
-    ) and any(k in combined for k in ["xin", "cho em", "mong"])
 
-    # Chỉ bật asks_appeal khi thực sự đề nghị chấm lại cho bản thân, không bị chặn bởi từ hỏi lệ phí
-    asks_appeal = False
-    if any(
-        k in combined for k in ["phúc khảo", "appeal", "khiếu nại", "kháng nghị", "xem xét lại"]
-    ):
-        asks_appeal = any(
-            k in combined
-            for k in [
-                "em muốn phúc khảo",
-                "xin phúc khảo",
-                "nộp đơn phúc khảo bài",
-                "chấm lại bài",
-                "cho em phúc khảo",
-                "phúc khảo bài thi",
-                "khiếu nại",
-                "kháng nghị",
-                "xem xét lại",
-                "bị trừ điểm",
-            ]
-        )
+def _information_intent(text: str, domain: Domain) -> str:
+    label = DOMAIN_LABELS[domain]
+    if _contains(text, ("hoan hoc phi", "hoan bao nhieu")):
+        return "Hỏi tỷ lệ hoàn học phí khi rút học phần"
+    if _contains(text, ("le phi", "fee", "bao nhieu")):
+        return f"Hỏi lệ phí {label}"
+    if _contains(text, ("han", "han chot", "deadline", "khi nao")):
+        return f"Hỏi thời hạn {label}"
+    if _contains(text, ("thu tuc", "quy trinh", "procedure", "huong dan")):
+        return f"Hỏi thủ tục {label}"
+    return f"Hỏi thông tin {label}"
 
-    asks_authority_decision = any(
-        k in combined
-        for k in [
-            "nhờ thầy duyệt",
-            "nhờ cô duyệt",
-            "kính xin thầy",
-            "kính xin cô",
-            "duyệt giúp em",
-            "phê duyệt cho em",
-        ]
+
+def _action_intent(
+    domain: Domain,
+    asks_exception: bool,
+    asks_appeal: bool,
+    asks_authority: bool,
+) -> str:
+    label = DOMAIN_LABELS[domain]
+    if asks_exception:
+        return f"Xin ngoại lệ {label}"
+    if asks_appeal:
+        return "Yêu cầu phúc khảo điểm cá nhân"
+    if asks_authority:
+        return f"Yêu cầu phê duyệt {label}"
+    return f"Yêu cầu tra cứu hồ sơ cá nhân về {label}"
+
+
+def _build_requests(text: str, domain: Domain) -> list[RequestItem]:
+    information_query = _contains(text, INFORMATION_PHRASES)
+    exception_context = _contains(text, EXCEPTION_PHRASES)
+    asks_exception = exception_context and (
+        _contains(text, REQUEST_PHRASES) or not information_query
     )
-
-    requires_personal_record = (
-        any(
-            k in combined
-            for k in ["[mssv]", "mssv", "điểm của em", "kết quả của em", "hồ sơ của em"]
-        )
-        and not asks_exception
-    )
-
+    asks_appeal = _contains(text, APPEAL_ACTION_PHRASES)
+    asks_authority = _contains(text, APPROVAL_PHRASES)
+    requires_record = _contains(text, PERSONAL_RECORD_PHRASES) and not asks_exception
+    needs_human = asks_exception or asks_appeal or asks_authority or requires_record
     requests: list[RequestItem] = []
-    has_authority = (
-        asks_exception or asks_appeal or asks_authority_decision or requires_personal_record
-    )
-
-    if is_procedure_or_fee_query and has_authority:
-        # Email đa ý định (A-24): 1 phần thường quy tra cứu + 1 phần cần thẩm quyền
+    if information_query and needs_human:
         requests.append(
             RequestItem(
                 domain=domain,
-                intent=f"Hỏi thủ tục/thông tin {domain.value}",
+                intent=_information_intent(text, domain),
                 is_informational=True,
                 requires_personal_record=False,
                 asks_exception=False,
@@ -202,41 +237,52 @@ def _heuristic_extract(clean_text: str, subject: str, language: str) -> Extracti
                 asks_authority_decision=False,
             )
         )
+    if needs_human:
         requests.append(
             RequestItem(
                 domain=domain,
-                intent=subject.strip() or f"Yêu cầu xử lý {domain.value}",
+                intent=_action_intent(domain, asks_exception, asks_appeal, asks_authority),
                 is_informational=False,
-                requires_personal_record=requires_personal_record,
+                requires_personal_record=requires_record,
                 asks_exception=asks_exception,
                 asks_appeal=asks_appeal,
-                asks_authority_decision=asks_authority_decision,
+                asks_authority_decision=asks_authority,
             )
         )
-    else:
-        is_info = is_procedure_or_fee_query or not has_authority
+    elif not requests:
         requests.append(
             RequestItem(
                 domain=domain,
-                intent=subject.strip() or "Yêu cầu thông tin",
-                is_informational=is_info,
-                requires_personal_record=requires_personal_record,
-                asks_exception=asks_exception,
-                asks_appeal=asks_appeal,
-                asks_authority_decision=asks_authority_decision,
+                intent=_information_intent(text, domain),
+                is_informational=True,
+                requires_personal_record=False,
+                asks_exception=False,
+                asks_appeal=False,
+                asks_authority_decision=False,
             )
         )
+    return requests
 
-    critical_facts: dict[str, str] = {}
+
+def _critical_facts(text: str) -> dict[str, str]:
+    facts: dict[str, str] = {}
+    cohort_match = re.search(r"\bk(4[89]|50)\b", text)
+    semester_match = re.search(r"\bhoc ky\s*([123])\b", text)
+    if cohort_match:
+        facts["cohort"] = f"K{cohort_match.group(1)}"
+    if semester_match:
+        facts["semester"] = f"Học kỳ {semester_match.group(1)}"
+    return facts
+
+
+def _heuristic_extract(clean_text: str, subject: str, language: str) -> Extraction:
+    """NLP nhẹ, deterministic cho môi trường offline/replay."""
+    combined = _normalize_for_matching(f"{subject} {clean_text}")
+    domain = _detect_domain(combined)
+    requests = _build_requests(combined, domain)
+    critical_facts = _critical_facts(combined)
+
     missing_facts: list[str] = []
-
-    # Nhận diện khóa học / học kỳ nếu có
-    if "k48" in combined:
-        critical_facts["cohort"] = "K48"
-    elif "k49" in combined:
-        critical_facts["cohort"] = "K49"
-    elif "k50" in combined:
-        critical_facts["cohort"] = "K50"
 
     raw_dict = {
         "language": language,
@@ -338,7 +384,7 @@ def extract_facts(
         return _heuristic_extract(clean_text, subject, language)
 
     try:
-        prompt = f"{EXTRACT_PROMPT_V1}\n\nEmail Tiêu đề: {subject}\nNội dung:\n{clean_text}"
+        prompt = f"{EXTRACT_PROMPT_V2}\n\nEmail Tiêu đề: {subject}\nNội dung:\n{clean_text}"
         res = call_json(
             prompt,
             schema=EXTRACTION_JSON_SCHEMA,
@@ -350,7 +396,11 @@ def extract_facts(
         )
         if res.ok and res.data:
             return parse_extraction_data(res.data, json.dumps(res.data, ensure_ascii=False))
-        elif res.error and ("No such file or directory" in res.error or "GEMINI_API_KEY" in res.error or "mất kết nối" in res.error):
+        elif res.error and (
+            "No such file or directory" in res.error
+            or "GEMINI_API_KEY" in res.error
+            or "mất kết nối" in res.error
+        ):
             logger.debug("LLM cassette/key missing (%s), using heuristic fallback", res.error)
             return _heuristic_extract(clean_text, subject, language)
         else:

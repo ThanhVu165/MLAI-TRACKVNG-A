@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from core.extract import extract_facts, parse_extraction_data
+from core.extract import _heuristic_extract, extract_facts, parse_extraction_data
 from core.pipeline import process_case
 from core.prepolicy import evaluate_prepolicy_lock
 from core.types import CaseInput, Decision, Domain, EscalationType
@@ -93,3 +93,48 @@ def test_parse_extraction_data_schema():
     assert len(ext.requests) == 1
     assert ext.requests[0].domain == Domain.CONDUCT_SCORE
     assert ext.critical_facts["cohort"] == "K48"
+
+
+def test_nlp_normalizes_unaccented_short_query() -> None:
+    ext = _heuristic_extract("Han rut hoc phan?", "", "vi")
+
+    request = ext.requests[0]
+    assert request.domain == Domain.COURSE_WITHDRAWAL
+    assert request.is_informational is True
+    assert request.asks_exception is False
+    assert request.intent == "Hỏi thời hạn rút học phần"
+
+
+def test_nlp_distinguishes_appeal_information_from_personal_request() -> None:
+    info = _heuristic_extract("Em muốn biết thủ tục phúc khảo và lệ phí.", "", "vi")
+    personal = _heuristic_extract("Em đề nghị xem lại điểm bài thi Giải tích của em.", "", "vi")
+
+    assert info.requests[0].is_informational is True
+    assert info.requests[0].asks_appeal is False
+    assert personal.requests[0].domain == Domain.GRADE_APPEAL
+    assert personal.requests[0].asks_appeal is True
+    assert personal.requests[0].intent == "Yêu cầu phúc khảo điểm cá nhân"
+
+
+def test_nlp_recognizes_short_exception_and_approval_requests() -> None:
+    exception = _heuristic_extract("Cho em xin rút học phần trễ vì nằm viện.", "", "vi")
+    approval = _heuristic_extract("Nhờ duyệt cho em rút học phần.", "", "vi")
+
+    assert exception.requests[0].asks_exception is True
+    assert exception.requests[0].intent == "Xin ngoại lệ rút học phần"
+    assert approval.requests[0].asks_authority_decision is True
+    assert approval.requests[0].intent == "Yêu cầu phê duyệt rút học phần"
+
+
+def test_nlp_preserves_review_topics_for_policy_and_retrieval() -> None:
+    conduct_appeal = _heuristic_extract(
+        "Em đề nghị xem xét lại điểm rèn luyện của bản thân em.", "", "vi"
+    )
+    refund = _heuristic_extract(
+        "Cho em hỏi rút môn thì được hoàn bao nhiêu phần trăm học phí?", "", "vi"
+    )
+    terse_exception = _heuristic_extract("Rút môn sau hạn.", "", "vi")
+
+    assert conduct_appeal.requests[0].asks_appeal is True
+    assert "hoàn học phí" in refund.requests[0].intent
+    assert terse_exception.requests[0].asks_exception is True
