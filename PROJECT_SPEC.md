@@ -583,6 +583,8 @@ Câu phân biệt nhanh cho prompt: *"Sinh viên này đang hỏi THÔNG TIN v�
 
 R2 chuẩn hóa Unicode, dấu câu và biến thể có/không dấu trước khi nhận diện cụm hành động. Intent phải nêu đúng vấn đề (`hỏi thời hạn`, `hỏi lệ phí`, `xin ngoại lệ`, `yêu cầu phúc khảo`, `yêu cầu phê duyệt`) để retrieval dùng được; không được bật cờ thẩm quyền chỉ vì xuất hiện tên một thủ tục.
 
+Nếu email chứa nhiều domain đã biết, R2 phải giữ một `RequestItem` cho từng domain thay vì dừng ở kết quả đầu tiên. Khi sinh viên nêu rõ bậc học, lưu `critical_facts.applies_to` (`graduate`/`undergraduate`) để R5 kiểm tra scope.
+
 ### 8.1 Các chốt chặn rẻ ở R1 (chống mất điểm do input rác của giám khảo)
 
 | Điều kiện | Kết quả | Vì sao không escalate |
@@ -653,6 +655,8 @@ priority_order:
 Thứ tự kiểm tra cố định; trả về status của kiểm tra **đầu tiên** fail, nhưng `failed_checks` liệt kê **tất cả** để audit đọc được.
 
 Khi kết quả là `OK`, `EvidenceResult.chunks` chỉ giữ chunk vượt ngưỡng, đúng domain, `auto_answerable` và không mang conflict ngoài chủ đề. Generator không được nhận toàn bộ kết quả retrieval thô. Khi conflict đúng chủ đề, giữ các chunk liên quan làm ngữ cảnh cho người xét duyệt và trả `CONFLICTING_SOURCES`.
+
+Giá trị `all` trong `applies_to` hoặc `cohorts` là wildcard. Nếu email nêu rõ scope mà chunk chỉ áp dụng cho scope khác, R5 phải trả `SCOPE_MISMATCH`; với email đa domain, mỗi domain đã biết phải có ít nhất một chunk khớp.
 
 ### 8.5 R8a — Bốn kiểm tra Groundedness Guard
 

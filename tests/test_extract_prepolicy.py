@@ -138,3 +138,27 @@ def test_nlp_preserves_review_topics_for_policy_and_retrieval() -> None:
     assert conduct_appeal.requests[0].asks_appeal is True
     assert "hoàn học phí" in refund.requests[0].intent
     assert terse_exception.requests[0].asks_exception is True
+
+
+def test_nlp_keeps_multiple_known_domains() -> None:
+    extraction = _heuristic_extract(
+        "Cho em hỏi hạn rút học phần và lệ phí phúc khảo?",
+        "Hai thủ tục",
+        "vi",
+    )
+
+    assert [request.domain for request in extraction.requests] == [
+        Domain.COURSE_WITHDRAWAL,
+        Domain.GRADE_APPEAL,
+    ]
+    assert all(request.is_informational for request in extraction.requests)
+
+
+def test_nlp_extracts_program_scope() -> None:
+    extraction = _heuristic_extract(
+        "Em là học viên cao học, cho em hỏi hạn rút học phần?",
+        "Rút học phần",
+        "vi",
+    )
+
+    assert extraction.critical_facts["applies_to"] == "graduate"

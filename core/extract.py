@@ -195,11 +195,19 @@ def _contains(text: str, phrases: tuple[str, ...]) -> bool:
     return any(f" {phrase} " in padded for phrase in phrases)
 
 
-def _detect_domain(text: str) -> Domain:
-    return next(
-        (domain for domain, phrases in DOMAIN_PHRASES.items() if _contains(text, phrases)),
-        Domain.UNKNOWN,
-    )
+def _detect_domains(text: str) -> list[Domain]:
+    domains = [domain for domain, phrases in DOMAIN_PHRASES.items() if _contains(text, phrases)]
+    return domains or [Domain.UNKNOWN]
+
+
+def _domain_context(text: str, domain: Domain, domain_count: int) -> str:
+    if domain_count == 1 or domain == Domain.UNKNOWN:
+        return text
+    segments = re.split(r"\b(?:va|dong thoi|ngoai ra)\b", text)
+    matching = [
+        segment for segment in segments if _contains(segment.strip(), DOMAIN_PHRASES[domain])
+    ]
+    return " ".join(matching) or text
 
 
 def _information_intent(text: str, domain: Domain) -> str:
@@ -289,14 +297,22 @@ def _critical_facts(text: str) -> dict[str, str]:
         facts["cohort"] = f"K{cohort_match.group(1)}"
     if semester_match:
         facts["semester"] = f"Học kỳ {semester_match.group(1)}"
+    if _contains(text, ("cao hoc", "sau dai hoc", "thac si", "graduate student")):
+        facts["applies_to"] = "graduate"
+    elif _contains(text, ("sinh vien dai hoc", "cu nhan", "undergraduate")):
+        facts["applies_to"] = "undergraduate"
     return facts
 
 
 def _heuristic_extract(clean_text: str, subject: str, language: str) -> Extraction:
     """NLP nhẹ, deterministic cho môi trường offline/replay."""
     combined = _normalize_for_matching(f"{subject} {clean_text}")
-    domain = _detect_domain(combined)
-    requests = _build_requests(combined, domain)
+    domains = _detect_domains(combined)
+    requests = [
+        request
+        for domain in domains
+        for request in _build_requests(_domain_context(combined, domain, len(domains)), domain)
+    ]
     critical_facts = _critical_facts(combined)
 
     missing_facts: list[str] = []

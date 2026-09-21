@@ -62,5 +62,6 @@
 - `[H+99][Agent A] xong A-31 · thẻ xét duyệt xếp hạng nguồn thật, gợi ý phương án theo dữ kiện thiếu và không bịa tài liệu khi retrieval rỗng.`
 - `[H+100][Agent A] xong A-32 · chỉ evidence vượt ngưỡng, đúng domain và không conflict ngoài chủ đề mới đi vào câu trả lời tự động.`
 - `[H+101][Agent A] xong A-33 · live/record lỗi LLM không fallback âm thầm; lỗi xác minh ACTIVE fail-closed và draft lỗi không grounded.`
+- `[H+102][Agent A] xong A-34 · giữ nhiều domain trong một email và kiểm tra applies_to/cohort với wildcard all trước khi tự động trả lời.`
 
 

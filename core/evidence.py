@@ -63,6 +63,7 @@ def validate_evidence(
 
     supported_domains = get_supported_domains()
     requested_domains = [req.domain for req in extraction.requests]
+    known_requested_domains = {domain for domain in requested_domains if domain != Domain.UNKNOWN}
 
     # -----------------------------------------------------------------------
     # Kiểm tra 1: Có >= 1 chunk vượt ngưỡng similarity (0.35)
@@ -77,7 +78,8 @@ def validate_evidence(
     # Kiểm tra 2: Chunk thuộc đúng domain được hỏi
     # -----------------------------------------------------------------------
     domain_matched_chunks = [c for c in valid_similarity if c.domain in requested_domains]
-    if not domain_matched_chunks and any(d != Domain.UNKNOWN for d in requested_domains):
+    matched_domains = {chunk.domain for chunk in domain_matched_chunks}
+    if not known_requested_domains.issubset(matched_domains):
         failed_checks.append("check_2_domain_mismatch")
         if first_fail_status is None:
             first_fail_status = EvidenceStatus.NO_AUTHORITATIVE_SOURCE
@@ -113,11 +115,22 @@ def validate_evidence(
     # Kiểm tra 6: Scope khớp (applies_to / cohorts) hoặc không cần
     # -----------------------------------------------------------------------
     user_cohort = extraction.critical_facts.get("cohort")
-    scope_failed = False
-    for c in domain_matched_chunks:
-        if c.cohorts and user_cohort and user_cohort not in c.cohorts:
-            scope_failed = True
-            break
+    user_applies_to = extraction.critical_facts.get("applies_to")
+    scope_failed = any(
+        (
+            chunk.cohorts
+            and "all" not in chunk.cohorts
+            and user_cohort
+            and user_cohort not in chunk.cohorts
+        )
+        or (
+            chunk.applies_to
+            and "all" not in chunk.applies_to
+            and user_applies_to
+            and user_applies_to not in chunk.applies_to
+        )
+        for chunk in domain_matched_chunks
+    )
     if scope_failed:
         failed_checks.append("check_6_scope_mismatch")
         if first_fail_status is None:

@@ -23,6 +23,7 @@ def _sample_chunk(
     cohorts: list[str] | None = None,
     transitional_clause: bool = False,
     text: str = "Thời hạn rút học phần trước tuần thứ 8.",
+    applies_to: list[str] | None = None,
 ) -> EvidenceChunk:
     return EvidenceChunk(
         chunk_id=chunk_id,
@@ -34,7 +35,7 @@ def _sample_chunk(
         score=score,
         effective_from=date(2026, 1, 1),
         effective_to=None,
-        applies_to=["undergraduate"],
+        applies_to=applies_to if applies_to is not None else ["undergraduate"],
         cohorts=cohorts if cohorts is not None else ["K48", "K49"],
         transitional_clause=transitional_clause,
         conflict_flag=conflict_flag,
@@ -184,3 +185,24 @@ def test_relevant_conflict_is_preserved_for_human_review() -> None:
 
     assert res.status == EvidenceStatus.CONFLICTING_SOURCES
     assert [chunk.chunk_id for chunk in res.chunks] == ["refund_conflict"]
+
+
+def test_check_6_applies_to_mismatch() -> None:
+    chunk = _sample_chunk(applies_to=["undergraduate"])
+    ext = _sample_extraction()
+    ext.critical_facts["applies_to"] = "graduate"
+
+    res = validate_evidence([chunk], ext)
+
+    assert res.status == EvidenceStatus.SCOPE_MISMATCH
+    assert "check_6_scope_mismatch" in res.failed_checks
+
+
+def test_check_6_all_scope_is_wildcard() -> None:
+    chunk = _sample_chunk(applies_to=["all"], cohorts=["all"])
+    ext = _sample_extraction(cohort="K50")
+    ext.critical_facts["applies_to"] = "graduate"
+
+    res = validate_evidence([chunk], ext)
+
+    assert res.status == EvidenceStatus.OK

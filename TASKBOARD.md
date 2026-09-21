@@ -307,8 +307,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Chỉ fallback heuristic trong replay/offline; live thiếu API key hoặc LLM lỗi phải đặt lỗi để Policy Engine chuyển người. Kiểm tra trạng thái chunk lỗi phải fail-closed; generate lỗi không được âm thầm tạo thư tự động.
 - **Xong khi:** Ba lỗi mô phỏng đều không thể dẫn tới `AUTO_REPLY` hoặc draft grounded.
 
-### A-34 · Kiểm tra scope và giữ đủ domain yêu cầu [WIP]
-- **Khối:** Ổn định sau audit · **Ước lượng:** 2h · **Phụ thuộc:** A-12, A-30 · **Trạng thái:** `WIP`
+### A-34 · Kiểm tra scope và giữ đủ domain yêu cầu [DONE]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 2h · **Phụ thuộc:** A-12, A-30 · **Trạng thái:** `DONE`
 - **File:** `core/extract.py`, `core/evidence.py`, `tests/test_extract_prepolicy.py`, `tests/test_evidence_validator.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Nhận diện nhiều domain trong một email và kiểm tra `applies_to` khi sinh viên nêu đối tượng áp dụng; thiếu hoặc lệch scope phải chuyển người thay vì áp dụng quy định đại học.
 - **Xong khi:** Email ghép hai domain giữ hai request; câu hỏi cao học không dùng chunk chỉ áp dụng undergraduate.
