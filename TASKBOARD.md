@@ -331,8 +331,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Prompt R7a nhận danh sách domain và intent đã chuẩn hóa từ R2 để bám đúng vấn đề sinh viên hỏi; không đưa email thô hoặc PII vào prompt.
 - **Xong khi:** Test bắt prompt có đủ request đã chuẩn hóa, không có body và sender gốc của sinh viên.
 
-### A-38 · Sửa type-check cho kết quả chạy lại case [WIP]
-- **Khối:** Ổn định sau audit · **Ước lượng:** 15ph · **Phụ thuộc:** A-22 · **Trạng thái:** `WIP`
+### A-38 · Sửa type-check cho kết quả chạy lại case [DONE]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 15ph · **Phụ thuộc:** A-22 · **Trạng thái:** `DONE`
 - **File:** `core/controls.py`, `TASKBOARD.md`, `STATUS.md`
 - **Việc phải làm:** Khai báo đúng kiểu tùy chọn của kết quả case gốc trong `rerun_case()` khi case chỉ có input hoặc không tìm thấy bản kết quả đã lưu; không đổi contract hay hành vi runtime.
 - **Xong khi:** `mypy --ignore-missing-imports core/` xanh và test controls giữ nguyên kết quả.

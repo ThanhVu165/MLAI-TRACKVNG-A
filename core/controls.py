@@ -148,6 +148,7 @@ def rerun_case(
         elif isinstance(arg, str):
             actor = arg
 
+    original_result: PipelineResult | None
     if isinstance(case_id, PipelineResult):
         original_result = case_id
         cid = original_result.case_id
