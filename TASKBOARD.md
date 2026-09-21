@@ -295,8 +295,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Khi hệ thống chuyển tiếp, dùng các evidence chunk đã truy xuất để gợi ý câu trả lời tương đương hoặc tài liệu liên quan cho người xét duyệt; không bịa nguồn khi retrieval rỗng.
 - **Xong khi:** Thẻ escalation có căn cứ được xếp theo độ liên quan, trích đoạn đọc được và phương án tham chiếu tài liệu; trường hợp không có nguồn ghi rõ không tìm thấy quy định đang hiệu lực.
 
-### A-32 · Chỉ đưa evidence đủ điều kiện vào câu trả lời [WIP]
-- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-12, A-30 · **Trạng thái:** `WIP`
+### A-32 · Chỉ đưa evidence đủ điều kiện vào câu trả lời [DONE]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-12, A-30 · **Trạng thái:** `DONE`
 - **File:** `core/evidence.py`, `tests/test_evidence_validator.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Khi evidence hợp lệ để AUTO_REPLY, loại chunk dưới ngưỡng, sai domain và chunk conflict không liên quan trước khi chuyển sang generator; conflict đúng chủ đề vẫn phải chuyển người.
 - **Xong khi:** Câu hỏi hạn rút môn không chứa điều khoản hoàn học phí có conflict; câu hỏi hoàn học phí vẫn ra `CONFLICTING_SOURCES`.

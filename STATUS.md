@@ -60,5 +60,6 @@
 - `[H+97][Agent A] xong A-29 · truy vấn ngắn có ý nghĩa tiếp tục vào pipeline; chỉ input rỗng hoặc toàn ký hiệu bị chặn.`
 - `[H+98][Agent A] xong A-30 · NLP nhẹ chuẩn hóa tiếng Việt có/không dấu, nhận diện đúng vấn đề và phân biệt hỏi thông tin với yêu cầu cá nhân.`
 - `[H+99][Agent A] xong A-31 · thẻ xét duyệt xếp hạng nguồn thật, gợi ý phương án theo dữ kiện thiếu và không bịa tài liệu khi retrieval rỗng.`
+- `[H+100][Agent A] xong A-32 · chỉ evidence vượt ngưỡng, đúng domain và không conflict ngoài chủ đề mới đi vào câu trả lời tự động.`
 
 

@@ -76,9 +76,7 @@ def validate_evidence(
     # -----------------------------------------------------------------------
     # Kiểm tra 2: Chunk thuộc đúng domain được hỏi
     # -----------------------------------------------------------------------
-    domain_matched_chunks = [
-        c for c in chunks if any(c.domain == d for d in requested_domains if d != Domain.UNKNOWN)
-    ]
+    domain_matched_chunks = [c for c in valid_similarity if c.domain in requested_domains]
     if not domain_matched_chunks and any(d != Domain.UNKNOWN for d in requested_domains):
         failed_checks.append("check_2_domain_mismatch")
         if first_fail_status is None:
@@ -96,7 +94,7 @@ def validate_evidence(
     # -----------------------------------------------------------------------
     # Kiểm tra 4: Mọi chunk dùng để trả lời có label == auto_answerable
     # -----------------------------------------------------------------------
-    has_human_only = any(c.label == ChunkLabel.HUMAN_ONLY for c in chunks)
+    has_human_only = any(c.label == ChunkLabel.HUMAN_ONLY for c in domain_matched_chunks)
     if has_human_only:
         failed_checks.append("check_4_authority_content_human_only")
         if first_fail_status is None:
@@ -105,7 +103,7 @@ def validate_evidence(
     # -----------------------------------------------------------------------
     # Kiểm tra 5: Không có cặp chunk ACTIVE conflict_flag cùng chủ đề
     # -----------------------------------------------------------------------
-    has_conflict = any(_is_conflict_relevant(c, extraction) for c in chunks)
+    has_conflict = any(_is_conflict_relevant(c, extraction) for c in domain_matched_chunks)
     if has_conflict:
         failed_checks.append("check_5_conflicting_sources")
         if first_fail_status is None:
@@ -116,7 +114,7 @@ def validate_evidence(
     # -----------------------------------------------------------------------
     user_cohort = extraction.critical_facts.get("cohort")
     scope_failed = False
-    for c in chunks:
+    for c in domain_matched_chunks:
         if c.cohorts and user_cohort and user_cohort not in c.cohorts:
             scope_failed = True
             break
@@ -133,7 +131,7 @@ def validate_evidence(
         facts_missing = True
 
     # Nếu chunk có điều khoản chuyển tiếp -> bắt buộc phải biết khóa
-    has_transitional = any(c.transitional_clause for c in chunks)
+    has_transitional = any(c.transitional_clause for c in domain_matched_chunks)
     if has_transitional and not user_cohort:
         facts_missing = True
 
@@ -146,12 +144,26 @@ def validate_evidence(
     # Tổng kết kết quả
     # -----------------------------------------------------------------------
     final_status = first_fail_status if first_fail_status is not None else EvidenceStatus.OK
+    answerable_chunks = [
+        chunk
+        for chunk in (domain_matched_chunks if requested_domains else valid_similarity)
+        if chunk.label == ChunkLabel.AUTO_ANSWERABLE and not chunk.conflict_flag
+    ]
+    if final_status == EvidenceStatus.OK and not answerable_chunks:
+        final_status = EvidenceStatus.NO_AUTHORITATIVE_SOURCE
+        failed_checks.append("check_2_domain_mismatch")
+
+    result_chunks = (
+        answerable_chunks
+        if final_status == EvidenceStatus.OK
+        else domain_matched_chunks or valid_similarity or chunks
+    )
 
     _log_evidence_audit(case_id, failed_checks)
 
     return EvidenceResult(
         status=final_status,
-        chunks=chunks,
+        chunks=result_chunks,
         failed_checks=failed_checks,
     )
 

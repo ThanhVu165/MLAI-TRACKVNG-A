@@ -650,6 +650,8 @@ priority_order:
 
 Thứ tự kiểm tra cố định; trả về status của kiểm tra **đầu tiên** fail, nhưng `failed_checks` liệt kê **tất cả** để audit đọc được.
 
+Khi kết quả là `OK`, `EvidenceResult.chunks` chỉ giữ chunk vượt ngưỡng, đúng domain, `auto_answerable` và không mang conflict ngoài chủ đề. Generator không được nhận toàn bộ kết quả retrieval thô. Khi conflict đúng chủ đề, giữ các chunk liên quan làm ngữ cảnh cho người xét duyệt và trả `CONFLICTING_SOURCES`.
+
 ### 8.5 R8a — Bốn kiểm tra Groundedness Guard
 
 1. Mọi `citation` tồn tại và `corpus.api.is_active(chunk_id) == True`.

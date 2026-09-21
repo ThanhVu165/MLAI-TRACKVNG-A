@@ -22,12 +22,13 @@ def _sample_chunk(
     conflict_flag: bool = False,
     cohorts: list[str] | None = None,
     transitional_clause: bool = False,
+    text: str = "Thời hạn rút học phần trước tuần thứ 8.",
 ) -> EvidenceChunk:
     return EvidenceChunk(
         chunk_id=chunk_id,
         doc_id="DOC-01",
         breadcrumb="QĐ 3150 · Điều 8",
-        text="Thời hạn rút học phần trước tuần thứ 8.",
+        text=text,
         domain=domain,
         label=label,
         score=score,
@@ -145,3 +146,41 @@ def test_all_checks_ok():
     res = validate_evidence([chunk], ext)
     assert res.status == EvidenceStatus.OK
     assert len(res.failed_checks) == 0
+
+
+def test_auto_reply_keeps_only_relevant_non_conflicting_evidence() -> None:
+    deadline = _sample_chunk(chunk_id="deadline", score=0.9)
+    refund_conflict = _sample_chunk(
+        chunk_id="refund_conflict",
+        score=0.8,
+        conflict_flag=True,
+        text="Sinh viên được hoàn 60% học phí khi rút học phần trong tuần thứ tư.",
+    )
+    low_score = _sample_chunk(chunk_id="low_score", score=0.2)
+    wrong_domain = _sample_chunk(
+        chunk_id="wrong_domain",
+        score=0.95,
+        domain=Domain.GRADE_APPEAL,
+    )
+    ext = _sample_extraction()
+    ext.requests[0].intent = "Hỏi thời hạn rút học phần"
+
+    res = validate_evidence([refund_conflict, low_score, wrong_domain, deadline], ext)
+
+    assert res.status == EvidenceStatus.OK
+    assert [chunk.chunk_id for chunk in res.chunks] == ["deadline"]
+
+
+def test_relevant_conflict_is_preserved_for_human_review() -> None:
+    refund_conflict = _sample_chunk(
+        chunk_id="refund_conflict",
+        conflict_flag=True,
+        text="Sinh viên được hoàn 60% học phí khi rút học phần trong tuần thứ tư.",
+    )
+    ext = _sample_extraction()
+    ext.requests[0].intent = "Hỏi tỷ lệ hoàn học phí khi rút học phần"
+
+    res = validate_evidence([refund_conflict], ext)
+
+    assert res.status == EvidenceStatus.CONFLICTING_SOURCES
+    assert [chunk.chunk_id for chunk in res.chunks] == ["refund_conflict"]
