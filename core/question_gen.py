@@ -16,6 +16,63 @@ from core.types import (
 
 logger = logging.getLogger(__name__)
 
+REVIEW_SUGGESTION_LIMIT = 3
+REVIEW_QUOTE_CHARS = 180
+
+
+def build_reviewer_suggestions(evidence_res: EvidenceResult) -> list[tuple[str, str]]:
+    """Xếp hạng nguồn thật để người xét duyệt đối chiếu, không bịa khi retrieval rỗng."""
+    suggestions: list[tuple[str, str]] = []
+    seen_breadcrumbs: set[str] = set()
+    for chunk in sorted(evidence_res.chunks, key=lambda item: item.score, reverse=True):
+        if chunk.breadcrumb in seen_breadcrumbs:
+            continue
+        seen_breadcrumbs.add(chunk.breadcrumb)
+        quote = " ".join(chunk.text.split())
+        if len(quote) > REVIEW_QUOTE_CHARS:
+            quote = f"{quote[: REVIEW_QUOTE_CHARS - 1].rsplit(' ', 1)[0]}…"
+        suggestions.append((chunk.breadcrumb, f"Gợi ý đối chiếu: {quote}"))
+        if len(suggestions) == REVIEW_SUGGESTION_LIMIT:
+            break
+
+    if suggestions:
+        return suggestions
+    return [
+        (
+            "Không tìm thấy tài liệu liên quan đang hiệu lực",
+            "Hệ thống chưa có căn cứ để gợi ý câu trả lời; chuyên viên cần tra cứu nguồn chính thức trước khi phản hồi.",
+        )
+    ]
+
+
+def build_review_options(
+    extraction: Extraction,
+    evidence_res: EvidenceResult,
+    escalation_type: EscalationType,
+) -> list[str]:
+    """Gợi ý ba hành động cụ thể dựa trên dữ kiện thiếu và nguồn retrieval."""
+    source = build_reviewer_suggestions(evidence_res)[0][0]
+    has_source = not source.startswith("Không tìm thấy")
+    if escalation_type == EscalationType.AUTHORITY_REQUIRED:
+        first = f"Đồng ý sau khi đối chiếu {source}" if has_source else "Đồng ý và ghi rõ căn cứ"
+        return [first, "Từ chối và nêu điều kiện chưa đạt", "Chuyển người có thẩm quyền cao hơn"]
+    if escalation_type == EscalationType.OUT_OF_POLICY:
+        first = (
+            f"Đối chiếu {source} và tìm quy định tương đương"
+            if has_source
+            else "Tra cứu quy định tương đương từ nguồn chính thức"
+        )
+        return [first, "Chuyển đơn vị chuyên trách", "Phản hồi chưa có căn cứ áp dụng"]
+
+    missing = extraction.missing_critical_facts[0] if extraction.missing_critical_facts else None
+    first = f"Yêu cầu bổ sung {missing}" if missing else "Yêu cầu bổ sung dữ kiện bắt buộc"
+    second = (
+        f"Đối chiếu {source} sau khi đủ dữ kiện"
+        if has_source
+        else "Tra cứu nguồn chính thức sau khi đủ dữ kiện"
+    )
+    return [first, second, "Chuyển chuyên viên phụ trách xác minh"]
+
 
 def load_fallback_template(
     escalation_type: EscalationType,
@@ -94,22 +151,7 @@ def _build_deterministic_card(
     # -----------------------------------------------------------------------
     # Khối [3]: Căn cứ (Basis)
     # -----------------------------------------------------------------------
-    basis: list[tuple[str, str]] = []
-    for c in evidence_res.chunks:
-        basis.append((c.breadcrumb, c.text[:120].strip() + "..."))
-
-    if not basis:
-        if escalation_type == EscalationType.OUT_OF_POLICY:
-            basis.append(
-                (
-                    "Phạm vi phục vụ DSA",
-                    "không tìm thấy quy định đang hiệu lực cho nội dung yêu cầu",
-                )
-            )
-        else:
-            basis.append(
-                ("Quy chế Nhà trường", "Hồ sơ cần đối chiếu với điều khoản áp dụng thực tế.")
-            )
+    basis = build_reviewer_suggestions(evidence_res)
 
     # -----------------------------------------------------------------------
     # Khối [1] & [4]: Tóm tắt và Câu hỏi đóng
@@ -145,23 +187,13 @@ def _build_deterministic_card(
     )
     if escalation_type == EscalationType.AUTHORITY_REQUIRED:
         question = f"Chuyên viên có đồng ý phê duyệt yêu cầu đối với {fact_anchor} không?"
-        options = ["Đồng ý phê duyệt", "Từ chối yêu cầu", "Chuyển Trưởng phòng xem xét"]
     elif escalation_type == EscalationType.OUT_OF_POLICY:
         question = (
             f"Chuyên viên hướng dẫn sinh viên xử lý nội dung {fact_anchor} theo phương án nào?"
         )
-        options = [
-            "Chuyển tiếp đơn vị chuyên trách",
-            "Hướng dẫn nộp đơn trực tiếp",
-            "Từ chối tiếp nhận",
-        ]
     else:
         question = f"Chuyên viên yêu cầu bổ sung thông tin gì cho {fact_anchor}?"
-        options = [
-            "Yêu cầu cung cấp minh chứng cụ thể",
-            "Hướng dẫn sinh viên tra cứu lại",
-            "Từ chối vì thiếu dữ kiện",
-        ]
+    options = build_review_options(extraction, evidence_res, escalation_type)
 
     return EscalationCard(
         summary=summary,
@@ -186,8 +218,13 @@ def generate_escalation_card(
         from infra.llm import call_json  # type: ignore[import-not-found]
 
         # Chuẩn bị context cho prompt
-        facts_text = "\n".join(f"- {k}: {v}" for k, v in extraction.critical_facts.items())
-        basis_text = "\n".join(f"- {c.breadcrumb}: {c.text[:100]}" for c in evidence_res.chunks)
+        facts_text = "\n".join(
+            [*(f"- Ý định: {request.intent}" for request in extraction.requests)]
+            + [*(f"- {key}: {value}" for key, value in extraction.critical_facts.items())]
+            + [*(f"- Còn thiếu: {fact}" for fact in extraction.missing_critical_facts)]
+        )
+        reviewer_basis = build_reviewer_suggestions(evidence_res)
+        basis_text = "\n".join(f"- {breadcrumb}: {quote}" for breadcrumb, quote in reviewer_basis)
 
         prompt = (
             f"Bạn là chuyên viên tiếp nhận DSA. Hãy tạo EscalationCard 4 khối cho case chuyển tiếp.\n"
@@ -197,7 +234,7 @@ def generate_escalation_card(
             f"Yêu cầu định dạng JSON:\n"
             f"1. summary: Tóm tắt 1 câu, <= 30 từ.\n"
             f"2. facts: Danh sách 2-4 dữ kiện đã xác định.\n"
-            f"3. basis: Danh sách cặp [breadcrumb, trích dẫn ngắn].\n"
+            f"3. basis: Tài liệu liên quan để người xét duyệt đối chiếu.\n"
             f"4. question: MỘT câu hỏi đóng kết thúc bằng '?', chứa dữ kiện cụ thể từ facts, 8-45 từ.\n"
             f"5. options: 2-4 phương án lựa chọn sẵn.\n"
         )
@@ -221,17 +258,14 @@ def generate_escalation_card(
         if res.ok and res.data:
             summary = res.data.get("summary", "")
             facts = res.data.get("facts", [])
-            raw_basis = res.data.get("basis", [])
-            basis = [(b[0], b[1]) if len(b) >= 2 else (b[0], "") for b in raw_basis if b]
             question = res.data.get("question", "")
-            options = res.data.get("options", [])
 
             return EscalationCard(
                 summary=summary,
                 facts=facts,
-                basis=basis,
+                basis=reviewer_basis,
                 question=question,
-                options=options,
+                options=build_review_options(extraction, evidence_res, escalation_type),
                 escalation_type=escalation_type,
                 partial_draft=None,
             )

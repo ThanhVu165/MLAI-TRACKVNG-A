@@ -59,5 +59,6 @@
 - `[H+96][Agent C] Xong C-27 (hoàn thành RUNBOOK.md chi tiết cài đặt sạch, khởi chạy và xử lý sự cố), xong S-09 (bổ sung docs/known_failures.md đủ 8 mục thực tế phục vụ Slide 5), xong S-10 (hoàn thành BUILD_LOG.md đánh giá công cụ AI, wins, frictions và scope cuts).`
 - `[H+97][Agent A] xong A-29 · truy vấn ngắn có ý nghĩa tiếp tục vào pipeline; chỉ input rỗng hoặc toàn ký hiệu bị chặn.`
 - `[H+98][Agent A] xong A-30 · NLP nhẹ chuẩn hóa tiếng Việt có/không dấu, nhận diện đúng vấn đề và phân biệt hỏi thông tin với yêu cầu cá nhân.`
+- `[H+99][Agent A] xong A-31 · thẻ xét duyệt xếp hạng nguồn thật, gợi ý phương án theo dữ kiện thiếu và không bịa tài liệu khi retrieval rỗng.`
 
 

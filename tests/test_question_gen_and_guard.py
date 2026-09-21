@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date, datetime, timezone
 
-from core.question_gen import generate_escalation_card, load_fallback_template
+from core.question_gen import (
+    build_reviewer_suggestions,
+    generate_escalation_card,
+    load_fallback_template,
+)
 from core.question_guard import ensure_valid_escalation_card, validate_question_quality
 from core.types import (
     CaseInput,
@@ -190,3 +195,52 @@ def test_load_fallback_template_for_all_types() -> None:
         assert len(tpl.options) >= 2
         assert len(tpl.facts) >= 1
         assert len(tpl.basis) >= 1
+
+
+def test_reviewer_suggestions_rank_and_deduplicate_related_documents() -> None:
+    evidence = _make_evidence()
+    lower_score = replace(
+        evidence.chunks[0],
+        chunk_id="chunk_cw_02",
+        breadcrumb="QĐ 20/2026 · Điều 5",
+        text="Đơn rút học phần được nộp trực tuyến theo mẫu của phòng đào tạo.",
+        score=0.7,
+    )
+    duplicate = replace(evidence.chunks[0], chunk_id="chunk_cw_03", score=0.6)
+    evidence.chunks = [lower_score, duplicate, evidence.chunks[0]]
+
+    suggestions = build_reviewer_suggestions(evidence)
+
+    assert [breadcrumb for breadcrumb, _ in suggestions] == [
+        "QĐ 3150/2026 · Điều 8",
+        "QĐ 20/2026 · Điều 5",
+    ]
+    assert all(quote.startswith("Gợi ý đối chiếu:") for _, quote in suggestions)
+
+
+def test_escalation_card_suggests_missing_fact_and_real_source() -> None:
+    card = generate_escalation_card(
+        _make_extraction(asks_exception=True),
+        _make_evidence(),
+        EscalationType.FACT_UNRESOLVED,
+    )
+
+    assert any("giấy xác nhận của bệnh viện" in option for option in card.options)
+    assert any("QĐ 3150/2026 · Điều 8" in option for option in card.options)
+
+
+def test_reviewer_suggestions_do_not_invent_source_when_retrieval_is_empty() -> None:
+    evidence = EvidenceResult(
+        status=EvidenceStatus.NO_AUTHORITATIVE_SOURCE,
+        chunks=[],
+        failed_checks=["check_1_similarity_threshold"],
+    )
+
+    suggestions = build_reviewer_suggestions(evidence)
+
+    assert suggestions == [
+        (
+            "Không tìm thấy tài liệu liên quan đang hiệu lực",
+            "Hệ thống chưa có căn cứ để gợi ý câu trả lời; chuyên viên cần tra cứu nguồn chính thức trước khi phản hồi.",
+        )
+    ]

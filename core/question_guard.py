@@ -5,7 +5,12 @@ from pathlib import Path
 
 import yaml
 
-from core.question_gen import generate_escalation_card, load_fallback_template
+from core.question_gen import (
+    build_review_options,
+    build_reviewer_suggestions,
+    generate_escalation_card,
+    load_fallback_template,
+)
 from core.types import (
     EscalationCard,
     EscalationType,
@@ -168,6 +173,8 @@ def ensure_valid_escalation_card(
     )
     # Lấy fallback template chuẩn
     fallback_card = load_fallback_template(escalation_type, fallback_path)
+    fallback_card.basis = build_reviewer_suggestions(evidence_res)
+    fallback_card.options = build_review_options(extraction, evidence_res, escalation_type)
     # Giữ lại partial_draft nếu có
     fallback_card.partial_draft = card.partial_draft
     return fallback_card

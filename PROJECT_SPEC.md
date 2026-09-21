@@ -670,6 +670,8 @@ Fail bất kỳ mục nào → `ESCALATE / FACT_UNRESOLVED`, `reason = "grounded
 
 Đây là cấu trúc quyết định 6 điểm ở bài "Chất lượng câu hỏi chuyển tiếp": chuyên viên phải quyết được **ngay trong một câu trả lời, không cần mở lại hồ sơ gốc**.
 
+Khi chuyển tiếp, khối `[3]` xếp tối đa ba evidence thật theo độ liên quan và ghi rõ *"Gợi ý đối chiếu"*; `options` gợi ý hành động dựa trên dữ kiện còn thiếu và breadcrumb tương ứng. Nếu retrieval rỗng, thẻ phải ghi rõ chưa tìm thấy tài liệu đang hiệu lực và yêu cầu tra cứu nguồn chính thức, tuyệt đối không tạo tên văn bản giả.
+
 ### 8.7 R8b — Question Quality Guard
 
 Chặn bằng luật deterministic:

@@ -289,9 +289,9 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Chuẩn hóa Unicode/token và nhận diện theo cụm từ có ngữ cảnh để phân biệt câu hỏi thông tin với yêu cầu áp dụng cho hồ sơ cá nhân; không thêm dependency nặng và không cho NLP quyết định policy.
 - **Xong khi:** Các biến thể có dấu/không dấu và cách diễn đạt ngắn nhận đúng domain, intent, cờ ngoại lệ/phúc khảo/thẩm quyền; câu hỏi thông tin không bị escalate thừa.
 
-### A-31 · Gợi ý căn cứ cho người thứ ba xét duyệt [WIP]
-- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 1.5h · **Phụ thuộc:** A-11, A-17, A-18 · **Trạng thái:** `WIP`
-- **File:** `core/question_gen.py`, `policies/fallback_questions.yaml`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
+### A-31 · Gợi ý căn cứ cho người thứ ba xét duyệt [DONE]
+- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 1.5h · **Phụ thuộc:** A-11, A-17, A-18 · **Trạng thái:** `DONE`
+- **File:** `core/question_gen.py`, `core/question_guard.py`, `policies/fallback_questions.yaml`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Khi hệ thống chuyển tiếp, dùng các evidence chunk đã truy xuất để gợi ý câu trả lời tương đương hoặc tài liệu liên quan cho người xét duyệt; không bịa nguồn khi retrieval rỗng.
 - **Xong khi:** Thẻ escalation có căn cứ được xếp theo độ liên quan, trích đoạn đọc được và phương án tham chiếu tài liệu; trường hợp không có nguồn ghi rõ không tìm thấy quy định đang hiệu lực.
 

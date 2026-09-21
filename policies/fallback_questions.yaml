@@ -6,8 +6,8 @@ fallback_templates:
       - "Sinh viên gửi yêu cầu qua kênh tiếp nhận nhưng còn thiếu thông tin cần thiết."
       - "Hệ thống dừng xử lý tự động để tránh suy đoán sai lệch."
     basis:
-      - breadcrumb: "Quy chế Công tác Sinh viên"
-        quote: "Mọi thủ tục hành chính chỉ được giải quyết khi sinh viên cung cấp đủ hồ sơ hợp lệ."
+      - breadcrumb: "Không tìm thấy tài liệu liên quan đang hiệu lực"
+        quote: "Hệ thống chưa có căn cứ để gợi ý câu trả lời; chuyên viên cần tra cứu nguồn chính thức trước khi phản hồi."
     question: "Chuyên viên yêu cầu sinh viên bổ sung thông tin gì để có cơ sở giải quyết?"
     options:
       - "Yêu cầu cung cấp minh chứng và thông tin cụ thể"
@@ -20,8 +20,8 @@ fallback_templates:
       - "Nội dung yêu cầu không thuộc 3 nhóm quy định thường quy được hỗ trợ tự động."
       - "Không tìm thấy điều khoản đang hiệu lực cho phép xử lý tự động nội dung này."
     basis:
-      - breadcrumb: "Phạm vi hỗ trợ tự động DSA"
-        quote: "Không tìm thấy quy định đang hiệu lực cho nội dung yêu cầu."
+      - breadcrumb: "Không tìm thấy tài liệu liên quan đang hiệu lực"
+        quote: "Hệ thống chưa có căn cứ để gợi ý câu trả lời; chuyên viên cần tra cứu nguồn chính thức trước khi phản hồi."
     question: "Chuyên viên hướng dẫn sinh viên liên hệ đơn vị nào hoặc xử lý ra sao?"
     options:
       - "Chuyển tiếp yêu cầu sang phòng ban chuyên trách liên quan"
@@ -34,8 +34,8 @@ fallback_templates:
       - "Yêu cầu chạm đến thẩm quyền quyết định cá biệt của lãnh đạo hoặc chuyên viên phụ trách."
       - "Quy định bắt buộc phải có sự xác nhận của người có thẩm quyền."
     basis:
-      - breadcrumb: "Quy định phân cấp thẩm quyền giải quyết việc sinh viên"
-        quote: "Các trường hợp đặc biệt, xin ngoại lệ hoặc khiếu nại phải do chuyên viên/lãnh đạo phê duyệt."
+      - breadcrumb: "Không tìm thấy tài liệu liên quan đang hiệu lực"
+        quote: "Hệ thống chưa có căn cứ để gợi ý câu trả lời; chuyên viên cần tra cứu nguồn chính thức trước khi phản hồi."
     question: "Chuyên viên có đồng ý phê duyệt ngoại lệ hoặc xem xét trường hợp này không?"
     options:
       - "Đồng ý phê duyệt trường hợp đặc biệt này"
