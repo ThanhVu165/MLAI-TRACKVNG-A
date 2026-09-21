@@ -306,6 +306,9 @@ def generate_escalation_card(
             facts = res.data.get("facts", [])
             question = res.data.get("question", "")
 
+            if "chuyên viên" not in summary.lower():
+                summary = f"Cần chuyên viên xem xét: {summary}" if summary else "Yêu cầu cần chuyên viên xem xét và xử lý."
+
             return EscalationCard(
                 summary=summary,
                 facts=facts,

@@ -24,11 +24,12 @@ Các domain hợp lệ:
 - grade_appeal (Phúc khảo điểm)
 - unknown (Mọi nội dung khác)
 
-QUY TẮC PHÂN LOẠI 4 CỜ BOOLEAN:
-1. is_informational: TRUE khi sinh viên CHỈ hỏi thông tin chung, quy trình, lệ phí, thời hạn - KHÔNG yêu cầu hành động đối với hồ sơ của chính họ.
-2. asks_appeal: TRUE khi sinh viên đang ĐỀ NGHỊ KHÁNG NGHỊ / PHÚC KHẢO điểm của chính họ (ví dụ: "em muốn phúc khảo môn X"). Nếu chỉ hỏi "lệ phí phúc khảo là bao nhiêu?" -> FALSE.
-3. asks_exception: TRUE khi sinh viên XIN NGOẠI LỆ áp dụng khác quy định (ví dụ: "em muốn rút môn sau hạn"). Nếu chỉ hỏi "hạn rút môn là ngày nào?" -> FALSE.
-4. asks_authority_decision: TRUE khi YÊU CẦU người có thẩm quyền phê duyệt trường hợp cá nhân (ví dụ: "nhờ thầy duyệt cho em"). Nếu chỉ hỏi "ai có thẩm quyền duyệt?" -> FALSE.
+QUY TẮC PHÂN LOẠI CÁC CỜ BOOLEAN:
+1. is_informational: TRUE khi sinh viên hỏi thông tin, quy định, mốc thời gian, tiêu chí hoặc hỏi điểm có đạt yêu cầu hay không (kể cả có từ 'của em').
+2. requires_personal_record: CHỈ TRUE khi sinh viên yêu cầu chỉnh sửa/cập nhật hồ sơ cá nhân hoặc yêu cầu tra cứu bảo mật theo MSSV. Nếu chỉ hỏi điểm rèn luyện hoặc hỏi tiêu chí đạt yêu cầu (kể cả viết 'điểm của em') mà không có MSSV hay yêu cầu sửa đổi hồ sơ thì BẮT BUỘC để FALSE.
+3. asks_appeal: TRUE khi sinh viên đang ĐỀ NGHỊ KHÁNG NGHỊ / PHÚC KHẢO điểm của chính họ (ví dụ: "em muốn phúc khảo môn X"). Nếu chỉ hỏi "lệ phí phúc khảo là bao nhiêu?" -> FALSE.
+4. asks_exception: TRUE khi sinh viên XIN NGOẠI LỆ áp dụng khác quy định (ví dụ: "em muốn rút môn sau hạn"). Nếu chỉ hỏi "hạn rút môn là ngày nào?" -> FALSE.
+5. asks_authority_decision: TRUE khi YÊU CẦU người có thẩm quyền phê duyệt trường hợp cá nhân (ví dụ: "nhờ thầy duyệt cho em"). Nếu chỉ hỏi "ai có thẩm quyền duyệt?" -> FALSE.
 
 Trước khi phân loại, hãy xác định cụm hành động chính và đối tượng mà sinh viên hỏi hoặc yêu cầu. Câu ngắn vẫn hợp lệ. Phân biệt theo ngữ cảnh, không chỉ theo một từ khóa đơn lẻ.
 
@@ -383,10 +384,25 @@ def parse_extraction_data(data: dict[str, Any], raw_json: str) -> Extraction:
             )
         )
 
+    raw_facts = data.get("critical_facts", {})
+    critical_facts: dict[str, str] = {}
+    if isinstance(raw_facts, dict):
+        for k, v in raw_facts.items():
+            k_str = str(k).strip()
+            v_str = str(v).strip()
+            k_lower = k_str.lower()
+            if "cohort" in k_lower or "khoa" in k_lower:
+                critical_facts["cohort"] = v_str
+            elif "semester" in k_lower or "hoc_ky" in k_lower or "hocky" in k_lower:
+                critical_facts["semester"] = v_str
+            elif "applies_to" in k_lower or "he_dao_tao" in k_lower:
+                critical_facts["applies_to"] = v_str
+            critical_facts[k_str] = v_str
+
     return Extraction(
         language=lang,
         requests=requests,
-        critical_facts=data.get("critical_facts", {}),
+        critical_facts=critical_facts,
         missing_critical_facts=data.get("missing_critical_facts", []),
         injection_suspected=bool(data.get("injection_suspected", False)),
         raw_json=raw_json,
@@ -429,7 +445,13 @@ def extract_facts(
             temperature=0.0,
         )
         if res.ok and res.data:
-            return parse_extraction_data(res.data, json.dumps(res.data, ensure_ascii=False))
+            ext = parse_extraction_data(res.data, json.dumps(res.data, ensure_ascii=False))
+            combined = _normalize_for_matching(f"{subject} {clean_text}")
+            text_facts = _critical_facts(combined)
+            for k, v in text_facts.items():
+                if k not in ext.critical_facts:
+                    ext.critical_facts[k] = v
+            return ext
         elif res.error and _replay_mode() and "No such file or directory" in res.error:
             logger.debug("Thiếu cassette replay (%s), sử dụng heuristic", res.error)
             return _heuristic_extract(clean_text, subject, language)

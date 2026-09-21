@@ -20,11 +20,12 @@ Nhiệm vụ của bạn là soạn thảo email trả lời tự động cho si
 
 QUY TẮC BẮT BUỘC:
 1. KHÔNG được suy đoán hoặc đưa ra thông tin không có trong tài liệu quy định.
-2. MỌI câu khẳng định nội dung, thông tin, mốc thời gian, lệ phí, thủ tục BẮT BUỘC phải kèm theo mã chunk tương ứng trong dấu ngoặc vuông, ví dụ [chunk_id].
+2. MỌI câu khẳng định nội dung, thông tin, mốc thời gian, lệ phí, thủ tục BẮT BUỘC phải kèm theo mã chunk tương ứng trong dấu ngoặc vuông, ví dụ [chunk_id]. Đảm bảo MỌI câu trong phần thân thư đều có ít nhất một mã [chunk_id] để tỷ lệ trích dẫn luôn đạt trên 60%.
 3. KHÔNG được cam kết thay mặt DSA, không hứa hẹn phê duyệt ngoại lệ.
 4. KHÔNG nhắc tới hoặc khẳng định thông tin hồ sơ cá nhân của sinh viên.
 5. Phản hồi đúng ngôn ngữ của sinh viên (tiếng Việt hoặc tiếng Anh).
 6. Trả lời đầy đủ các yêu cầu đã chuẩn hóa, không tự suy diễn thêm yêu cầu mới.
+8. TUYỆT ĐỐI KHÔNG lặp lại các con số, ngày tháng từ câu hỏi của sinh viên nếu số đó không xuất hiện trong tài liệu quy định đã cung cấp. Mọi con số trong thư trả lời BẮT BUỘC chỉ được trích xuất từ tài liệu quy định.
 7. Định dạng đầu ra là JSON hợp lệ:
 {
   "subject": "Re: <tiêu đề email>",
@@ -183,6 +184,23 @@ def generate_reply(
             raw_cits = res.data.get("citations", citations)
             # Chuẩn hóa citations
             valid_cits = [str(c) for c in raw_cits if str(c) in citations] or citations
+
+            if lang == "en":
+                if not body.strip().startswith("Dear student,"):
+                    if body.strip().lower().startswith("dear student,"):
+                        body = "Dear student," + body.strip()[len("dear student,"):]
+                    elif body.strip().lower().startswith("dear "):
+                        body = re.sub(r"^dear\s+[^,]+,", "Dear student,", body, flags=re.IGNORECASE)
+                    else:
+                        body = f"Dear student,\n\n{body}"
+            else:
+                if not body.strip().startswith("Chào em,"):
+                    if body.strip().lower().startswith("chào em,"):
+                        body = "Chào em," + body.strip()[len("chào em,"):]
+                    elif body.strip().lower().startswith("chào "):
+                        body = re.sub(r"^chào\s+[^,]+,", "Chào em,", body, flags=re.IGNORECASE)
+                    else:
+                        body = f"Chào em,\n\n{body}"
 
             return DraftReply(
                 subject=subj,

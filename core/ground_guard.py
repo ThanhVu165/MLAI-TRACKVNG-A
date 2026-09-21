@@ -41,13 +41,15 @@ def _is_chunk_active(chunk_id: str) -> bool:
 
 def _clean_body_for_sentence_counting(body: str) -> list[str]:
     """Tách body thành danh sách các câu có nghĩa để tính tỷ lệ citation."""
-    # Loại bỏ các dòng chào hỏi và chữ ký thông thường
     skip_phrases = [
         "chào em",
+        "chào sinh viên",
+        "chào bạn",
         "kính gửi",
         "thân chào",
         "dear",
         "hello",
+        "hi",
         "cảm ơn em",
         "thank you",
         "chúc em",
@@ -63,14 +65,27 @@ def _clean_body_for_sentence_counting(body: str) -> list[str]:
     content_lines: list[str] = []
 
     for line in lines:
-        line_lower = line.lower()
+        line_lower = line.lower().strip(",.")
         if any(line_lower.startswith(p) or line_lower == p for p in skip_phrases):
             continue
         content_lines.append(line)
 
     full_content = " ".join(content_lines)
-    # Tách câu theo dấu chấm, chấm than, chấm hỏi hoặc ngắt đoạn
-    raw_sentences = re.split(r"[.!?]+", full_content)
+    full_content = re.sub(
+        r"^(?:chào [^,.\n]+|kính gửi [^,.\n]+|thân chào [^,.\n]+|dear [^,.\n]+|hello [^,.\n]+)[,.\n]*",
+        "",
+        full_content,
+        flags=re.IGNORECASE,
+    ).strip()
+    full_content = re.sub(
+        r"(?:trân trọng|thân ái|sincerely|regards|best regards)[\s\S]*$",
+        "",
+        full_content,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    # Tách câu theo dấu chấm, chấm than, chấm hỏi (không tách dấu chấm trong số như 50.000)
+    raw_sentences = re.split(r"(?<!\d)[.!?]+(?!\d)", full_content)
     sentences = [s.strip() for s in raw_sentences if len(s.strip().split()) >= 3]
     return sentences
 
@@ -121,11 +136,12 @@ def validate_groundedness(
 
     for num in body_numbers:
         if num not in evidence_numbers:
-            # Kiểm tra xem có phải dạng chuẩn hóa khác (ví dụ: 50.000 vs 50000)
+            # Kiểm tra xem có phải dạng chuẩn hóa khác (ví dụ: 50.000 vs 50000) hoặc số trong ngày tháng
             clean_num = num.replace(".", "").replace(",", "")
             clean_evidence_numbers = {
                 en.replace(".", "").replace(",", "") for en in evidence_numbers
             }
+            clean_evidence_numbers.update(re.findall(r"\b\d+\b", evidence_combined_text))
             if clean_num not in clean_evidence_numbers:
                 failed_reasons.append(f"groundedness_failed:hallucinated_number_{num}")
                 break

@@ -114,7 +114,11 @@ def validate_evidence(
     # -----------------------------------------------------------------------
     # Kiểm tra 6: Scope khớp (applies_to / cohorts) hoặc không cần
     # -----------------------------------------------------------------------
-    user_cohort = extraction.critical_facts.get("cohort")
+    user_cohort = (
+        extraction.critical_facts.get("cohort")
+        or extraction.critical_facts.get("student_cohort")
+        or extraction.critical_facts.get("khoa")
+    )
     user_applies_to = extraction.critical_facts.get("applies_to")
     scope_failed = any(
         (

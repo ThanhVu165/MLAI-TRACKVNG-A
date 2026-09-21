@@ -68,5 +68,6 @@
 - `[H+105][Agent A] xong A-37 · prompt sinh thư nhận đủ domain/intent chuẩn hóa, che PII trong tiêu đề và không truyền body hoặc sender thô.`
 - `[H+106][Agent A] xong A-38 · khai báo đúng PipelineResult tùy chọn trong rerun_case; mypy toàn core 17 file xanh.`
 - `[H+107][Agent A] xong A-39 · lần tái tạo thẻ nhận danh sách vi phạm Question Guard nên prompt/cache khác và có chỉ dẫn sửa cụ thể.`
+- `[H+108][Agent A/C] tích hợp live Gemini API với multi-model resilient fallback (gemini-3.5-flash-lite / gemini-3.6-flash), chuẩn hóa trích xuất dữ kiện & văn phong phản hồi DSA, cách ly an toàn API Key trong .env; 190/190 pytest test passed, 100% Verify Harness (verify4, escalation5, full15) passed.`
 
 

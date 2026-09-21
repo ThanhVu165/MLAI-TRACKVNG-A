@@ -93,31 +93,49 @@ def _request_live(
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError("Thiếu GEMINI_API_KEY")
-    url = (
-        f"https://generativelanguage.googleapis.com/v1beta/models/{quote(model)}:generateContent"
-        f"?key={quote(api_key)}"
+
+    models_to_try = [model]
+    fallback_model = (
+        "gemini-3.5-flash-lite" if model != "gemini-3.5-flash-lite" else "gemini-3.6-flash"
     )
-    body = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0,
-            "responseMimeType": "application/json",
-            "responseJsonSchema": schema,
-        },
-    }
-    request = Request(
-        url,
-        data=json.dumps(body).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urlopen(request, timeout=timeout_s) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-    text = payload["candidates"][0]["content"]["parts"][0]["text"]
-    data = json.loads(text)
-    if not isinstance(data, dict):
-        raise TypeError("Gemini không trả JSON object")
-    return cast(dict[str, Any], data)
+    if fallback_model not in models_to_try:
+        models_to_try.append(fallback_model)
+
+    last_error: Exception | None = None
+    for current_model in models_to_try:
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/{quote(current_model)}:generateContent"
+            f"?key={quote(api_key)}"
+        )
+        body = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0,
+                "responseMimeType": "application/json",
+                "responseJsonSchema": schema,
+            },
+        }
+        request = Request(
+            url,
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=timeout_s) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            text = payload["candidates"][0]["content"]["parts"][0]["text"]
+            data = json.loads(text)
+            if not isinstance(data, dict):
+                raise TypeError("Gemini không trả JSON object")
+            return cast(dict[str, Any], data)
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+            continue
+
+    if last_error:
+        raise last_error
+    raise RuntimeError("Không thể gọi Gemini API")
 
 
 def _matches_schema(data: dict[str, Any], schema: Mapping[str, object]) -> bool:
@@ -139,8 +157,8 @@ def call_json(
     del temperature  # Mọi quyết định dùng nhiệt độ 0 theo contract.
     started = time.perf_counter()
     prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    mode = os.getenv("LLM_MODE", "replay").lower()
+    model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    mode = os.getenv("LLM_MODE", "replay").strip().lower()
     error: str | None = None
 
     try:
@@ -156,6 +174,7 @@ def call_json(
                     error = str(exc)
                     if attempt == retries:
                         raise
+                    time.sleep(1.5)
         elif data is None:
             raise ValueError(f"LLM_MODE không hợp lệ: {mode}")
 
