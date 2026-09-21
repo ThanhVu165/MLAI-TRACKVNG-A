@@ -107,16 +107,15 @@ def test_cheap_guards():
     assert dec == Decision.INVALID_INPUT
     assert reason is not None
 
-    # 2. Dưới 15 từ và không có từ hỏi / dấu ?
-    dec, esc, reason = evaluate_cheap_guards(
-        "Xin chào thầy cô em là sinh viên của trường đại học", "vi"
-    )
+    # 2. Nội dung chỉ có ký hiệu vẫn là input rác
+    dec, esc, reason = evaluate_cheap_guards("...", "vi")
     assert dec == Decision.INVALID_INPUT
     assert reason is not None
 
-    # 3. Dưới 15 từ nhưng CÓ dấu ? -> Không bị chặn
-    dec, esc, reason = evaluate_cheap_guards("Khi nào hết hạn rút môn ạ?", "vi")
-    assert dec is None
+    # 3. Câu hỏi hoặc yêu cầu ngắn đều được xử lý tiếp
+    for text in ("Hạn rút môn?", "Xin rút môn sau hạn"):
+        dec, esc, reason = evaluate_cheap_guards(text, "vi")
+        assert (dec, esc, reason) == (None, None, None)
 
     # 4. Ngôn ngữ ngoài vi/en (other) -> ESCALATE OUT_OF_POLICY
     dec, esc, reason = evaluate_cheap_guards("こんにちは、質問があります", "other")

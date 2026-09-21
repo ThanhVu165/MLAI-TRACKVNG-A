@@ -129,47 +129,6 @@ ENGLISH_WORDS = {
     "dsa",
 }
 
-QUESTION_WORDS_VI = {
-    "ai",
-    "gì",
-    "gi",
-    "nào",
-    "nao",
-    "sao",
-    "đâu",
-    "dau",
-    "bao giờ",
-    "bao gio",
-    "khi nào",
-    "khi nao",
-    "thế nào",
-    "the nao",
-    "làm sao",
-    "lam sao",
-    "hỏi",
-    "hoi",
-    "xin hỏi",
-    "xin hoi",
-    "bao nhiêu",
-    "bao nhieu",
-    "được không",
-    "duoc khong",
-}
-
-QUESTION_WORDS_EN = {
-    "what",
-    "when",
-    "where",
-    "how",
-    "why",
-    "who",
-    "which",
-    "could",
-    "can",
-    "would",
-}
-
-
 class SanitizeResult(NamedTuple):
     body_raw: str
     body_clean: str
@@ -346,18 +305,18 @@ def sanitize_input(body_raw: str) -> SanitizeResult:
 def evaluate_cheap_guards(
     body_clean: str, language: str
 ) -> tuple[Decision | None, EscalationType | None, str | None]:
-    """Cài đặt 3 chốt chặn rẻ ở R1 (Mục 8.1 spec). Không gọi LLM.
+    """Cài đặt các chốt chặn rẻ ở R1 (Mục 8.1 spec). Không gọi LLM.
 
     1. Body rỗng -> INVALID_INPUT
-    2. < 15 từ và không có dấu '?' hoặc từ để hỏi -> INVALID_INPUT
+    2. Body chỉ có ký hiệu -> INVALID_INPUT
     3. Ngôn ngữ ngoài vi/en -> ESCALATE / OUT_OF_POLICY
     """
     stripped = body_clean.strip()
-    if not stripped:
+    if not stripped or not any(char.isalnum() for char in stripped):
         return (
             Decision.INVALID_INPUT,
             None,
-            "Nội dung email rỗng. Vui lòng cung cấp nội dung cần hỗ trợ.",
+            "Nội dung email rỗng hoặc không có thông tin. Vui lòng nêu câu hỏi hoặc yêu cầu cần hỗ trợ.",
         )
 
     # Ngôn ngữ ngoài vi/en
@@ -367,18 +326,5 @@ def evaluate_cheap_guards(
             EscalationType.OUT_OF_POLICY,
             f"Ngôn ngữ '{language}' nằm ngoài phạm vi hỗ trợ tự động (chỉ hỗ trợ Tiếng Việt và Tiếng Anh).",
         )
-
-    words = stripped.split()
-    if len(words) < 15:
-        has_question_mark = "?" in stripped
-        lower = stripped.lower()
-        has_vi_q = any(qw in lower for qw in QUESTION_WORDS_VI)
-        has_en_q = any(qw in lower for qw in QUESTION_WORDS_EN)
-        if not (has_question_mark or has_vi_q or has_en_q):
-            return (
-                Decision.INVALID_INPUT,
-                None,
-                "Email quá ngắn (dưới 15 từ) và không chứa câu hỏi rõ ràng. Vui lòng nêu rõ nội dung cần giải đáp.",
-            )
 
     return None, None, None

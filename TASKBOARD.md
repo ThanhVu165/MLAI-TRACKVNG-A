@@ -277,8 +277,8 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Xong khi:** Mỗi dòng case có một câu ghi rõ căn cứ: *"E05 → AUTHORITY_REQUIRED vì Điều 12 QĐ phân cấp quy định Trưởng phòng quyết các trường hợp miễn điều kiện."* (Đã rà soát và chuẩn hóa F15 về P02 / OUT_OF_POLICY theo đúng Mục 8.3 & 9.2 của spec).
 - **Tiêu chí:** 2 · 7 · chống gian lận Verify
 
-### A-29 · Cho phép truy vấn ngắn có ý nghĩa [WIP]
-- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 1h · **Phụ thuộc:** A-07 · **Trạng thái:** `WIP`
+### A-29 · Cho phép truy vấn ngắn có ý nghĩa [DONE]
+- **Khối:** Cập nhật sau Sprint 1 · **Ước lượng:** 1h · **Phụ thuộc:** A-07 · **Trạng thái:** `DONE`
 - **File:** `core/sanitize.py`, `tests/test_sanitize_guards.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Bỏ chốt độ dài dưới 15 từ; chỉ từ chối nội dung rỗng hoặc chỉ gồm ký hiệu không mang nghĩa. Câu hỏi và yêu cầu ngắn vẫn phải đi qua pipeline bình thường.
 - **Xong khi:** Các đầu vào `"Hạn rút môn?"`, `"Xin rút môn sau hạn"` không bị trả `INVALID_INPUT`; đầu vào rỗng và `"..."` vẫn bị chặn.
