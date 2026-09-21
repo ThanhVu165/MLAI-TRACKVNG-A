@@ -5,8 +5,10 @@ from pathlib import Path
 
 import yaml
 
+from core.generate import build_evidence_reply
 from core.types import (
     CaseInput,
+    ChunkLabel,
     DraftReply,
     EscalationCard,
     EscalationType,
@@ -18,6 +20,26 @@ logger = logging.getLogger(__name__)
 
 REVIEW_SUGGESTION_LIMIT = 3
 REVIEW_QUOTE_CHARS = 180
+
+
+def _build_partial_draft(
+    extraction: Extraction,
+    evidence_res: EvidenceResult,
+    inp: CaseInput | None,
+) -> DraftReply | None:
+    has_information = any(request.is_informational for request in extraction.requests)
+    has_authority = any(
+        request.asks_exception or request.asks_appeal or request.asks_authority_decision
+        for request in extraction.requests
+    )
+    if inp is None or not (len(extraction.requests) >= 2 and has_information and has_authority):
+        return None
+    chunks = [
+        chunk
+        for chunk in evidence_res.chunks
+        if chunk.label == ChunkLabel.AUTO_ANSWERABLE and not chunk.conflict_flag
+    ]
+    return build_evidence_reply(chunks, inp, extraction.language) if chunks else None
 
 
 def build_reviewer_suggestions(evidence_res: EvidenceResult) -> list[tuple[str, str]]:
@@ -157,23 +179,19 @@ def _build_deterministic_card(
     # Khối [1] & [4]: Tóm tắt và Câu hỏi đóng
     # -----------------------------------------------------------------------
     # Kiểm tra email đa ý định: 1 phần thường quy + 1 phần vượt quyền (Mục 8.2 spec)
-    has_info = any(r.is_informational for r in extraction.requests)
-    has_auth = any(
-        r.asks_exception or r.asks_appeal or r.asks_authority_decision for r in extraction.requests
+    partial_draft = _build_partial_draft(extraction, evidence_res, inp)
+    is_multi_intent = (
+        len(extraction.requests) >= 2
+        and any(request.is_informational for request in extraction.requests)
+        and any(
+            request.asks_exception or request.asks_appeal or request.asks_authority_decision
+            for request in extraction.requests
+        )
     )
-    is_multi_intent = len(extraction.requests) >= 2 and has_info and has_auth
-
-    partial_draft: DraftReply | None = None
-    if is_multi_intent:
+    if partial_draft:
         summary = "Phần A đã soạn sẵn, phần B cần anh/chị quyết: sinh viên vừa hỏi thông tin vừa xin ngoại lệ."
-        if inp:
-            partial_draft = DraftReply(
-                subject=f"Re: {inp.subject}",
-                body="Chào em,\n\nVề nội dung hỏi thông tin thời hạn, DSA xin thông tin đến em theo quy định.\n\nTrân trọng,\nDSA",
-                citations=[c.chunk_id for c in evidence_res.chunks],
-                grounded=True,
-                guard_failures=[],
-            )
+    elif is_multi_intent:
+        summary = "Email có nhiều ý; phần thông tin chưa đủ căn cứ, phần còn lại cần anh/chị quyết."
     elif escalation_type == EscalationType.AUTHORITY_REQUIRED:
         summary = "Yêu cầu cần chuyên viên xem xét và ra quyết định phê duyệt."
     elif escalation_type == EscalationType.OUT_OF_POLICY:
@@ -267,7 +285,7 @@ def generate_escalation_card(
                 question=question,
                 options=build_review_options(extraction, evidence_res, escalation_type),
                 escalation_type=escalation_type,
-                partial_draft=None,
+                partial_draft=_build_partial_draft(extraction, evidence_res, inp),
             )
     except ImportError:
         logger.debug("infra.llm chưa cấu hình — sử dụng deterministic escalation card")

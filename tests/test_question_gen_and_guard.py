@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import date, datetime, timezone
+from unittest.mock import patch
 
+from core.ground_guard import validate_groundedness
 from core.question_gen import (
     build_reviewer_suggestions,
     generate_escalation_card,
@@ -107,6 +109,36 @@ def test_generate_escalation_card_multi_intent() -> None:
     assert "Phần A đã soạn sẵn, phần B cần anh/chị quyết" in card.summary
     assert card.partial_draft is not None
     assert len(card.partial_draft.citations) > 0
+    assert "Thời hạn rút học phần được giải quyết" in card.partial_draft.body
+    assert card.partial_draft.body != (
+        "Chào em,\n\nVề nội dung hỏi thông tin thời hạn, DSA xin thông tin đến em theo quy định.\n\nTrân trọng,\nDSA"
+    )
+
+    with patch("core.ground_guard._is_chunk_active", return_value=True):
+        passed, failures = validate_groundedness(card.partial_draft, ev)
+    assert passed is True
+    assert failures == []
+
+
+def test_multi_intent_without_answerable_evidence_has_no_fake_partial_draft() -> None:
+    ext = _make_extraction(asks_exception=True, multi_intent=True)
+    evidence = EvidenceResult(
+        status=EvidenceStatus.NO_AUTHORITATIVE_SOURCE,
+        chunks=[],
+        failed_checks=["check_1_similarity_threshold"],
+    )
+    inp = CaseInput(
+        sender="sv@school.edu.vn",
+        subject="Hỏi thời hạn và xin rút môn",
+        body="...",
+        received_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        channel="paste",
+    )
+
+    card = generate_escalation_card(ext, evidence, EscalationType.AUTHORITY_REQUIRED, inp=inp)
+
+    assert card.partial_draft is None
+    assert "đã soạn sẵn" not in card.summary
 
 
 def test_question_guard_passes_clean_card() -> None:

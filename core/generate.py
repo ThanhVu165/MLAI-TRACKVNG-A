@@ -46,7 +46,7 @@ def _failed_reply(inp: CaseInput, error: str) -> DraftReply:
     )
 
 
-def _generate_heuristic_reply(
+def build_evidence_reply(
     evidence_chunks: list[EvidenceChunk],
     inp: CaseInput,
     language: str = "vi",
@@ -133,7 +133,7 @@ def generate_reply(
         from infra.llm import call_json  # type: ignore[import-not-found]
     except ImportError as exc:
         if _replay_mode():
-            return _generate_heuristic_reply(answerable_chunks, inp, language=lang)
+            return build_evidence_reply(answerable_chunks, inp, language=lang)
         return _failed_reply(inp, f"Không tải được infra.llm: {exc}")
 
     try:
@@ -182,7 +182,7 @@ def generate_reply(
                 guard_failures=[],
             )
         if res.error and _replay_mode() and "No such file or directory" in res.error:
-            return _generate_heuristic_reply(answerable_chunks, inp, language=lang)
+            return build_evidence_reply(answerable_chunks, inp, language=lang)
         return _failed_reply(inp, res.error or "LLM generation failed")
 
     except Exception as exc:  # noqa: BLE001

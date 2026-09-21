@@ -313,9 +313,9 @@ Thứ tự khuyến nghị: A-01 → A-02..A-07 (R1) → A-08..A-10 → A-11..A-
 - **Việc phải làm:** Nhận diện nhiều domain trong một email và kiểm tra `applies_to` khi sinh viên nêu đối tượng áp dụng; thiếu hoặc lệch scope phải chuyển người thay vì áp dụng quy định đại học.
 - **Xong khi:** Email ghép hai domain giữ hai request; câu hỏi cao học không dùng chunk chỉ áp dụng undergraduate.
 
-### A-35 · Bỏ partial draft placeholder [WIP]
-- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-24, A-32 · **Trạng thái:** `WIP`
-- **File:** `core/question_gen.py`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
+### A-35 · Bỏ partial draft placeholder [DONE]
+- **Khối:** Ổn định sau audit · **Ước lượng:** 1h · **Phụ thuộc:** A-24, A-32 · **Trạng thái:** `DONE`
+- **File:** `core/generate.py`, `core/question_gen.py`, `tests/test_question_gen_and_guard.py`, `PROJECT_SPEC.md`
 - **Việc phải làm:** Phần thường quy của email đa ý định phải được dựng từ evidence thật kèm citation; không đánh dấu grounded cho câu placeholder.
 - **Xong khi:** Partial draft chứa trích đoạn căn cứ tương ứng, citation thật và vượt Ground Guard.
 
